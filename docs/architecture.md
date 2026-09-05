@@ -89,22 +89,31 @@ second one.
 ## Truss stations
 
 `Truss2DGenerator` places nodes at shared *stations* — normalised arc-length
-positions from 0 to 1 along each chord. Three sources feed the list, which is
-then merged and de-duplicated:
+positions from 0 to 1 along each chord. Both chords are evaluated at the *same*
+station list, so a vertex on either chord induces a node on both, and top node
+`i` always pairs with bottom node `i` — which is what reduces every web pattern
+to index arithmetic over panel count.
 
-1. The geometry itself: polyline vertices, or tangent discontinuities on a
-   smooth curve.
-2. An optional target spacing, which divides the longer chord evenly.
-3. Any additional points the user picked, pulled onto whichever chord is nearer.
+There are two ways the list gets built, and the distinction is the important
+part of the design:
 
-Both chords are evaluated at the *same* station list. Two consequences worth
-knowing: a vertex on either chord induces a node on both, and top node `i`
-always pairs with bottom node `i`, which is what reduces every web pattern to
-index arithmetic over panel count.
+**Divisions drive, snap points steer.** With `Divisions` (or `SnapSpacing`) set,
+the panel count is fixed up front and stations are laid out evenly, then pulled
+onto nearby snap points. Member count is exactly what was asked for; the snap
+points move members but never add them. Reach is half a panel — far enough to
+catch a nearby vertex, never far enough for two stations to swap places or
+collapse together. Assignment is greedy, nearest pair first, with both sides
+claimed exclusively, because otherwise two stations converge on one popular
+point and the panels either side degenerate.
 
-A plain line contributes no stations of its own, so two lines with no spacing
-give a single panel. That is deliberate — the alternative is inventing a panel
-count the user did not ask for.
+**Geometry drives.** With neither set, the snap points *are* the stations:
+polyline vertices, curve kinks and picked points each become a node. A plain
+line contributes none, so two lines give a single panel. That is deliberate —
+the alternative is inventing a panel count the user did not ask for.
+
+Where the chords converge to a shared point, `ChordsMeetAtStart` /
+`ChordsMeetAtEnd` suppress that end post. It would otherwise collapse onto the
+shared point and clash with the chords running into it.
 
 ## Where BHoM-style layering fits, and where it does not
 

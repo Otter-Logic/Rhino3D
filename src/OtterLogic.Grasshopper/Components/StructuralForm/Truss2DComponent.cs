@@ -44,14 +44,22 @@ public sealed class Truss2DComponent : GH_Component
         pManager.AddBooleanParameter("End Posts", "E",
             "Close the truss with a post at each end.", GH_ParamAccess.item, true);
 
+        pManager.AddIntegerParameter("Divisions", "D",
+            "Number of panels to lay out evenly before snapping. This sets how many verticals "
+            + "and diagonals there are; snap points then move those members rather than adding "
+            + "to them. Zero hands control to the geometry, where every detected point becomes "
+            + "a node in its own right.",
+            GH_ParamAccess.item, 0);
+
         pManager.AddPointParameter("Snap Points", "P",
-            "Extra points to force a node at. Each is pulled onto whichever chord is nearer.",
+            "Extra points to snap to, on top of the polyline vertices and curve kinks already "
+            + "detected. Each is pulled onto whichever chord is nearer.",
             GH_ParamAccess.list);
-        pManager[4].Optional = true;
+        pManager[5].Optional = true;
 
         pManager.AddNumberParameter("Snap Spacing", "S",
-            "Target panel spacing in model units. Zero takes nodes from the geometry alone, "
-            + "which on a plain line leaves a single panel.",
+            "Target panel spacing in model units — another way to say Divisions when you care "
+            + "about panel length rather than count. Divisions wins if both are set.",
             GH_ParamAccess.item, 0.0);
 
         // Right-click the input for a readable menu instead of raw integers.
@@ -75,6 +83,7 @@ public sealed class Truss2DComponent : GH_Component
         Curve? bottom = null;
         int type = (int)TrussType.Warren;
         bool endPosts = true;
+        int divisions = 0;
         var snapPoints = new List<GH_Point>();
         double spacing = 0.0;
 
@@ -82,8 +91,9 @@ public sealed class Truss2DComponent : GH_Component
         if (!da.GetData(1, ref bottom)) return;
         if (!da.GetData(2, ref type)) return;
         if (!da.GetData(3, ref endPosts)) return;
-        da.GetDataList(4, snapPoints);
-        if (!da.GetData(5, ref spacing)) return;
+        if (!da.GetData(4, ref divisions)) return;
+        da.GetDataList(5, snapPoints);
+        if (!da.GetData(6, ref spacing)) return;
 
         if (top is null || !top.IsValid || bottom is null || !bottom.IsValid)
         {
@@ -98,6 +108,12 @@ public sealed class Truss2DComponent : GH_Component
             return;
         }
 
+        if (divisions < 0)
+        {
+            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Divisions cannot be negative.");
+            return;
+        }
+
         if (spacing < 0.0)
         {
             AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Snap Spacing cannot be negative.");
@@ -108,6 +124,7 @@ public sealed class Truss2DComponent : GH_Component
         {
             Type = (TrussType)type,
             GenerateEndPosts = endPosts,
+            Divisions = divisions,
             AdditionalSnapPoints = snapPoints.Select(p => p.Value).ToArray(),
             SnapSpacing = spacing,
             SnapTolerance = RhinoDoc.ActiveDoc?.ModelAbsoluteTolerance ?? 0.01,
@@ -120,6 +137,12 @@ public sealed class Truss2DComponent : GH_Component
             if (!truss.IsPlanar)
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
                     "The two chords are not coplanar, so this truss is warped.");
+
+            if (endPosts && (truss.ChordsMeetAtStart || truss.ChordsMeetAtEnd))
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
+                    truss.ChordsMeetAtStart && truss.ChordsMeetAtEnd
+                        ? "The chords meet at both ends, so no end posts were generated."
+                        : "The chords meet at one end, so only one end post was generated.");
 
             da.SetDataList(0, truss.TopChord);
             da.SetDataList(1, truss.BottomChord);

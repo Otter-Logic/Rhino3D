@@ -15,8 +15,9 @@ namespace OtterLogic.Rhino.Commands;
 /// <para>
 /// The Rhino counterpart to the Truss 2D Grasshopper component. Identical
 /// engine — <see cref="Truss2DGenerator.Generate"/> — presented as a walkthrough
-/// rather than a node: pick the chords, answer four questions, then adjust the
-/// result against a live preview before anything is added to the document.
+/// rather than a node: pick the two chords, answer the setup questions in turn,
+/// then adjust the result against a live preview before anything is added to the
+/// document.
 /// </para>
 /// </summary>
 public sealed class OtterTruss2DCommand : Command
@@ -24,6 +25,7 @@ public sealed class OtterTruss2DCommand : Command
     // Remembered between runs within a session, as Rhino commands normally do.
     private static TrussType _type = TrussType.Warren;
     private static bool _endPosts = true;
+    private static int _divisions;
     private static double _spacing;
 
     public OtterTruss2DCommand() => Instance = this;
@@ -35,10 +37,10 @@ public sealed class OtterTruss2DCommand : Command
     protected override Result RunCommand(RhinoDoc doc, RunMode mode)
     {
         // Step 1 and 2: the two chords.
-        Result step = SelectCurve("Select the top chord", out Curve top);
+        Result step = SelectCurve(doc, "Select the top chord", out Curve top);
         if (step != Result.Success) return step;
 
-        step = SelectCurve("Select the bottom chord", out Curve bottom);
+        step = SelectCurve(doc, "Select the bottom chord", out Curve bottom);
         if (step != Result.Success) return step;
 
         // Step 3: bracing pattern.
@@ -51,31 +53,47 @@ public sealed class OtterTruss2DCommand : Command
         if (step != Result.Success) return step;
         _endPosts = endPosts;
 
-        // Step 5: additional snap points.
+        // Step 5: how many panels, before anything snaps.
+        int divisions = _divisions;
+        step = RhinoGet.GetInteger(
+            "Number of divisions (0 to take nodes from the chords themselves)",
+            true, ref divisions, 0, 10000);
+        if (step != Result.Success) return step;
+        _divisions = divisions;
+
+        // Step 6: additional snap points.
         step = SelectSnapPoints(out Point3d[] snapPoints);
         if (step != Result.Success) return step;
 
-        // Step 6: panel spacing.
+        // Step 7: panel spacing, for when you would rather set a length than a count.
         double spacing = _spacing;
         step = RhinoGet.GetNumber(
-            "Panel spacing (0 to use only the points already on the chords)",
+            "Panel spacing (0 to leave it to the divisions)",
             true, ref spacing, 0.0, 1e9);
         if (step != Result.Success) return step;
         _spacing = spacing;
 
-        // Step 7: preview, adjust, accept.
+        // Step 8: preview, adjust, accept.
         return PreviewAndCommit(doc, top, bottom, snapPoints);
     }
 
-    private static Result SelectCurve(string prompt, out Curve curve)
+    private static Result SelectCurve(RhinoDoc doc, string prompt, out Curve curve)
     {
         curve = null!;
+
+        // GetObject honours the current selection by default, so without this the
+        // second call would silently return the curve just picked instead of
+        // prompting for another one. Clearing the selection as well keeps the
+        // walkthrough readable: exactly one thing is highlighted at a time.
+        doc.Objects.UnselectAll();
+        doc.Views.Redraw();
 
         using var picker = new GetObject();
         picker.SetCommandPrompt(prompt);
         picker.GeometryFilter = ObjectType.Curve;
         picker.SubObjectSelect = false;
-        picker.DeselectAllBeforePostSelect = false;
+        picker.EnablePreSelect(false, true);
+        picker.DeselectAllBeforePostSelect = true;
         picker.Get();
 
         if (picker.CommandResult() != Result.Success)
@@ -174,6 +192,7 @@ public sealed class OtterTruss2DCommand : Command
                     {
                         Type = _type,
                         GenerateEndPosts = _endPosts,
+                        Divisions = _divisions,
                         AdditionalSnapPoints = snapPoints,
                         SnapSpacing = _spacing,
                         SnapTolerance = doc.ModelAbsoluteTolerance,
@@ -191,12 +210,19 @@ public sealed class OtterTruss2DCommand : Command
                 if (!truss.IsPlanar)
                     RhinoApp.WriteLine("OtterTruss2D: the chords are not coplanar, so this truss is warped.");
 
+                if (_endPosts && (truss.ChordsMeetAtStart || truss.ChordsMeetAtEnd))
+                    RhinoApp.WriteLine(
+                        truss.ChordsMeetAtStart && truss.ChordsMeetAtEnd
+                            ? "OtterTruss2D: the chords meet at both ends, so no end posts were generated."
+                            : "OtterTruss2D: the chords meet at one end, so only one end post was generated.");
+
                 using var getter = new GetOption();
                 getter.SetCommandPrompt(
                     $"{_type}, {truss.PanelCount} panels, {truss.Members.Count} members — accept?");
 
                 int accept = getter.AddOption("Accept");
                 int changeType = getter.AddOption("Type");
+                int changeDivisions = getter.AddOption("Divisions");
                 int changeSpacing = getter.AddOption("Spacing");
                 int changeEnds = getter.AddOption("EndPosts");
                 getter.AcceptNothing(true);   // Enter accepts
@@ -217,6 +243,12 @@ public sealed class OtterTruss2DCommand : Command
                 if (chosen == changeType)
                 {
                     SelectTrussType(ref _type);
+                }
+                else if (chosen == changeDivisions)
+                {
+                    int divisions = _divisions;
+                    if (RhinoGet.GetInteger("Number of divisions", true, ref divisions, 0, 10000) == Result.Success)
+                        _divisions = divisions;
                 }
                 else if (chosen == changeSpacing)
                 {
