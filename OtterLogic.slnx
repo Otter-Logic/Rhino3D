@@ -1,19 +1,12 @@
 <Solution>
   <!--
     Adaptor -> Domain -> Core, never backwards, and domains never reference
-    each other. A domain needing another domain means something belongs in Core.
+    each other. Core and the domains live in their own repositories; clone them
+    as siblings of this one and the project references resolve against your
+    working copies.
   -->
   <Folder Name="/src/">
-    <Project Path="src/OtterLogic.Core/OtterLogic.Core.csproj" />
-  </Folder>
-  <Folder Name="/src/domains/">
-    <Project Path="src/OtterLogic.StructuralForm/OtterLogic.StructuralForm.csproj" />
-  </Folder>
-  <Folder Name="/src/adaptor/">
     <Project Path="src/OtterLogic.Rhino/OtterLogic.Rhino.csproj" />
     <Project Path="src/OtterLogic.Grasshopper/OtterLogic.Grasshopper.csproj" />
-  </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/OtterLogic.StructuralForm.Tests/OtterLogic.StructuralForm.Tests.csproj" />
   </Folder>
 </Solution>

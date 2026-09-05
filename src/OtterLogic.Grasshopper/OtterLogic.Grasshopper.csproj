@@ -19,9 +19,40 @@
   <ItemGroup>
     <!-- The Grasshopper package pulls RhinoCommon in with it. -->
     <PackageReference Include="Grasshopper" Version="$(RhinoVersion)" ExcludeAssets="runtime" />
-    <ProjectReference Include="..\OtterLogic.Core\OtterLogic.Core.csproj" />
-    <ProjectReference Include="..\OtterLogic.StructuralForm\OtterLogic.StructuralForm.csproj" />
   </ItemGroup>
+
+  <!-- A sibling checkout of Core wins; the published package is the
+       fallback. Clone the repos side by side and the inner loop is unchanged;
+       CI has no siblings, so it builds against the published package. -->
+  <Choose>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\Core\src\OtterLogic.Core\OtterLogic.Core.csproj')">
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\Core\src\OtterLogic.Core\OtterLogic.Core.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="OtterLogic.Core" Version="[$(Version)]" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
+  <!-- A sibling checkout of StructuralForm wins; the published package is the
+       fallback. Clone the repos side by side and the inner loop is unchanged;
+       CI has no siblings, so it builds against the published package. -->
+  <Choose>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\StructuralForm\src\OtterLogic.StructuralForm\OtterLogic.StructuralForm.csproj')">
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\StructuralForm\src\OtterLogic.StructuralForm\OtterLogic.StructuralForm.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="OtterLogic.StructuralForm" Version="[$(Version)]" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
 
   <ItemGroup>
     <!-- One set of masters in assets/icons, embedded into both front-ends.
