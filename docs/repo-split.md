@@ -9,17 +9,22 @@ boundaries give most of the benefit at none of the cost.
 
 ## Target
 
-All under the `Otter-Logic` organisation. Repo names carry dots to match the
-assembly names, so the mapping needs no explanation.
+All under the `Otter-Logic` organisation. Every code repo is `OtterLogic.X`
+with one purpose, matching the assembly names so the mapping needs no
+explanation.
 
 | Repo | Holds | Produces |
 |---|---|---|
-| `OtterLogic` | both adaptors, `build/`, `assets/`, `docs/` — and the front-door README | the `.yak` |
+| `OtterLogic.Rhino` | both adaptors, `build/`, `assets/`, `docs/` | the `.yak` |
 | `OtterLogic.Core` | `src/OtterLogic.Core` | NuGet package `OtterLogic.Core` |
 | `OtterLogic.StructuralForm` | domain + its tests | NuGet package `OtterLogic.StructuralForm` |
+| `.github` | `profile/README.md` only | the organisation landing page |
 
-`OtterLogic` keeps the plain name because it is what people land on, and it is
-already the URL baked into `build/manifest.yml` and the plug-in metadata.
+There is deliberately no plain `OtterLogic` repo. A meta repo holding a README,
+a manifest and a workflow would force the release pipeline to reach across
+repos for artifacts, which is the overhead dropped by merging the two adaptors
+in the first place. The organisation profile does the landing-page job instead,
+and `OtterLogic.Rhino` is where releases, issues and the manifest URL point.
 
 Rhino and Grasshopper stay together deliberately. They must ship one
 `OtterLogic.Core.dll` in one package; building them from one commit is what keeps
@@ -145,7 +150,8 @@ survives, messages and all.
    nothing and losing one later costs a rename.
 3. Carve out `StructuralForm`. Add the pin and the sibling toggle. Confirm it
    builds against the published Core with no sibling present.
-4. Reduce this repo to the adaptor: both front-ends, `build/`, `assets/`,
-   `docs/`. Add pins and toggles for both packages.
+4. Reduce this repo to the adaptor and rename it `OtterLogic.Rhino`: both
+   front-ends, `build/`, `assets/`, `docs/`. Add pins and toggles for both
+   packages.
 5. Run one full release end to end and install the resulting `.yak` from the test
    server before trusting it.

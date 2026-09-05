@@ -19,4 +19,4 @@ using System.Runtime.InteropServices;
 
 // Shown in Rhino's plug-in manager.
 [assembly: Rhino.PlugIns.PlugInDescription(Rhino.PlugIns.DescriptionType.Organization, "OtterLogic")]
-[assembly: Rhino.PlugIns.PlugInDescription(Rhino.PlugIns.DescriptionType.WebSite, "https://github.com/Otter-Logic/OtterLogic")]
+[assembly: Rhino.PlugIns.PlugInDescription(Rhino.PlugIns.DescriptionType.WebSite, "https://github.com/Otter-Logic/OtterLogic.Rhino")]
