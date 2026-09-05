@@ -1,0 +1,92 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>OtterLogic.Rhino</RootNamespace>
+    <AssemblyName>OtterLogic</AssemblyName>
+
+    <!-- A .rhp is an ordinary .NET assembly with a different extension. -->
+    <TargetExt>.rhp</TargetExt>
+
+    <UseWindowsForms>true</UseWindowsForms>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+
+    <!-- Both front-ends land in one folder next to OtterLogic.Core.dll, so a
+         single build keeps Rhino and Grasshopper in sync. -->
+    <OutputPath>$(DistDir)</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Eto is the UI toolkit here, and it ships with RhinoCommon. WindowsForms
+         stays enabled for System.Drawing, but its implicit using is dropped:
+         with both in scope, Control, Button, Font, Size and Padding are all
+         ambiguous. Files that want System.Drawing import it themselves. -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- ExcludeAssets="runtime" stops RhinoCommon.dll being copied beside the
+         plugin, which would clash with the copy Rhino has already loaded. -->
+    <PackageReference Include="RhinoCommon" Version="$(RhinoVersion)" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <!-- A sibling checkout of Core wins; the published package is the
+       fallback. Clone the repos side by side and the inner loop is unchanged;
+       CI has no siblings, so it builds against the published package. -->
+  <Choose>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\Core\src\OtterLogic.Core\OtterLogic.Core.csproj')">
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\Core\src\OtterLogic.Core\OtterLogic.Core.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="OtterLogic.Core" Version="[$(Version)]" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
+  <!-- A sibling checkout of StructuralForm wins; the published package is the
+       fallback. Clone the repos side by side and the inner loop is unchanged;
+       CI has no siblings, so it builds against the published package. -->
+  <Choose>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\StructuralForm\src\OtterLogic.StructuralForm\OtterLogic.StructuralForm.csproj')">
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\StructuralForm\src\OtterLogic.StructuralForm\OtterLogic.StructuralForm.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="OtterLogic.StructuralForm" Version="[$(Version)]" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
+
+  <ItemGroup>
+    <!-- One set of masters in assets/icons, embedded into both front-ends.
+         LogicalName is what EmbeddedIcons looks up, so it must match there. -->
+    <EmbeddedResource Include="..\..\assets\icons\otterlogic.png" LogicalName="OtterLogic.Icons.otterlogic.png" />
+    <EmbeddedResource Include="..\..\assets\icons\truss2d.png" LogicalName="OtterLogic.Icons.truss2d.png" />
+    <Compile Include="..\Shared\EmbeddedIcons.cs" Link="Shared\EmbeddedIcons.cs" />
+
+    <!-- Also a loose file in the package: manifest.yml points at it for the
+         Package Manager listing, which cannot read an embedded resource. -->
+    <None Include="..\..\assets\icons\otterlogic.png" Link="otterlogic.png" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Must land beside the .rhp with a matching base name: that is how Rhino
+         finds a plug-in toolbar. -->
+    <None Include="UI\OtterLogic.rui" Link="OtterLogic.rui" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- F5 launches Rhino with the debugger attached. -->
+  <ItemGroup>
+    <None Update="Properties\launchSettings.json" CopyToOutputDirectory="Never" />
+  </ItemGroup>
+
+</Project>
