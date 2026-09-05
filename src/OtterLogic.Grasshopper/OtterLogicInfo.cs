@@ -1,7 +1,6 @@
 using System.Drawing;
 using Grasshopper;
 using Grasshopper.Kernel;
-using OtterLogic.Shared;
 
 // Same namespace gotcha as the Rhino project: inside OtterLogic.Grasshopper a
 // bare "Grasshopper.X" binds here, not to McNeel's assembly. Import above the
@@ -49,7 +48,7 @@ public sealed class OtterLogicPriority : GH_AssemblyPriority
 /// literally what names the ribbon tab, so a typo silently creates a second one.
 /// <para>
 /// The values come from <see cref="OtterLogic.Core.Sections"/>, which the Rhino
-/// panel also reads, so the tab and the panel cannot drift apart.
+/// toolbar also reads, so the two cannot drift apart.
 /// </para>
 /// </summary>
 public static class Categories

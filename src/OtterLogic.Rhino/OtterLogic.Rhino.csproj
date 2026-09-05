@@ -19,10 +19,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Eto is the UI toolkit here, and it ships with RhinoCommon. WindowsForms
-         stays enabled for System.Drawing, but its implicit using is dropped:
-         with both in scope, Control, Button, Font, Size and Padding are all
-         ambiguous. Files that want System.Drawing import it themselves. -->
+    <!-- WindowsForms stays enabled for System.Drawing, which the conduits and
+         the command use, but its implicit usings are dropped so the names are
+         never ambiguous. The files that want them import them explicitly. -->
     <Using Remove="System.Windows.Forms" />
     <Using Remove="System.Drawing" />
   </ItemGroup>
@@ -67,14 +66,10 @@
 
 
   <ItemGroup>
-    <!-- One set of masters in assets/icons, embedded into both front-ends.
-         LogicalName is what EmbeddedIcons looks up, so it must match there. -->
-    <EmbeddedResource Include="..\..\assets\icons\otterlogic.png" LogicalName="OtterLogic.Icons.otterlogic.png" />
-    <EmbeddedResource Include="..\..\assets\icons\truss2d.png" LogicalName="OtterLogic.Icons.truss2d.png" />
-    <Compile Include="..\Shared\EmbeddedIcons.cs" Link="Shared\EmbeddedIcons.cs" />
-
-    <!-- Also a loose file in the package: manifest.yml points at it for the
-         Package Manager listing, which cannot read an embedded resource. -->
+    <!-- No embedded icons here: the toolbar carries its own as base64 inside
+         the .rui. This one is a loose file in the package, because manifest.yml
+         points at it for the Package Manager listing and that cannot read an
+         embedded resource. -->
     <None Include="..\..\assets\icons\otterlogic.png" Link="otterlogic.png" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

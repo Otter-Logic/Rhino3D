@@ -2,16 +2,18 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Reflection;
 
-namespace OtterLogic.Shared;
+namespace OtterLogic.Grasshopper;
 
 /// <summary>
-/// Loads the icons embedded in whichever adaptor assembly this is compiled into.
+/// Loads the icons embedded in the Grasshopper assembly.
 /// <para>
-/// The masters live once in <c>assets/icons</c> and are embedded by both the
-/// <c>.rhp</c> and the <c>.gha</c>. This file is linked into both projects rather
-/// than living in Core, because Core and the domains are not allowed to reference
-/// <c>System.Drawing</c> — icons are adaptor concerns. Linking the source keeps
-/// one copy of the logic without breaking that rule.
+/// The masters live once in <c>assets/icons</c>. Grasshopper needs them at
+/// runtime for component and tab icons; the Rhino side does not, because its
+/// toolbar carries its own copies as base64 inside the <c>.rui</c>.
+/// </para>
+/// <para>
+/// It lives here rather than in Core because Core and the domains are not
+/// allowed to reference <c>System.Drawing</c> — icons are an adaptor concern.
 /// </para>
 /// </summary>
 internal static class EmbeddedIcons
@@ -25,7 +27,7 @@ internal static class EmbeddedIcons
     /// The named icon, scaled to a square of <paramref name="size"/> pixels.
     /// Returns null if the resource is missing, which every caller treats as
     /// "no icon" rather than an error — a missing icon should never take a
-    /// component or a panel down with it.
+    /// component down with it.
     /// <para>
     /// The returned bitmap is owned by this cache and shared between callers.
     /// <b>Do not dispose it.</b> Disposing would leave every later caller

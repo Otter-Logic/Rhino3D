@@ -1,8 +1,5 @@
 using System.Runtime.InteropServices;
-using OtterLogic.Rhino.UI;
-using Rhino;
 using Rhino.PlugIns;
-using Rhino.UI;
 
 // Gotcha worth knowing early: inside namespace OtterLogic.Rhino, a bare
 // "Rhino.Something" binds to *this* namespace, not McNeel's. Always import the
@@ -25,32 +22,6 @@ public sealed class OtterLogicPlugIn : PlugIn
     /// <summary>The one and only instance, for commands and panels to reach.</summary>
     public static OtterLogicPlugIn? Instance { get; private set; }
 
-    // AtStartup, so the panel is registered before the user types anything.
-    // A panel registered lazily is a panel Rhino has already decided does not
-    // exist by the time it restores the last session layout.
+    // AtStartup so the toolbar is available before the user types anything.
     public override PlugInLoadTime LoadTime => PlugInLoadTime.AtStartup;
-
-    /// <summary>
-    /// Set when panel registration failed, so the reason is visible instead of
-    /// being swallowed.
-    /// </summary>
-    public static string? PanelRegistrationError { get; private set; }
-
-    protected override LoadReturnCode OnLoad(ref string errorMessage)
-    {
-        try
-        {
-            Panels.RegisterPanel(this, typeof(OtterLogicPanel), Core.Sections.Root, PanelIcon.Create());
-        }
-        catch (Exception ex)
-        {
-            // A panel that will not register is a nuisance. A plug-in that will
-            // not load because of it takes every command down with it, which is
-            // a great deal worse. Report and carry on.
-            PanelRegistrationError = ex.ToString();
-            RhinoApp.WriteLine($"OtterLogic: the panel could not be registered. {ex.Message}");
-        }
-
-        return LoadReturnCode.Success;
-    }
 }

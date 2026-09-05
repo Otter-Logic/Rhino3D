@@ -89,36 +89,25 @@ Category string is literally what names the tab, so one typo silently creates a
 second one.
 
 Those constants live in `OtterLogic.Core.Sections`, and the Grasshopper
-`Categories` class is now a thin alias over them. That is a deliberate exception
-to keeping Core algorithm-only: the section names are domain vocabulary rather
-than UI, and the Rhino panel reads the same list to build its headings. One copy
-is the only thing stopping the ribbon tab and the panel drifting apart as tools
-get added.
+`Categories` class is a thin alias over them. That is a deliberate exception to
+keeping Core algorithm-only: the section names are domain vocabulary rather than
+UI. One copy is what stops the ribbon tab and anything else reading them
+drifting apart as tools get added.
 
-## The Rhino panel
+## The Rhino side is a toolbar, and only a toolbar
 
-`OtterLogic` opens a dockable Eto panel listing every tool. Rhino identifies
-docked panels by **icon alone** — the caption is only a tooltip — so a panel
-registered without one gets a blank tab nobody can find. `PanelIcon` draws a
-small truss glyph at runtime rather than shipping a binary asset for the sake of
-32 pixels, in a mid-tone accent colour so it reads against both the light and
-dark themes.
+There was a dockable panel listing every tool with a description each. It was
+removed. A Rhino panel is where Layers and Properties live — persistent,
+document-shaped state you keep open and consult. A launcher for commands is not
+that, and putting one there competes for space against the panels that have
+earned it. The toolbar is the native idiom for starting a tool, so the plug-in
+uses that and nothing else.
 
-The contents come from `ToolCatalog`, a flat list of
-`(Section, Name, Command, Summary)` records. Adding a command to the panel is one
-line; there is no layout code to touch. Descriptions are the reason to prefer a
-panel over a toolbar — a button label alone will not tell you what a tool does
-three months from now.
+What went with it: `OtterLogicPanel`, `ToolCatalog`, `PanelIcon`, the
+`OtterLogic` command that toggled it, the panel registration in `OnLoad`, and
+the last dependency on Eto.
 
-Registration happens in `OnLoad`, and the plug-in loads `AtStartup`. Both matter:
-a panel registered lazily is one Rhino has already decided does not exist by the
-time it restores the previous session layout.
-
-Registration is wrapped in a try/catch that records the failure and returns
-`Success` anyway. A panel that will not register is a nuisance; a plug-in that
-refuses to load because of it takes every command down with it.
-
-#### The toolbar
+### The toolbar
 
 `UI/OtterLogic.rui` ships beside the `.rhp` with a matching base name, which is
 how Rhino finds a plug-in toolbar. It auto-loads from the package folder, no
@@ -153,15 +142,13 @@ Masters live once in `assets/icons` as PNGs, and every surface scales from them:
 | Surface | How it gets there |
 |---|---|
 | Grasshopper component and ribbon tab | embedded resource, scaled to 24x24 |
-| Rhino panel tab | embedded resource, converted to an `Icon` |
-| Rhino panel buttons | embedded, bridged into Eto through a PNG round-trip |
 | Rhino toolbar | base64 strips inside the `.rui` |
 | Package Manager listing | a loose copy in the package, named by `manifest.yml` |
 
-`src/Shared/EmbeddedIcons.cs` is linked into both adaptor projects rather than
-living in Core, because Core and the domains are not allowed to reference
-`System.Drawing`. Linking the source keeps one implementation without breaking
-that rule.
+`EmbeddedIcons` lives in the Grasshopper project, which is now its only
+consumer — the Rhino side needs no icons at runtime because the toolbar carries
+its own inside the `.rui`. It is not in Core because Core and the domains are
+not allowed to reference `System.Drawing`; icons are an adaptor concern.
 
 Its bitmaps are cached and shared, so **callers must not dispose them**. A
 `using` on one leaves every later caller holding a dead handle, and the failure
@@ -302,7 +289,7 @@ the RhinoCommon package at 8.19, so 8.0 resolves through NuGet's net48 fallback
 into flagging calls between our own assemblies (CA1416). Neither is actionable —
 the managed API surface is identical, and a Rhino plug-in is Windows-only by
 construction. Verified by building against 8.0 and loading the result in 8.34:
-plug-in registered, commands present, panel opens, component listed.
+plug-in registered, commands present, toolbar loaded, component listed.
 
 Raising `RhinoVersion` in `Directory.Build.props` raises the minimum Rhino your
 users need, so only do it to reach an API that genuinely is not in 8.0.
