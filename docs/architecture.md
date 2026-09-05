@@ -88,28 +88,41 @@ second one.
 
 ## Truss stations
 
-`Truss2DGenerator` places nodes at shared *stations* — normalised arc-length
-positions from 0 to 1 along each chord. Both chords are evaluated at the *same*
-station list, so a vertex on either chord induces a node on both, and top node
-`i` always pairs with bottom node `i` — which is what reduces every web pattern
-to index arithmetic over panel count.
+`Truss2DGenerator` places nodes at *stations* — normalised arc-length positions
+from 0 to 1 along a chord. Each chord carries **its own** station list, always
+the same length as the other, so top node `i` still pairs with bottom node `i`
+and every web pattern stays index arithmetic over panel count — but the two
+chords are free to put that node at different points along their own length.
 
-There are two ways the list gets built, and the distinction is the important
+There are two ways those lists get built, and the distinction is the important
 part of the design:
 
 **Divisions drive, snap points steer.** With `Divisions` (or `SnapSpacing`) set,
-the panel count is fixed up front and stations are laid out evenly, then pulled
-onto nearby snap points. Member count is exactly what was asked for; the snap
-points move members but never add them. Reach is half a panel — far enough to
-catch a nearby vertex, never far enough for two stations to swap places or
-collapse together. Assignment is greedy, nearest pair first, with both sides
-claimed exclusively, because otherwise two stations converge on one popular
-point and the panels either side degenerate.
+the panel count is fixed up front, both chords are laid out evenly, and then each
+is snapped **independently** onto its own snap points. A chord owns its vertices
+and kinks, plus the picked points lying nearer to it than to the other chord — so
+a point beside the bottom chord moves the bottom node and leaves the top one
+where it was.
+
+Member count is exactly what was asked for; snap points move members but never
+add them. Reach is half a panel — far enough to catch a nearby vertex, never far
+enough for two stations to swap places or collapse together. Assignment is
+greedy, nearest pair first, with both sides claimed exclusively, because
+otherwise two stations converge on one popular point and the panels either side
+degenerate.
+
+The snapped lists are deliberately *not* de-duplicated afterwards. Merging a
+close pair on one chord but not the other would leave the lists different lengths
+and break the pairing; the snap radius already guarantees stations stay ordered
+and apart.
 
 **Geometry drives.** With neither set, the snap points *are* the stations:
-polyline vertices, curve kinks and picked points each become a node. A plain
-line contributes none, so two lines give a single panel. That is deliberate —
-the alternative is inventing a panel count the user did not ask for.
+polyline vertices, curve kinks and picked points each become a node. Here the two
+chords must share one list — the points are what decide how many panels there
+are, so the chords have to agree on that — which means a vertex on either chord
+induces a node on both. A plain line contributes none, so two lines give a single
+panel. That is deliberate: the alternative is inventing a panel count the user
+did not ask for.
 
 Where the chords converge to a shared point, `ChordsMeetAtStart` /
 `ChordsMeetAtEnd` suppress that end post. It would otherwise collapse onto the
