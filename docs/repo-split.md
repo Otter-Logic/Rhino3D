@@ -9,11 +9,17 @@ boundaries give most of the benefit at none of the cost.
 
 ## Target
 
+All under the `Otter-Logic` organisation. Repo names carry dots to match the
+assembly names, so the mapping needs no explanation.
+
 | Repo | Holds | Produces |
 |---|---|---|
-| `OtterLogic.Core` | `src/OtterLogic.Core` | NuGet package |
-| `OtterLogic.StructuralForm` | domain + its tests | NuGet package |
-| `OtterLogic.Rhino` | both adaptors, `build/`, `assets/`, `docs/` | the `.yak` |
+| `OtterLogic` | both adaptors, `build/`, `assets/`, `docs/` — and the front-door README | the `.yak` |
+| `OtterLogic.Core` | `src/OtterLogic.Core` | NuGet package `OtterLogic.Core` |
+| `OtterLogic.StructuralForm` | domain + its tests | NuGet package `OtterLogic.StructuralForm` |
+
+`OtterLogic` keeps the plain name because it is what people land on, and it is
+already the URL baked into `build/manifest.yml` and the plug-in metadata.
 
 Rhino and Grasshopper stay together deliberately. They must ship one
 `OtterLogic.Core.dll` in one package; building them from one commit is what keeps
@@ -106,6 +112,15 @@ what makes that a visible, deliberate step rather than a surprise.
 
 ## Preserve the history
 
+Needs a tool that is not installed by default:
+
+```bash
+pip install git-filter-repo
+```
+
+`git subtree split` is built in but only handles one prefix at a time, which
+cannot carve `StructuralForm` and its tests together.
+
 Do not start empty repos. `git filter-repo` carves each one out with its file
 history intact:
 
@@ -124,7 +139,10 @@ survives, messages and all.
 
 1. Push this repo as it stands, tagged `v0.1.0-monorepo`. That is the rollback
    and the history anchor, and everything below is easier from a pushed baseline.
-2. Carve out Core. Publish `OtterLogic.Core` to nuget.org.
+2. Carve out Core. Publish `OtterLogic.Core` to nuget.org. The IDs
+   `otterlogic`, `otterlogic.core` and `otterlogic.structuralform` were free as
+   of the last check; nuget.org IDs are permanent, so claiming them early costs
+   nothing and losing one later costs a rename.
 3. Carve out `StructuralForm`. Add the pin and the sibling toggle. Confirm it
    builds against the published Core with no sibling present.
 4. Reduce this repo to the adaptor: both front-ends, `build/`, `assets/`,
