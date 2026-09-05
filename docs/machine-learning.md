@@ -85,8 +85,8 @@ gradients — not before.
 ## Generating datasets
 
 Phase 1 is the part people skip and then regret. A sweep component that writes
-one CSV row per solver run — inputs and measured outputs — is the highest-value
-thing to build after the solver itself. Put the writer in
+one CSV row per generated design — inputs and measured outputs — is the
+highest-value thing to build once there is something worth sweeping. Put the writer in
 `OtterLogic.Core/Learning` so both front-ends can drive it.
 
 Record more than you think you need. Re-running a 5,000-sample sweep because you

@@ -24,61 +24,13 @@ Using RhinoCommon types (`Point3d`, `Mesh`) inside Core rather than inventing a
 neutral geometry layer is a deliberate trade. It costs portability outside Rhino;
 it saves an entire conversion layer and every bug that lives in one.
 
-## Why solvers are objects, not functions
-
-`IRelaxationSolver` exposes `Step()`, not `Solve()`:
-
-```csharp
-public interface IRelaxationSolver
-{
-    IReadOnlyList<Point3d> Positions { get; }
-    double Residual { get; }
-    bool HasConverged { get; }
-    void Step(int iterations = 1);
-}
-```
-
-Because the two hosts want different things from the same computation:
-
-| | Grasshopper | Rhino |
-|---|---|---|
-| Drives it | `Step(1000)` inside `SolveInstance` | `Step(10)` per frame from the message loop |
-| Feedback | final mesh on the wire | `DisplayConduit`, redrawn every frame |
-| Cancellation | none needed | `RhinoApp.EscapeKeyPressed` |
-
-A `Solve()` that returns an answer would force the Rhino side to reimplement the
-loop — and the two would diverge the first time a solver gained a parameter.
-
-## Goals: data in, opinion out
-
-Relaxation uses the projective / position-based formulation. A goal never applies
-a force; asked where its particles *would like* to be, it writes a target and a
-weight. The solver takes the weighted mean per particle and integrates the move
-into a damped velocity.
-
-```csharp
-public interface IGoal
-{
-    int[] Indices { get; }
-    void Calculate(IReadOnlyList<Point3d> positions, Point3d[] targets, double[] weights);
-}
-```
-
-This is the ShapeOp/Kangaroo approach, and it buys three things: stability at
-large step sizes, stiff and soft constraints mixing without timestep tuning, and
-a plugin surface where new behaviour means one small class and nothing else.
-
-Adding a goal — planarity, collision, angle, developability — means implementing
-that interface. The solver, the Rhino command and the Grasshopper component all
-pick it up with no changes.
-
 ## Sections
 
 The Grasshopper ribbon tab is `OtterLogic`; the panels within it are
 subcategories, listed in `Categories` in `OtterLogicInfo.cs`:
 
 - **Structural Form** — trusses, frames, discrete structural layouts.
-- **Form Finding** — relaxation and equilibrium.
+- **Form Finding** — relaxation and equilibrium. Empty; to be designed.
 - **Fabrication** — unrolling, nesting, toolpaths.
 - **Learning** — dataset capture and inference.
 
@@ -212,10 +164,12 @@ UI generation — one static method becomes one Grasshopper component for free,
 across hundreds of methods and many disciplines. It is a great trade at that
 scale.
 
-It is a poor trade for iterative solvers. Dynamic relaxation is inherently
-stateful: positions, velocities, iteration count, residual, convergence. Forcing
-it into static methods means threading a large state record through every call,
-and the `Step()` design above becomes impossible to express cleanly.
+It is a poor trade for anything iterative. A relaxation or optimisation loop is
+inherently stateful — current positions, velocities, iteration count, residual,
+convergence — and forcing that into static methods means threading a large state
+record through every call. It also rules out the shape such a thing wants: a
+`Step()` the two front-ends drive differently, Grasshopper running it to
+convergence while Rhino advances it a frame at a time and draws each one.
 
 The line drawn in this repo:
 
@@ -226,7 +180,7 @@ The line drawn in this repo:
   Object-shaped.
 
 If you later want BHoM's free-component trick, add a reflection-driven component
-generator over Core's static entry points — `MeshRelaxation.CreateSolver` is
+generator over Core's static entry points — `Truss2DGenerator.Generate` is
 already shaped for it. Build that when you have thirty methods, not three.
 
 ## Naming trap

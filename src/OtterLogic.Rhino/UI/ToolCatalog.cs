@@ -26,11 +26,5 @@ public static class ToolCatalog
             "Truss 2D",
             "OtterTruss2D",
             "Bracing between two chords you have already drawn. Adds web and end posts only."),
-
-        new OtterTool(
-            Sections.FormFinding,
-            "Relax Mesh",
-            "OtterRelax",
-            "Relax a mesh toward equilibrium, drawn live. Esc stops it and keeps what it reached."),
     };
 }

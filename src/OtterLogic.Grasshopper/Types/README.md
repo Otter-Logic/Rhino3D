@@ -1,21 +1,21 @@
 # Types
 
-`GH_Goo<T>` wrappers for Core objects that need to travel along a wire — an
-`IGoal`, a solver, a fabrication sheet.
+`GH_Goo<T>` wrappers for Core objects that need to travel along a wire — a
+truss, a fabrication sheet, a goal.
 
 The pattern, when you need it:
 
 ```csharp
-public sealed class GH_Goal : GH_Goo<IGoal>
+public sealed class GH_Truss : GH_Goo<Truss2D>
 {
-    public GH_Goal() { }
-    public GH_Goal(IGoal goal) : base(goal) { }
+    public GH_Truss() { }
+    public GH_Truss(Truss2D truss) : base(truss) { }
 
     public override bool IsValid => Value is not null;
-    public override string TypeName => "Goal";
-    public override string TypeDescription => "An OtterLogic relaxation goal";
-    public override IGH_Goo Duplicate() => new GH_Goal(Value);
-    public override string ToString() => Value?.GetType().Name ?? "<null goal>";
+    public override string TypeName => "Truss";
+    public override string TypeDescription => "An OtterLogic 2D truss";
+    public override IGH_Goo Duplicate() => new GH_Truss(Value);
+    public override string ToString() => Value is null ? "<null truss>" : $"Truss ({Value.PanelCount} panels)";
 }
 ```
 

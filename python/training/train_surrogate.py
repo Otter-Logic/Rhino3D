@@ -1,4 +1,4 @@
-"""Train a surrogate model on relaxation runs and export it to ONNX.
+"""Train a surrogate model on generated design runs and export it to ONNX.
 
 Reads a CSV where the feature columns describe the design (span, sag, rest
 length factor, ...) and the target columns are whatever the solver measured
@@ -9,7 +9,7 @@ becomes a sub-millisecond forward pass, which is the difference between a
 Grasshopper slider you can drag and one you cannot.
 
 Usage:
-    python train_surrogate.py ../datasets/relaxation_sweep.csv --target max_deflection
+    python train_surrogate.py ../datasets/truss_sweep.csv --target max_deflection
 """
 
 from __future__ import annotations
