@@ -1,0 +1,44 @@
+name: build
+
+# Build only, deliberately. Every test in this repo boots the installed Rhino
+# through Rhino.Inside, and a hosted runner has no Rhino and cannot be licensed
+# for one, so `dotnet test` here would fail for reasons that have nothing to do
+# with the change. Run the tests locally; CI guards compilation.
+#
+# If that becomes uncomfortable, the options are a self-hosted runner on a
+# licensed machine, or carving out a test project that touches no native
+# geometry.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore OtterLogic.slnx
+
+      - name: Build
+        run: dotnet build OtterLogic.slnx -c Release --no-restore
+
+      - name: Upload package contents
+        uses: actions/upload-artifact@v4
+        with:
+          name: otterlogic-dist
+          path: |
+            dist/*.rhp
+            dist/*.gha
+            dist/*.dll
+            dist/*.rui
+          if-no-files-found: error

@@ -18,7 +18,7 @@ public sealed class OtterLogicInfo : GH_AssemblyInfo
     public override Bitmap? Icon => null;
     public override Guid Id => new("d974722a-bd69-487c-815e-5b776d3705ad");
     public override string AuthorName => "OtterLogic";
-    public override string AuthorContact => "";
+    public override string AuthorContact => "https://github.com/Otter-Logic/OtterLogic";
     public override string AssemblyVersion => GetType().Assembly.GetName().Version!.ToString();
 }
 

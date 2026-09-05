@@ -22,6 +22,13 @@ $yak      = 'C:\Program Files\Rhino 8\System\Yak.exe'
 
 if (-not (Test-Path $yak)) { throw "Yak not found at $yak" }
 
+# The version lives in Directory.Build.props and nowhere else. yak build takes
+# --version, so manifest.yml never has to be kept in step by hand.
+$props   = Join-Path $repoRoot 'Directory.Build.props'
+$version = ([xml](Get-Content $props)).Project.PropertyGroup.Version | Where-Object { $_ }
+if (-not $version) { throw "No <Version> found in $props" }
+Write-Host "Version $version" -ForegroundColor Cyan
+
 Write-Host 'Building Release...' -ForegroundColor Cyan
 dotnet build (Join-Path $repoRoot 'OtterLogic.slnx') -c Release --nologo
 if ($LASTEXITCODE -ne 0) { throw 'Build failed.' }
@@ -31,7 +38,7 @@ Copy-Item (Join-Path $PSScriptRoot 'manifest.yml') $dist -Force
 Write-Host 'Packing...' -ForegroundColor Cyan
 Push-Location $dist
 try {
-    & $yak build --platform win
+    & $yak build --platform win --version $version
     if ($LASTEXITCODE -ne 0) { throw 'yak build failed.' }
 
     $package = Get-ChildItem -Filter '*.yak' | Sort-Object LastWriteTime -Descending | Select-Object -First 1
