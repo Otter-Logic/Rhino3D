@@ -9,22 +9,23 @@ boundaries give most of the benefit at none of the cost.
 
 ## Target
 
-All under the `Otter-Logic` organisation. Every code repo is `OtterLogic.X`
-with one purpose, matching the assembly names so the mapping needs no
-explanation.
+All under the `Otter-Logic` organisation, which supplies the prefix — so the
+repos are named for their purpose alone. Assembly and NuGet names keep the
+`OtterLogic.` prefix, because those live in global namespaces where the repo
+name is no help.
 
 | Repo | Holds | Produces |
 |---|---|---|
-| `OtterLogic.Rhino` | both adaptors, `build/`, `assets/`, `docs/` | the `.yak` |
-| `OtterLogic.Core` | `src/OtterLogic.Core` | NuGet package `OtterLogic.Core` |
-| `OtterLogic.StructuralForm` | domain + its tests | NuGet package `OtterLogic.StructuralForm` |
+| `Rhino3D` | both adaptors, `build/`, `assets/`, `docs/` | the `.yak` |
+| `Core` | `src/OtterLogic.Core` | NuGet package `OtterLogic.Core` |
+| `StructuralForm` | domain + its tests | NuGet package `OtterLogic.StructuralForm` |
 | `.github` | `profile/README.md` only | the organisation landing page |
 
 There is deliberately no plain `OtterLogic` repo. A meta repo holding a README,
 a manifest and a workflow would force the release pipeline to reach across
 repos for artifacts, which is the overhead dropped by merging the two adaptors
 in the first place. The organisation profile does the landing-page job instead,
-and `OtterLogic.Rhino` is where releases, issues and the manifest URL point.
+and `Rhino3D` is where releases, issues and the manifest URL point.
 
 Rhino and Grasshopper stay together deliberately. They must ship one
 `OtterLogic.Core.dll` in one package; building them from one commit is what keeps
@@ -150,7 +151,7 @@ survives, messages and all.
    nothing and losing one later costs a rename.
 3. Carve out `StructuralForm`. Add the pin and the sibling toggle. Confirm it
    builds against the published Core with no sibling present.
-4. Reduce this repo to the adaptor and rename it `OtterLogic.Rhino`: both
+4. Reduce this repo to the adaptor and the repo is `Rhino3D`: both
    front-ends, `build/`, `assets/`, `docs/`. Add pins and toggles for both
    packages.
 5. Run one full release end to end and install the resulting `.yak` from the test
