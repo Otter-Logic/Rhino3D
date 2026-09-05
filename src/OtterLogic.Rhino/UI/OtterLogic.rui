@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+  OtterLogic toolbar.
+
+  Rhino loads a .rui sitting beside the .rhp with a matching base name the first
+  time the plug-in loads, then copies it into the user's own UI settings. From
+  then on Rhino uses their copy, so edits here only reach a machine that has not
+  seen the file before - bump major_version on the group item to push a change.
+
+  Structure, mirroring Rhino's own default.rui:
+    macros          - one entry per command, holding the script to run
+    tool_bar_groups - the docked tab bar; each group_item is one tab
+    tool_bars       - the buttons behind each tab, referencing macros by guid
+
+  Buttons carry no bitmap_id, so Rhino renders their text. The bitmap_id values
+  in the default file are GUIDs into Rhino's own icon library, which a third
+  party cannot reference; custom icons go in the <bitmaps> section instead.
+-->
+<RhinoUI major_ver="5" minor_ver="0" guid="314953c7-93fd-4112-b048-671a7c3c8ce2">
+
+  <macros>
+    <macro_item guid="4e53c0fe-9ee5-4a87-ad0c-4e397620ee93" bitmap_id="0b3809d9-6ce0-4f3f-b427-8d596b600b0d">
+      <text>
+        <locale_1033>Truss 2D</locale_1033>
+      </text>
+      <tooltip>
+        <locale_1033>Bracing between two chords you drew</locale_1033>
+      </tooltip>
+      <help_text>
+        <locale_1033>Generate a 2D truss between a top and a bottom chord.</locale_1033>
+      </help_text>
+      <button_text>
+        <locale_1033>Truss 2D</locale_1033>
+      </button_text>
+      <menu_text>
+        <locale_1033>Truss 2D</locale_1033>
+      </menu_text>
+      <script>! _OtterTruss2D</script>
+    </macro_item>
+  </macros>
+
+  <!--
+    Icons. Rhino's own default.rui carries no bitmaps at all - every
+    bitmap_id there indexes Rhino's internal icon library, which a third
+    party cannot reference. Custom icons ride here instead: one horizontal
+    strip per size, base64 PNG, with each bitmap_item naming the slot it
+    occupies. Index 0 is the OtterLogic mark, index 1 is Truss 2D.
+
+    Regenerate with build/build-rui-icons.ps1 after changing assets/icons.
+  -->
+  <bitmaps>
+    <small_bitmap item_width="16" item_height="16">
+      <bitmap_item guid="0b3809d9-6ce0-4f3f-b427-8d596b600b0d" index="0" />
+      <bitmap>iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAElSURBVDhPzdI/SFZhGAXw3yaBQyARuNSiUzXopKSTmEOBa9ouhC6itejorJtL6ObcrtCUQ60WLY4OCikOWopKHHm4XPimtu/A4Z73Oee87/1Ht2AM7/6T6TTYwjlucVe8xO/in9Y8mWTTaTCF1+jFQzzAc8wVn9UsXjLJptNgB6f4UOtx/KyTwx94Wd5HnFWnwSOsVXipCvt1chh9gGX8rWw6HfiCXzjCi9Y8OrN4yXTgSV2n8R7ztR4sBgvlJdPu3GMT37CHQ3xt6TA6s+hdfK9Og2Fs4xMmsIrPmMFs6ZXykkl2qL3BZN1SPxYxgp76YbJBdGbxknmKV+0NNnCFi/oCJ7hpPUL0cXnJXGO9vUFfvZw3eIxRvMVAMTqzeMkkm04X4B8400+NiBx0BgAAAABJRU5ErkJggg==</bitmap>
+    </small_bitmap>
+    <normal_bitmap item_width="24" item_height="24">
+      <bitmap_item guid="0b3809d9-6ce0-4f3f-b427-8d596b600b0d" index="0" />
+      <bitmap>iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACzSURBVEhL7ZLNCcJAEEbf2RKswIOl+FOD2IPagGARYiWiHr0LVqIHT8rIHJadCQxMCDnkwccOXx6b7BIY6BPflmOohWy65wVcgXn9AFgCN3WinqE83r7oD87xI55hDGyBjwozYKGzdBt1ol4jO5XPwEVn2bAm6hnk7SI/NTJ7XxT1XO7ARCNzE1HvzxGYAiNdT8nOUP4BbcSwBh7AW9dVsuse7x4znaG+w2wM3j1muoGe8AMo9K09M00YPwAAAABJRU5ErkJggg==</bitmap>
+    </normal_bitmap>
+    <large_bitmap item_width="32" item_height="32">
+      <bitmap_item guid="0b3809d9-6ce0-4f3f-b427-8d596b600b0d" index="0" />
+      <bitmap>iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAANBSURBVFhH7ZZLqJZVFIYfJFDKC+RtIoIWXkgTQRuYgRoWiFpIqOVdJ4KmIok58550G9REIhOlgRYINjCjSc2STClMLU1JDCkFhShNJeWBd8fm+3/jNDk5OC9szj5rvetd37e/tdb+oQtduI/wJPBBJ62JzeTiZeBOJ601zeRiJvAt8B1wEvgRONNm/QB8H578EqNNX5PvUkvNEvNcM7noA4wAhgPDstxrK6v4/Fv7yv//FlP7zNWCccBGYCXweNNZoQcwBVgLbM9yPxno3iRXGBPtTcD4plOUGvgbOAysAIZUfsWfAF4Djrf5rsfik1M/yNBofRZtuasr/z+YBVwArob0C7AZGAh0y1N/BPwF3AR+Bc5nudemb3+4xhi7JVpqqm2OF5rJxcPAswn4KQGngbnAyBzdn7F/ASwHJmS516ZPjlxjXoyGdjXVNoe57olBwPpU74289VbgSI7wy7xB7yrGvTZ9cr5KzMc5FbVejXaHMBh4P2Iery2k0OUUUs9mAPBQvrUcucb8lrffFc3/BCv7d+AocAC4mH5uO8UCp6kcucZ8HY1XmsSOYHYqd0na0gpX9NEmscIj4exIzOJozGkS28Eh4TQs36lvvusiYEHEnq74jwELs9wXyPGhjdGnRr/41H4+BdoCq93jfjdVrYjVbPHZRgczw5eljz8EzqW63Wsrvk8SYzGqsTSaan8DvNRMLjyma43hcju9azH5LWufhXYly33tk2uMsWrUPnPYni3wE7wJnKrIJ4DXgVXAnnRESf55WmtD9uUh5Mg15o1oFD21zWGuthiQOe8RzQMmAf2BB1JgM4D5KdCxwINpP/fa9Mlx/BpjrBpFT21ztIVkkzRh1XtROVZreCl5wVjt7mvINaZdx2gzVwumAXtT7YqOzlNbYI7Zt4BngFG5cOztT4FD2WvTNxV4OzHGqlH01NY2vZlc2DJ/AJeAs1lWsrZbKZ6fY7f6y8QrE1KbPjlyjTFWjaKntjYfpAVeKg6NuqKv5y13p0XrajbRvtx+7mufE9AYr3U1il1tc5irBb2Ap1LZO7PWZfT6a8YhtQ14D3gnve3Rutxr0+cPFAvRGGPVKHpqm6PdXdKFLvw/uAsI2jUXjI3D/wAAAABJRU5ErkJggg==</bitmap>
+    </large_bitmap>
+  </bitmaps>
+
+  <tool_bar_groups>
+    <tool_bar_group guid="6f927ce8-4f2b-46c7-a6c4-5d5bff26287c"
+                    dock_bar_guid64="e7203192-4781-40fe-a743-b1afed0761f5"
+                    active_tool_bar_group="cb09938f-eb86-48db-9d2b-2166837dcc16"
+                    single_file="False"
+                    hide_single_tab="False">
+      <text>
+        <locale_1033>OtterLogic Toolbar Group</locale_1033>
+      </text>
+      <tool_bar_group_item guid="cb09938f-eb86-48db-9d2b-2166837dcc16" major_version="1" minor_version="0">
+        <text>
+          <locale_1033>OtterLogic</locale_1033>
+        </text>
+        <tool_bar_id>59b291d0-516b-42e2-ab6e-a8318c442909</tool_bar_id>
+      </tool_bar_group_item>
+
+      <!-- Without this the group loads but its bar is never shown. Docked at the
+           top as its own row rather than sharing Rhino's dock bar: pointing
+           dock_bar_guid64 at Rhino's own bar does not add a tab to it, it takes
+           the bar over and hides Standard, CPlanes and the rest. -->
+      <dock_bar_info dock_bar="False" docking="True" horz="False" visible="True"
+                     floating="True" dock_location="top" float_point="200,200" float_size="240,64" />
+    </tool_bar_group>
+  </tool_bar_groups>
+
+  <tool_bars>
+    <tool_bar guid="59b291d0-516b-42e2-ab6e-a8318c442909" platforms="Win">
+      <text>
+        <locale_1033>OtterLogic</locale_1033>
+      </text>
+      <tool_bar_item guid="dd19c716-7d1d-4a42-856b-f89103ad62cf">
+        <text>
+          <locale_1033>Truss 2D</locale_1033>
+        </text>
+        <left_macro_id>4e53c0fe-9ee5-4a87-ad0c-4e397620ee93</left_macro_id>
+      </tool_bar_item>
+    </tool_bar>
+  </tool_bars>
+
+</RhinoUI>
+

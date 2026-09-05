@@ -1,0 +1,12 @@
+<Solution>
+  <!--
+    Adaptor -> Domain -> Core, never backwards, and domains never reference
+    each other. Core and the domains live in their own repositories; clone them
+    as siblings of this one and the project references resolve against your
+    working copies.
+  -->
+  <Folder Name="/src/">
+    <Project Path="src/OtterLogic.Rhino/OtterLogic.Rhino.csproj" />
+    <Project Path="src/OtterLogic.Grasshopper/OtterLogic.Grasshopper.csproj" />
+  </Folder>
+</Solution>

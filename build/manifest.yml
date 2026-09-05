@@ -1,0 +1,15 @@
+---
+name: OtterLogic
+version: 0.1.0
+authors:
+  - OtterLogic
+description: >
+  Structural form, fabrication and machine learning playground for Rhino 8.
+  Ships a Rhino plug-in and a Grasshopper tab that share one engine.
+url: https://github.com/Otter-Logic/Rhino3D
+icon: otterlogic.png
+keywords:
+  - truss
+  - structural-form
+  - fabrication
+  - machine-learning
