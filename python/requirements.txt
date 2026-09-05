@@ -1,0 +1,14 @@
+# Training environment. Kept deliberately separate from the plugin - nothing
+# here ships inside the .gha. The only artefact that crosses over is a .onnx
+# file dropped into /models.
+
+numpy>=1.26
+pandas>=2.2
+scikit-learn>=1.5
+skl2onnx>=1.17          # sklearn -> ONNX
+onnx>=1.16
+onnxruntime>=1.18       # for verifying the export before it reaches C#
+
+# Uncomment when you move past tabular surrogates to mesh/graph or generative work.
+# torch>=2.3
+# torch-geometric>=2.5

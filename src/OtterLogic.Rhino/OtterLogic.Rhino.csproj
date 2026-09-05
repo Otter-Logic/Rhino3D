@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>OtterLogic.Rhino</RootNamespace>
+    <AssemblyName>OtterLogic</AssemblyName>
+
+    <!-- A .rhp is an ordinary .NET assembly with a different extension. -->
+    <TargetExt>.rhp</TargetExt>
+
+    <UseWindowsForms>true</UseWindowsForms>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+
+    <!-- Both front-ends land in one folder next to OtterLogic.Core.dll, so a
+         single build keeps Rhino and Grasshopper in sync. -->
+    <OutputPath>$(DistDir)</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- ExcludeAssets="runtime" stops RhinoCommon.dll being copied beside the
+         plugin, which would clash with the copy Rhino has already loaded. -->
+    <PackageReference Include="RhinoCommon" Version="$(RhinoVersion)" ExcludeAssets="runtime" />
+    <ProjectReference Include="..\OtterLogic.Core\OtterLogic.Core.csproj" />
+  </ItemGroup>
+
+  <!-- F5 launches Rhino with the debugger attached. -->
+  <ItemGroup>
+    <None Update="Properties\launchSettings.json" CopyToOutputDirectory="Never" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>OtterLogic.Grasshopper</RootNamespace>
+    <AssemblyName>OtterLogic.Grasshopper</AssemblyName>
+
+    <!-- A .gha is an ordinary .NET assembly with a different extension. -->
+    <TargetExt>.gha</TargetExt>
+
+    <UseWindowsForms>true</UseWindowsForms>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+
+    <!-- Same folder as the .rhp, so one build updates both front-ends. -->
+    <OutputPath>$(DistDir)</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The Grasshopper package pulls RhinoCommon in with it. -->
+    <PackageReference Include="Grasshopper" Version="$(RhinoVersion)" ExcludeAssets="runtime" />
+    <ProjectReference Include="..\OtterLogic.Core\OtterLogic.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 24x24 PNGs go here and are found by name at runtime. -->
+    <EmbeddedResource Include="Resources\**\*.png" />
+  </ItemGroup>
+
+</Project>

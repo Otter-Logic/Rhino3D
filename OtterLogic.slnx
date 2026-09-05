@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/OtterLogic.Core/OtterLogic.Core.csproj" />
+    <Project Path="src/OtterLogic.Grasshopper/OtterLogic.Grasshopper.csproj" />
+    <Project Path="src/OtterLogic.Rhino/OtterLogic.Rhino.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/OtterLogic.Core.Tests/OtterLogic.Core.Tests.csproj" />
+  </Folder>
+</Solution>

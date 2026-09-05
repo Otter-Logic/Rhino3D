@@ -1,0 +1,14 @@
+---
+name: otterlogic
+version: 0.1.0
+authors:
+  - OtterLogic
+description: >
+  Form finding, fabrication and machine learning playground for Rhino 8.
+  Ships a Rhino plug-in and a Grasshopper tab that share one solver core.
+url: https://github.com/
+keywords:
+  - form-finding
+  - relaxation
+  - fabrication
+  - machine-learning
