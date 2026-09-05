@@ -72,6 +72,40 @@ Adding a goal — planarity, collision, angle, developability — means implemen
 that interface. The solver, the Rhino command and the Grasshopper component all
 pick it up with no changes.
 
+## Sections
+
+The Grasshopper ribbon tab is `OtterLogic`; the panels within it are
+subcategories, listed in `Categories` in `OtterLogicInfo.cs`:
+
+- **Structural Form** — trusses, frames, discrete structural layouts.
+- **Form Finding** — relaxation and equilibrium.
+- **Fabrication** — unrolling, nesting, toolpaths.
+- **Learning** — dataset capture and inference.
+
+Add sections there rather than typing category strings into components: the
+Category string is literally what names the tab, so one typo silently creates a
+second one.
+
+## Truss stations
+
+`Truss2DGenerator` places nodes at shared *stations* — normalised arc-length
+positions from 0 to 1 along each chord. Three sources feed the list, which is
+then merged and de-duplicated:
+
+1. The geometry itself: polyline vertices, or tangent discontinuities on a
+   smooth curve.
+2. An optional target spacing, which divides the longer chord evenly.
+3. Any additional points the user picked, pulled onto whichever chord is nearer.
+
+Both chords are evaluated at the *same* station list. Two consequences worth
+knowing: a vertex on either chord induces a node on both, and top node `i`
+always pairs with bottom node `i`, which is what reduces every web pattern to
+index arithmetic over panel count.
+
+A plain line contributes no stations of its own, so two lines with no spacing
+give a single panel. That is deliberate — the alternative is inventing a panel
+count the user did not ask for.
+
 ## Where BHoM-style layering fits, and where it does not
 
 The layering discipline is worth stealing wholesale: a data layer, a logic layer,

@@ -48,6 +48,9 @@ public static class Categories
 {
     public const string Root = "OtterLogic";
 
+    /// <summary>Trusses, frames, and other discrete structural layouts.</summary>
+    public const string StructuralForm = "Structural Form";
+
     public const string FormFinding = "Form Finding";
     public const string Fabrication = "Fabrication";
     public const string Learning = "Learning";
