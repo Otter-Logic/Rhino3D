@@ -24,6 +24,7 @@ public sealed class OtterTruss2DCommand : Command
 {
     // Remembered between runs within a session, as Rhino commands normally do.
     private static TrussType _type = TrussType.Warren;
+    private static bool _flip;
     private static bool _endPosts = true;
     private static int _divisions;
     private static double _spacing;
@@ -47,13 +48,19 @@ public sealed class OtterTruss2DCommand : Command
         step = SelectTrussType(ref _type);
         if (step != Result.Success) return step;
 
-        // Step 4: end posts.
+        // Step 4: mirror the bracing.
+        bool flip = _flip;
+        step = RhinoGet.GetBool("Flip the bracing", true, "No", "Yes", ref flip);
+        if (step != Result.Success) return step;
+        _flip = flip;
+
+        // Step 5: end posts.
         bool endPosts = _endPosts;
         step = RhinoGet.GetBool("Generate end posts", true, "No", "Yes", ref endPosts);
         if (step != Result.Success) return step;
         _endPosts = endPosts;
 
-        // Step 5: how many panels, before anything snaps.
+        // Step 6: how many panels, before anything snaps.
         int divisions = _divisions;
         step = RhinoGet.GetInteger(
             "Number of divisions (0 to take nodes from the chords themselves)",
@@ -61,11 +68,11 @@ public sealed class OtterTruss2DCommand : Command
         if (step != Result.Success) return step;
         _divisions = divisions;
 
-        // Step 6: additional snap points.
+        // Step 7: additional snap points.
         step = SelectSnapPoints(out Point3d[] snapPoints);
         if (step != Result.Success) return step;
 
-        // Step 7: panel spacing, for when you would rather set a length than a count.
+        // Step 8: panel spacing, for when you would rather set a length than a count.
         double spacing = _spacing;
         step = RhinoGet.GetNumber(
             "Panel spacing (0 to leave it to the divisions)",
@@ -73,7 +80,7 @@ public sealed class OtterTruss2DCommand : Command
         if (step != Result.Success) return step;
         _spacing = spacing;
 
-        // Step 8: preview, adjust, accept.
+        // Step 9: preview, adjust, accept.
         return PreviewAndCommit(doc, top, bottom, snapPoints);
     }
 
@@ -191,6 +198,7 @@ public sealed class OtterTruss2DCommand : Command
                     truss = Truss2DGenerator.Generate(top, bottom, new Truss2DOptions
                     {
                         Type = _type,
+                        Flip = _flip,
                         GenerateEndPosts = _endPosts,
                         Divisions = _divisions,
                         AdditionalSnapPoints = snapPoints,
@@ -218,10 +226,11 @@ public sealed class OtterTruss2DCommand : Command
 
                 using var getter = new GetOption();
                 getter.SetCommandPrompt(
-                    $"{_type}, {truss.PanelCount} panels, {truss.Members.Count} members — accept?");
+                    $"{_type}, {truss.PanelCount} panels, {Bracing(truss).Count} bracing members — accept?");
 
                 int accept = getter.AddOption("Accept");
                 int changeType = getter.AddOption("Type");
+                int changeFlip = getter.AddOption("Flip");
                 int changeDivisions = getter.AddOption("Divisions");
                 int changeSpacing = getter.AddOption("Spacing");
                 int changeEnds = getter.AddOption("EndPosts");
@@ -243,6 +252,10 @@ public sealed class OtterTruss2DCommand : Command
                 if (chosen == changeType)
                 {
                     SelectTrussType(ref _type);
+                }
+                else if (chosen == changeFlip)
+                {
+                    _flip = !_flip;
                 }
                 else if (chosen == changeDivisions)
                 {
@@ -272,19 +285,45 @@ public sealed class OtterTruss2DCommand : Command
     private static void ShowPreview(WireframePreviewConduit conduit, Truss2D truss)
     {
         conduit.Clear();
-        conduit.Layers.Add((truss.TopChord.ToArray(), Color.FromArgb(30, 90, 140), 3));
-        conduit.Layers.Add((truss.BottomChord.ToArray(), Color.FromArgb(30, 90, 140), 3));
-        conduit.Layers.Add((truss.Web.ToArray(), Color.FromArgb(120, 170, 200), 2));
+
+        // The chords are drawn thin and pale: they show where the stations landed,
+        // but they are curves the user already drew and will not be added again.
+        conduit.Layers.Add((truss.TopChord.ToArray(), Color.FromArgb(160, 175, 185), 1));
+        conduit.Layers.Add((truss.BottomChord.ToArray(), Color.FromArgb(160, 175, 185), 1));
+
+        conduit.Layers.Add((truss.Web.ToArray(), Color.FromArgb(30, 90, 140), 2));
         conduit.Layers.Add((truss.EndPosts.ToArray(), Color.FromArgb(200, 110, 40), 3));
         conduit.Points = truss.Nodes;
     }
 
-    /// <summary>Adds the members as one group, each named for its structural role.</summary>
+    /// <summary>
+    /// The members this command actually adds: web and end posts only.
+    /// <para>
+    /// The chords already exist — the user drew them and then picked them — so
+    /// baking the generated copies would leave two curves on top of each other.
+    /// The engine still produces them, and the Grasshopper component still
+    /// outputs them, because there they are the only chords there are.
+    /// </para>
+    /// </summary>
+    private static List<TrussMember> Bracing(Truss2D truss)
+        => truss.Members
+            .Where(m => m.Role is TrussMemberRole.Web or TrussMemberRole.EndPost)
+            .ToList();
+
+    /// <summary>Adds the bracing as one group, each member named for its role.</summary>
     private static Result Commit(RhinoDoc doc, Truss2D truss)
     {
+        List<TrussMember> bracing = Bracing(truss);
+
+        if (bracing.Count == 0)
+        {
+            RhinoApp.WriteLine("OtterTruss2D: nothing to add, this truss has no bracing.");
+            return Result.Nothing;
+        }
+
         int group = doc.Groups.Add();
 
-        foreach (TrussMember member in truss.Members)
+        foreach (TrussMember member in bracing)
         {
             var attributes = new ObjectAttributes { Name = member.Role.ToString() };
             attributes.AddToGroup(group);
@@ -294,8 +333,8 @@ public sealed class OtterTruss2DCommand : Command
         doc.Views.Redraw();
 
         RhinoApp.WriteLine(
-            $"OtterTruss2D: added {truss.Members.Count} members " +
-            $"({truss.Type}, {truss.PanelCount} panels, {truss.TotalLength:0.###} units).");
+            $"OtterTruss2D: added {bracing.Count} bracing members " +
+            $"({truss.Type}, {truss.PanelCount} panels). Your chords were left as they are.");
 
         return Result.Success;
     }

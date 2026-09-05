@@ -115,6 +115,22 @@ Where the chords converge to a shared point, `ChordsMeetAtStart` /
 `ChordsMeetAtEnd` suppress that end post. It would otherwise collapse onto the
 shared point and clash with the chords running into it.
 
+`Flip` mirrors each diagonal within its own panel, implemented by swapping which
+way the two web helpers run rather than by branching per pattern. Pratt flipped
+is Howe; cross-braced draws both diagonals already, so it comes out identical.
+
+## Where the front-ends legitimately differ
+
+Adapters are thin, but thin is not the same as identical. The one place they
+diverge on purpose: the Rhino command bakes **only web and end posts**, because
+the chords are curves the user drew and then picked — adding the generated
+copies would leave two curves on top of each other. The Grasshopper component
+outputs the chord members, since on a canvas they are the only chords there are.
+
+The filtering lives in the command, not the engine. `Truss2DGenerator` always
+produces the full member list; deciding what to do with it is exactly the kind
+of host-specific judgement an adapter is for.
+
 ## Where BHoM-style layering fits, and where it does not
 
 The layering discipline is worth stealing wholesale: a data layer, a logic layer,

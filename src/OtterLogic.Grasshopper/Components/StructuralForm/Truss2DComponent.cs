@@ -62,6 +62,11 @@ public sealed class Truss2DComponent : GH_Component
             + "about panel length rather than count. Divisions wins if both are set.",
             GH_ParamAccess.item, 0.0);
 
+        pManager.AddBooleanParameter("Flip", "F",
+            "Mirror every diagonal within its own panel. Pratt becomes Howe, and the Warren "
+            + "zigzag starts the other way up. No effect on Vierendeel or cross-braced.",
+            GH_ParamAccess.item, false);
+
         // Right-click the input for a readable menu instead of raw integers.
         var typeParam = (Param_Integer)pManager[2];
         foreach (TrussType value in Enum.GetValues<TrussType>())
@@ -86,6 +91,7 @@ public sealed class Truss2DComponent : GH_Component
         int divisions = 0;
         var snapPoints = new List<GH_Point>();
         double spacing = 0.0;
+        bool flip = false;
 
         if (!da.GetData(0, ref top)) return;
         if (!da.GetData(1, ref bottom)) return;
@@ -94,6 +100,7 @@ public sealed class Truss2DComponent : GH_Component
         if (!da.GetData(4, ref divisions)) return;
         da.GetDataList(5, snapPoints);
         if (!da.GetData(6, ref spacing)) return;
+        if (!da.GetData(7, ref flip)) return;
 
         if (top is null || !top.IsValid || bottom is null || !bottom.IsValid)
         {
@@ -124,6 +131,7 @@ public sealed class Truss2DComponent : GH_Component
         {
             Type = (TrussType)type,
             GenerateEndPosts = endPosts,
+            Flip = flip,
             Divisions = divisions,
             AdditionalSnapPoints = snapPoints.Select(p => p.Value).ToArray(),
             SnapSpacing = spacing,
