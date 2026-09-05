@@ -1,5 +1,5 @@
 using System.Drawing;
-using OtterLogic.Core.StructuralForm;
+using OtterLogic.StructuralForm;
 using OtterLogic.Rhino.Conduits;
 using Rhino;
 using Rhino.Commands;

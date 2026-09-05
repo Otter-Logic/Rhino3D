@@ -20,6 +20,7 @@
     <!-- The Grasshopper package pulls RhinoCommon in with it. -->
     <PackageReference Include="Grasshopper" Version="$(RhinoVersion)" ExcludeAssets="runtime" />
     <ProjectReference Include="..\OtterLogic.Core\OtterLogic.Core.csproj" />
+    <ProjectReference Include="..\OtterLogic.StructuralForm\OtterLogic.StructuralForm.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,10 +1,19 @@
 <Solution>
+  <!--
+    Adaptor -> Domain -> Core, never backwards, and domains never reference
+    each other. A domain needing another domain means something belongs in Core.
+  -->
   <Folder Name="/src/">
     <Project Path="src/OtterLogic.Core/OtterLogic.Core.csproj" />
-    <Project Path="src/OtterLogic.Grasshopper/OtterLogic.Grasshopper.csproj" />
+  </Folder>
+  <Folder Name="/src/domains/">
+    <Project Path="src/OtterLogic.StructuralForm/OtterLogic.StructuralForm.csproj" />
+  </Folder>
+  <Folder Name="/src/adaptor/">
     <Project Path="src/OtterLogic.Rhino/OtterLogic.Rhino.csproj" />
+    <Project Path="src/OtterLogic.Grasshopper/OtterLogic.Grasshopper.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/OtterLogic.Core.Tests/OtterLogic.Core.Tests.csproj" />
+    <Project Path="tests/OtterLogic.StructuralForm.Tests/OtterLogic.StructuralForm.Tests.csproj" />
   </Folder>
 </Solution>

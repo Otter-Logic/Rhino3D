@@ -2,7 +2,7 @@ using System.Drawing;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
-using OtterLogic.Core.StructuralForm;
+using OtterLogic.StructuralForm;
 using Rhino;
 using Rhino.Geometry;
 

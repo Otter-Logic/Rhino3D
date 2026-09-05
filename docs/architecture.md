@@ -2,27 +2,77 @@
 
 ## The one rule
 
-`OtterLogic.Core` contains every algorithm. `OtterLogic.Rhino` and
-`OtterLogic.Grasshopper` are adapters: they gather input, call Core, and present
-output. If you are writing geometry logic in a `SolveInstance` or a `RunCommand`,
-it is in the wrong file.
+**Adaptor → Domain → Core. Never backwards, and domains never reference each
+other.** A domain that needs another domain is the signal that something belongs
+in Core — not that the two should be coupled.
 
 ```
-              OtterLogic.Core
-        (RhinoCommon only, no UI)
-                 ↑        ↑
-    OtterLogic.Rhino    OtterLogic.Grasshopper
-        (.rhp)                 (.gha)
+                    OtterLogic.Core
+              small, stable, slow-moving
+                          ↑
+              OtterLogic.StructuralForm          (+ Fabrication, FormFinding, ...)
+              types and logic for one domain
+                    ↑              ↑
+        OtterLogic.Rhino    OtterLogic.Grasshopper
+             (.rhp)                (.gha)
 ```
 
-Core references **RhinoCommon and nothing else** — not `Grasshopper.dll`, not
-`Rhino.UI`, not Eto. That single constraint is what keeps the two front-ends
-from drifting apart, and it is enforced by the fact that Core simply cannot see
-those assemblies.
+Algorithms live in a **domain**, never in an adaptor. If you are writing geometry
+logic in a `SolveInstance` or a `RunCommand`, it is in the wrong file.
 
-Using RhinoCommon types (`Point3d`, `Mesh`) inside Core rather than inventing a
-neutral geometry layer is a deliberate trade. It costs portability outside Rhino;
-it saves an entire conversion layer and every bug that lives in one.
+No project below the adaptor line may reference `Grasshopper.dll`, `Rhino.UI` or
+Eto. That constraint is what keeps the two front-ends from drifting apart, and it
+is enforced by the fact that Core and the domains simply cannot see those
+assemblies.
+
+### Why a domain owns its types as well as its logic
+
+The BHoM-shaped alternative is an object model repo holding every discipline's
+data, with the logic in a separate engine layer. That split exists to serve
+reflection-driven component generation across hundreds of methods and many
+disciplines, and it forces Core to grow a section per discipline.
+
+Here, `TrussType`, `Truss2DOptions`, `Truss2D` and `Truss2DGenerator` live
+together, because they change together — every one of them changed in the same
+sitting, repeatedly. Splitting them across a boundary would mean a two-step
+release dance to add a field to an options record.
+
+The useful half of the BHoM discipline survives *inside* each domain: immutable,
+behaviour-free records for anything crossing a wire; ordinary objects for logic
+that holds state. Namespaces express that perfectly well; it does not need a
+project boundary. And if the reflection-driven component generator ever gets
+built, that separation is what it keys off.
+
+### What Core is for
+
+Core holds what **more than one domain** needs, and nothing else. Today that is
+`Sections` — the vocabulary the ribbon tab and the Rhino panel both read — plus
+shared geometry helpers and tolerance conventions.
+
+One test keeps it honest: *would a second domain plausibly need this?* If no, it
+belongs in the domain. The failure mode to avoid is not drift, it is Core
+becoming a grab-bag, or a bottleneck where every domain change needs a Core
+release first.
+
+### Why RhinoCommon rather than neutral geometry
+
+Using `Point3d`, `Curve` and `Mesh` throughout, rather than a neutral geometry
+layer with converters, is a deliberate trade. BHoM must abstract geometry because
+it targets Revit, ETABS and Tekla, where RhinoCommon does not exist. Every
+context this code runs in is a Rhino host, tests included.
+
+The cost of abstracting would be concrete: `Truss2DGenerator` alone leans on
+arc-length parameterisation, curve subdomain length, closest-point, continuity
+analysis and least-squares plane fitting. A neutral `ICurve` supplies none of
+that, so the choice would be reimplementing a numerical curve library or
+converting to Rhino to compute and converting back.
+
+One consequence worth knowing, because it is a design lever: RhinoCommon
+**structs** — `Point3d`, `Vector3d`, `Line`, `Plane` — are pure managed code and
+work with no Rhino running. The **classes** — `Curve`, `Mesh`, `Brep` — are
+native-backed and need Rhino booted. Keeping algorithm inner loops on structs and
+arrays, with curves and meshes confined to the entry and exit, is what makes a
+test runnable without Rhino.
 
 ## Sections
 

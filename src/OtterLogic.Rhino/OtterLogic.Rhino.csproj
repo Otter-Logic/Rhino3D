@@ -32,6 +32,7 @@
          plugin, which would clash with the copy Rhino has already loaded. -->
     <PackageReference Include="RhinoCommon" Version="$(RhinoVersion)" ExcludeAssets="runtime" />
     <ProjectReference Include="..\OtterLogic.Core\OtterLogic.Core.csproj" />
+    <ProjectReference Include="..\OtterLogic.StructuralForm\OtterLogic.StructuralForm.csproj" />
   </ItemGroup>
 
   <ItemGroup>
