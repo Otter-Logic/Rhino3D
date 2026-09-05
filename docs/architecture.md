@@ -192,10 +192,21 @@ namespace declaration and reference them unqualified, or write `global::Rhino.X`
 
 ## Versions
 
-Pinned to RhinoCommon/Grasshopper **8.34.26223.11001**, matching the installed
-Rhino. Building against a lower 8.x baseline would run on more machines; matching
-the installed version keeps IntelliSense honest. Change `RhinoVersion` in
-`Directory.Build.props` to move it.
+Pinned to RhinoCommon/Grasshopper **8.0.23304.9001** — the 8.0 API baseline, not
+the installed 8.34. Compiling against the oldest supported API is what makes the
+plug-in usable on every Rhino 8: you cannot accidentally call something that did
+not exist yet. `yak build` reads that back out and tags the package `rh8_0-win`.
+
+The cost is two suppressed warnings. McNeel only began shipping a `net7.0` lib in
+the RhinoCommon package at 8.19, so 8.0 resolves through NuGet's net48 fallback
+(NU1701), and that fallback in turn confuses the platform-compatibility analyzer
+into flagging calls between our own assemblies (CA1416). Neither is actionable —
+the managed API surface is identical, and a Rhino plug-in is Windows-only by
+construction. Verified by building against 8.0 and loading the result in 8.34:
+plug-in registered, commands present, panel opens, component listed.
+
+Raising `RhinoVersion` in `Directory.Build.props` raises the minimum Rhino your
+users need, so only do it to reach an API that genuinely is not in 8.0.
 
 Target framework is `net7.0-windows` — Rhino 8's runtime. The SDK here is .NET 10,
 which builds net7.0 fine; `CheckEolTargetFramework` is off to silence the nag.
