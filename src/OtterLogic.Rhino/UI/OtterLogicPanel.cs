@@ -1,6 +1,8 @@
+using System.IO;
 using System.Runtime.InteropServices;
 using Eto.Drawing;
 using Eto.Forms;
+using OtterLogic.Shared;
 using Rhino;
 
 namespace OtterLogic.Rhino.UI;
@@ -112,6 +114,8 @@ public class OtterLogicPanel : Eto.Forms.Panel
             Text = tool.Name,
             ToolTip = $"{tool.Summary}\n\nCommand: _{tool.Command}",
             MinimumSize = Size.Empty,   // let it shrink with the panel
+            Image = LoadIcon(tool.Icon),
+            ImagePosition = ButtonImagePosition.Left,
         };
 
         // "!" cancels whatever command is already running, the same thing a Rhino
@@ -120,6 +124,25 @@ public class OtterLogicPanel : Eto.Forms.Panel
         button.Click += (_, _) => RhinoApp.RunScript($"!_{tool.Command}", echo: false);
 
         return button;
+    }
+
+    /// <summary>
+    /// Bridges the shared System.Drawing icons into Eto, which is a different
+    /// imaging stack. A PNG round-trip through memory is the cheap, reliable
+    /// conversion, and it happens once per button at construction.
+    /// </summary>
+    private static Eto.Drawing.Bitmap? LoadIcon(string name)
+    {
+        // Not disposed: EmbeddedIcons owns it and hands the same instance to
+        // every caller.
+        System.Drawing.Bitmap? source = EmbeddedIcons.Load(name, 16);
+        if (source is null) return null;
+
+        using var buffer = new MemoryStream();
+        source.Save(buffer, System.Drawing.Imaging.ImageFormat.Png);
+        buffer.Position = 0;
+
+        return new Eto.Drawing.Bitmap(buffer);
     }
 
     private void FitDescriptionsToPanel()

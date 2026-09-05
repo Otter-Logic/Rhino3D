@@ -13,7 +13,7 @@ boundaries give most of the benefit at none of the cost.
 |---|---|---|
 | `OtterLogic.Core` | `src/OtterLogic.Core` | NuGet package |
 | `OtterLogic.StructuralForm` | domain + its tests | NuGet package |
-| `OtterLogic.Rhino` | both adaptors, `build/`, `samples/`, `docs/` | the `.yak` |
+| `OtterLogic.Rhino` | both adaptors, `build/`, `assets/`, `docs/` | the `.yak` |
 
 Rhino and Grasshopper stay together deliberately. They must ship one
 `OtterLogic.Core.dll` in one package; building them from one commit is what keeps
@@ -127,7 +127,7 @@ survives, messages and all.
 2. Carve out Core. Publish `OtterLogic.Core` to nuget.org.
 3. Carve out `StructuralForm`. Add the pin and the sibling toggle. Confirm it
    builds against the published Core with no sibling present.
-4. Reduce this repo to the adaptor: both front-ends, `build/`, `samples/`,
+4. Reduce this repo to the adaptor: both front-ends, `build/`, `assets/`,
    `docs/`. Add pins and toggles for both packages.
 5. Run one full release end to end and install the resulting `.yak` from the test
    server before trusting it.

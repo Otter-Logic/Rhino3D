@@ -36,6 +36,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- One set of masters in assets/icons, embedded into both front-ends.
+         LogicalName is what EmbeddedIcons looks up, so it must match there. -->
+    <EmbeddedResource Include="..\..\assets\icons\otterlogic.png" LogicalName="OtterLogic.Icons.otterlogic.png" />
+    <EmbeddedResource Include="..\..\assets\icons\truss2d.png" LogicalName="OtterLogic.Icons.truss2d.png" />
+    <Compile Include="..\Shared\EmbeddedIcons.cs" Link="Shared\EmbeddedIcons.cs" />
+
+    <!-- Also a loose file in the package: manifest.yml points at it for the
+         Package Manager listing, which cannot read an embedded resource. -->
+    <None Include="..\..\assets\icons\otterlogic.png" Link="otterlogic.png" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Must land beside the .rhp with a matching base name: that is how Rhino
          finds a plug-in toolbar. -->
     <None Include="UI\OtterLogic.rui" Link="OtterLogic.rui" CopyToOutputDirectory="PreserveNewest" />

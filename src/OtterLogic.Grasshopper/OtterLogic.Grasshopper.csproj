@@ -24,8 +24,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- 24x24 PNGs go here and are found by name at runtime. -->
-    <EmbeddedResource Include="Resources\**\*.png" />
+    <!-- One set of masters in assets/icons, embedded into both front-ends.
+         LogicalName is what EmbeddedIcons looks up, so it must match there. -->
+    <EmbeddedResource Include="..\..\assets\icons\otterlogic.png" LogicalName="OtterLogic.Icons.otterlogic.png" />
+    <EmbeddedResource Include="..\..\assets\icons\truss2d.png" LogicalName="OtterLogic.Icons.truss2d.png" />
+    <Compile Include="..\Shared\EmbeddedIcons.cs" Link="Shared\EmbeddedIcons.cs" />
   </ItemGroup>
 
 </Project>

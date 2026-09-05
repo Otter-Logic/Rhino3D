@@ -10,7 +10,12 @@ namespace OtterLogic.Rhino.UI;
 /// What it does, shown under the button. Keep it short — this renders in a
 /// docked side panel a couple of hundred pixels wide.
 /// </param>
-public sealed record OtterTool(string Section, string Name, string Command, string Summary);
+/// <param name="Icon">
+/// Base name of a PNG in <c>assets/icons</c>, without the extension. The same
+/// name the toolbar and the Grasshopper component use, so one master file
+/// serves every surface.
+/// </param>
+public sealed record OtterTool(string Section, string Name, string Command, string Summary, string Icon);
 
 /// <summary>
 /// Everything the Rhino panel lists.
@@ -28,6 +33,7 @@ public static class ToolCatalog
             Sections.StructuralForm,
             "Truss 2D",
             "OtterTruss2D",
-            "Bracing between two chords you drew. Adds web and end posts only."),
+            "Bracing between two chords you drew. Adds web and end posts only.",
+            "truss2d"),
     };
 }

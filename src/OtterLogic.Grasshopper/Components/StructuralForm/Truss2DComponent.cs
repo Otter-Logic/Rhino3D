@@ -2,6 +2,7 @@ using System.Drawing;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
+using OtterLogic.Shared;
 using OtterLogic.StructuralForm;
 using Rhino;
 using Rhino.Geometry;
@@ -27,7 +28,7 @@ public sealed class Truss2DComponent : GH_Component
 
     public override Guid ComponentGuid => new("6a430957-4853-4f58-bd90-71a07fcf248a");
     public override GH_Exposure Exposure => GH_Exposure.primary;
-    protected override Bitmap? Icon => null;   // drop a 24x24 in Resources and return it here
+    protected override Bitmap? Icon => EmbeddedIcons.Load("truss2d", 24);
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {

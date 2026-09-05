@@ -134,15 +134,38 @@ Three things learned the hard way, all verified against a running Rhino:
   `visible="True"`, and `floating="True"` so it appears somewhere the user can
   find it. From there, dragging it into the tab strip is user window-layout
   state that Rhino remembers per machine — it cannot be shipped pre-docked.
-- **Custom icons are unfinished.** The `bitmap_id` on every macro in
+- **Custom icons ride in the file as base64.** The `bitmap_id` on every macro in
   `default.rui` indexes Rhino's internal icon library, which a third party
-  cannot reference. Own icons go as base64 in the `<bitmaps>` section, whose
-  encoding is not documented here. Buttons render their text until then. The
-  cheap way to get there is to assign images once in Rhino's toolbar editor and
-  commit the file Rhino writes back.
+  cannot reference, and its `<bitmaps>` section is empty. Ours carries one
+  horizontal PNG strip per size — 16, 24 and 32 — with a `bitmap_item` naming
+  the slot each icon occupies, and each macro's `bitmap_id` pointing at its
+  slot. `build/build-rui-icons.ps1` regenerates the whole block from
+  `assets/icons`, so replacing a PNG is one command rather than an edit to
+  several kilobytes of base64.
 
 RhinoCommon can open and save `.rui` files but cannot create toolbars or
 buttons, so the file is authored by hand or by Rhino's editor — not from code.
+
+## Icons
+
+Masters live once in `assets/icons` as PNGs, and every surface scales from them:
+
+| Surface | How it gets there |
+|---|---|
+| Grasshopper component and ribbon tab | embedded resource, scaled to 24x24 |
+| Rhino panel tab | embedded resource, converted to an `Icon` |
+| Rhino panel buttons | embedded, bridged into Eto through a PNG round-trip |
+| Rhino toolbar | base64 strips inside the `.rui` |
+| Package Manager listing | a loose copy in the package, named by `manifest.yml` |
+
+`src/Shared/EmbeddedIcons.cs` is linked into both adaptor projects rather than
+living in Core, because Core and the domains are not allowed to reference
+`System.Drawing`. Linking the source keeps one implementation without breaking
+that rule.
+
+Its bitmaps are cached and shared, so **callers must not dispose them**. A
+`using` on one leaves every later caller holding a dead handle, and the failure
+surfaces a long way from the cause. Both callers were written that way first.
 
 ## The assembly Guid
 

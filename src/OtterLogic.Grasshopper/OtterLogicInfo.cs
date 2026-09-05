@@ -1,6 +1,7 @@
 using System.Drawing;
 using Grasshopper;
 using Grasshopper.Kernel;
+using OtterLogic.Shared;
 
 // Same namespace gotcha as the Rhino project: inside OtterLogic.Grasshopper a
 // bare "Grasshopper.X" binds here, not to McNeel's assembly. Import above the
@@ -15,7 +16,7 @@ public sealed class OtterLogicInfo : GH_AssemblyInfo
 {
     public override string Name => "OtterLogic";
     public override string Description => "Form finding, fabrication and machine learning playground.";
-    public override Bitmap? Icon => null;
+    public override Bitmap? Icon => EmbeddedIcons.Load("otterlogic", 24);
     public override Guid Id => new("d974722a-bd69-487c-815e-5b776d3705ad");
     public override string AuthorName => "OtterLogic";
     public override string AuthorContact => "https://github.com/Otter-Logic/OtterLogic";
@@ -33,8 +34,11 @@ public sealed class OtterLogicPriority : GH_AssemblyPriority
         Instances.ComponentServer.AddCategoryShortName(Categories.Root, "Otter");
         Instances.ComponentServer.AddCategorySymbolName(Categories.Root, 'O');
 
-        // When you have one, drop a 24x24 into Resources and add:
-        // Instances.ComponentServer.AddCategoryIcon(Categories.Root, Resources.TabIcon);
+        // The ribbon tab icon. Grasshopper falls back to the symbol letter above
+        // if this is null, so a missing icon degrades rather than breaks.
+        Bitmap? tabIcon = EmbeddedIcons.Load("otterlogic", 24);
+        if (tabIcon is not null)
+            Instances.ComponentServer.AddCategoryIcon(Categories.Root, tabIcon);
 
         return GH_LoadingInstruction.Proceed;
     }
