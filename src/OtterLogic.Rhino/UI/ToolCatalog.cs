@@ -6,7 +6,10 @@ namespace OtterLogic.Rhino.UI;
 /// <param name="Section">Heading to file it under. Use a <see cref="Sections"/> constant.</param>
 /// <param name="Name">Button label.</param>
 /// <param name="Command">Rhino command name, without the leading underscore.</param>
-/// <param name="Summary">One line saying what it does, in the panel under the button.</param>
+/// <param name="Summary">
+/// What it does, shown under the button. Keep it short — this renders in a
+/// docked side panel a couple of hundred pixels wide.
+/// </param>
 public sealed record OtterTool(string Section, string Name, string Command, string Summary);
 
 /// <summary>
@@ -25,6 +28,6 @@ public static class ToolCatalog
             Sections.StructuralForm,
             "Truss 2D",
             "OtterTruss2D",
-            "Bracing between two chords you have already drawn. Adds web and end posts only."),
+            "Bracing between two chords you drew. Adds web and end posts only."),
     };
 }
