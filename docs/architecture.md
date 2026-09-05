@@ -86,6 +86,62 @@ Add sections there rather than typing category strings into components: the
 Category string is literally what names the tab, so one typo silently creates a
 second one.
 
+Those constants live in `OtterLogic.Core.Sections`, and the Grasshopper
+`Categories` class is now a thin alias over them. That is a deliberate exception
+to keeping Core algorithm-only: the section names are domain vocabulary rather
+than UI, and the Rhino panel reads the same list to build its headings. One copy
+is the only thing stopping the ribbon tab and the panel drifting apart as tools
+get added.
+
+## The Rhino panel
+
+`OtterLogic` opens a dockable Eto panel listing every tool. Rhino identifies
+docked panels by **icon alone** — the caption is only a tooltip — so a panel
+registered without one gets a blank tab nobody can find. `PanelIcon` draws a
+small truss glyph at runtime rather than shipping a binary asset for the sake of
+32 pixels, in a mid-tone accent colour so it reads against both the light and
+dark themes.
+
+The contents come from `ToolCatalog`, a flat list of
+`(Section, Name, Command, Summary)` records. Adding a command to the panel is one
+line; there is no layout code to touch. Descriptions are the reason to prefer a
+panel over a toolbar — a button label alone will not tell you what a tool does
+three months from now.
+
+Registration happens in `OnLoad`, and the plug-in loads `AtStartup`. Both matter:
+a panel registered lazily is one Rhino has already decided does not exist by the
+time it restores the previous session layout.
+
+Registration is wrapped in a try/catch that records the failure and returns
+`Success` anyway. A panel that will not register is a nuisance; a plug-in that
+refuses to load because of it takes every command down with it.
+
+### The assembly Guid
+
+Rhino takes a plug-in identity from the **assembly-level** `[Guid]`, not from the
+`[Guid]` on the `PlugIn` class. Miss it and `PlugIn.Id` is `Guid.Empty`, which
+fails in a thoroughly misleading way: commands still register and the tools all
+work, so nothing looks wrong. But the plug-in never appears in the plug-in
+manager, Rhino re-runs its package install on every startup because it can never
+record the thing as installed, and anything keyed on the id fails outright —
+`Panels.RegisterPanel` throws `plugInId Can't be Guid.Empty`.
+
+`Properties/AssemblyInfo.cs` now carries it, and it must stay equal to the
+attribute on `OtterLogicPlugIn`.
+
+One build wrinkle worth knowing. The Rhino project has `UseWindowsForms` on for
+`System.Drawing`, whose implicit usings collide with Eto over `Control`,
+`Button`, `Font`, `Size` and `Padding`. Rather than alias every one of them in
+every UI file, the csproj drops both implicit usings:
+
+```xml
+<Using Remove="System.Windows.Forms" />
+<Using Remove="System.Drawing" />
+```
+
+Files that want `System.Drawing` import it themselves, which is only the icon and
+the display conduits.
+
 ## Truss stations
 
 `Truss2DGenerator` places nodes at *stations* — normalised arc-length positions

@@ -41,17 +41,19 @@ public sealed class OtterLogicPriority : GH_AssemblyPriority
 }
 
 /// <summary>
-/// Every component's Category/Subcategory in one place. The Category string is
+/// Every component Category/Subcategory in one place. The Category string is
 /// literally what names the ribbon tab, so a typo silently creates a second one.
+/// <para>
+/// The values come from <see cref="OtterLogic.Core.Sections"/>, which the Rhino
+/// panel also reads, so the tab and the panel cannot drift apart.
+/// </para>
 /// </summary>
 public static class Categories
 {
-    public const string Root = "OtterLogic";
+    public const string Root = OtterLogic.Core.Sections.Root;
 
-    /// <summary>Trusses, frames, and other discrete structural layouts.</summary>
-    public const string StructuralForm = "Structural Form";
-
-    public const string FormFinding = "Form Finding";
-    public const string Fabrication = "Fabrication";
-    public const string Learning = "Learning";
+    public const string StructuralForm = OtterLogic.Core.Sections.StructuralForm;
+    public const string FormFinding = OtterLogic.Core.Sections.FormFinding;
+    public const string Fabrication = OtterLogic.Core.Sections.Fabrication;
+    public const string Learning = OtterLogic.Core.Sections.Learning;
 }
