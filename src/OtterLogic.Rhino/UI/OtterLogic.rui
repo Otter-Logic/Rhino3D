@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+  OtterLogic toolbar.
+
+  Rhino loads a .rui sitting beside the .rhp with a matching base name the first
+  time the plug-in loads, then copies it into the user's own UI settings. From
+  then on Rhino uses their copy, so edits here only reach a machine that has not
+  seen the file before - bump major_version on the group item to push a change.
+
+  Structure, mirroring Rhino's own default.rui:
+    macros          - one entry per command, holding the script to run
+    tool_bar_groups - the docked tab bar; each group_item is one tab
+    tool_bars       - the buttons behind each tab, referencing macros by guid
+
+  Buttons carry no bitmap_id, so Rhino renders their text. The bitmap_id values
+  in the default file are GUIDs into Rhino's own icon library, which a third
+  party cannot reference; custom icons go in the <bitmaps> section instead.
+-->
+<RhinoUI major_ver="5" minor_ver="0" guid="314953c7-93fd-4112-b048-671a7c3c8ce2">
+
+  <macros>
+    <macro_item guid="4e53c0fe-9ee5-4a87-ad0c-4e397620ee93">
+      <text>
+        <locale_1033>Truss 2D</locale_1033>
+      </text>
+      <tooltip>
+        <locale_1033>Bracing between two chords you drew</locale_1033>
+      </tooltip>
+      <help_text>
+        <locale_1033>Generate a 2D truss between a top and a bottom chord.</locale_1033>
+      </help_text>
+      <button_text>
+        <locale_1033>Truss 2D</locale_1033>
+      </button_text>
+      <menu_text>
+        <locale_1033>Truss 2D</locale_1033>
+      </menu_text>
+      <script>! _OtterTruss2D</script>
+    </macro_item>
+
+    <macro_item guid="5dd49db2-a93c-4a90-9581-1163ddc6aead">
+      <text>
+        <locale_1033>OtterLogic Panel</locale_1033>
+      </text>
+      <tooltip>
+        <locale_1033>Show or hide the OtterLogic panel</locale_1033>
+      </tooltip>
+      <button_text>
+        <locale_1033>Panel</locale_1033>
+      </button_text>
+      <menu_text>
+        <locale_1033>OtterLogic Panel</locale_1033>
+      </menu_text>
+      <script>! _OtterLogic</script>
+    </macro_item>
+  </macros>
+
+  <bitmaps>
+    <small_bitmap item_width="16" item_height="16" />
+    <normal_bitmap item_width="24" item_height="24" />
+    <large_bitmap item_width="32" item_height="32" />
+  </bitmaps>
+
+  <tool_bar_groups>
+    <tool_bar_group guid="6f927ce8-4f2b-46c7-a6c4-5d5bff26287c"
+                    dock_bar_guid64="e7203192-4781-40fe-a743-b1afed0761f5"
+                    active_tool_bar_group="cb09938f-eb86-48db-9d2b-2166837dcc16"
+                    single_file="False"
+                    hide_single_tab="False">
+      <text>
+        <locale_1033>OtterLogic Toolbar Group</locale_1033>
+      </text>
+      <tool_bar_group_item guid="cb09938f-eb86-48db-9d2b-2166837dcc16" major_version="1" minor_version="0">
+        <text>
+          <locale_1033>OtterLogic</locale_1033>
+        </text>
+        <tool_bar_id>59b291d0-516b-42e2-ab6e-a8318c442909</tool_bar_id>
+      </tool_bar_group_item>
+
+      <!-- Without this the group loads but its bar is never shown. Docked at the
+           top as its own row rather than sharing Rhino's dock bar: pointing
+           dock_bar_guid64 at Rhino's own bar does not add a tab to it, it takes
+           the bar over and hides Standard, CPlanes and the rest. -->
+      <dock_bar_info dock_bar="False" docking="True" horz="False" visible="True"
+                     floating="True" dock_location="top" float_point="200,200" float_size="240,64" />
+    </tool_bar_group>
+  </tool_bar_groups>
+
+  <tool_bars>
+    <tool_bar guid="59b291d0-516b-42e2-ab6e-a8318c442909" platforms="Win">
+      <text>
+        <locale_1033>OtterLogic</locale_1033>
+      </text>
+      <tool_bar_item guid="dd19c716-7d1d-4a42-856b-f89103ad62cf">
+        <text>
+          <locale_1033>Truss 2D</locale_1033>
+        </text>
+        <left_macro_id>4e53c0fe-9ee5-4a87-ad0c-4e397620ee93</left_macro_id>
+      </tool_bar_item>
+      <tool_bar_item guid="314953c7-93fd-4112-b048-671a7c3c8ce3">
+        <text>
+          <locale_1033>OtterLogic Panel</locale_1033>
+        </text>
+        <left_macro_id>5dd49db2-a93c-4a90-9581-1163ddc6aead</left_macro_id>
+      </tool_bar_item>
+    </tool_bar>
+  </tool_bars>
+
+</RhinoUI>
+

@@ -68,7 +68,33 @@ Registration is wrapped in a try/catch that records the failure and returns
 `Success` anyway. A panel that will not register is a nuisance; a plug-in that
 refuses to load because of it takes every command down with it.
 
-### The assembly Guid
+#### The toolbar
+
+`UI/OtterLogic.rui` ships beside the `.rhp` with a matching base name, which is
+how Rhino finds a plug-in toolbar. It auto-loads from the package folder, no
+install step.
+
+Three things learned the hard way, all verified against a running Rhino:
+
+- **You cannot add a tab to Rhino's own strip.** Every visible tab — Standard,
+  CPlanes, and Grasshopper too — is defined in Rhino's `default.rui`. Pointing
+  our group's `dock_bar_guid64` at that bar does not add to it, it *takes it
+  over*: Rhino's own toolbars disappear. Ours keeps its own dock bar.
+- **A group without `<dock_bar_info>` loads but is never shown.** It needs
+  `visible="True"`, and `floating="True"` so it appears somewhere the user can
+  find it. From there, dragging it into the tab strip is user window-layout
+  state that Rhino remembers per machine — it cannot be shipped pre-docked.
+- **Custom icons are unfinished.** The `bitmap_id` on every macro in
+  `default.rui` indexes Rhino's internal icon library, which a third party
+  cannot reference. Own icons go as base64 in the `<bitmaps>` section, whose
+  encoding is not documented here. Buttons render their text until then. The
+  cheap way to get there is to assign images once in Rhino's toolbar editor and
+  commit the file Rhino writes back.
+
+RhinoCommon can open and save `.rui` files but cannot create toolbars or
+buttons, so the file is authored by hand or by Rhino's editor — not from code.
+
+## The assembly Guid
 
 Rhino takes a plug-in identity from the **assembly-level** `[Guid]`, not from the
 `[Guid]` on the `PlugIn` class. Miss it and `PlugIn.Id` is `Guid.Empty`, which

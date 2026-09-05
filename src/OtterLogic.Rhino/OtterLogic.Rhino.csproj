@@ -34,6 +34,12 @@
     <ProjectReference Include="..\OtterLogic.Core\OtterLogic.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Must land beside the .rhp with a matching base name: that is how Rhino
+         finds a plug-in toolbar. -->
+    <None Include="UI\OtterLogic.rui" Link="OtterLogic.rui" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <!-- F5 launches Rhino with the debugger attached. -->
   <ItemGroup>
     <None Update="Properties\launchSettings.json" CopyToOutputDirectory="Never" />
