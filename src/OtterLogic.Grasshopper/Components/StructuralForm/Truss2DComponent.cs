@@ -40,17 +40,18 @@ public sealed class Truss2DComponent : GH_Component
             GH_ParamAccess.item);
 
         pManager.AddIntegerParameter("Type", "Ty",
-            "Web bracing pattern.", GH_ParamAccess.item, (int)TrussType.Warren);
+            "Web bracing pattern. Wire a Truss Type dropdown in, or right-click for the same "
+            + "list as a menu.", GH_ParamAccess.item, (int)TrussType.Warren);
+
+        pManager.AddIntegerParameter("Divisions", "D",
+            "Number of panels, set out evenly by plan distance. This is the primary control: it "
+            + "sets how many verticals and diagonals there are, and snap points then move those "
+            + "members rather than adding to them. Zero hands control to the geometry, where "
+            + "every detected point becomes a node in its own right.",
+            GH_ParamAccess.item, 0);
 
         pManager.AddBooleanParameter("End Posts", "E",
             "Close the truss with a post at each end.", GH_ParamAccess.item, true);
-
-        pManager.AddIntegerParameter("Divisions", "D",
-            "Number of panels to lay out evenly before snapping. This sets how many verticals "
-            + "and diagonals there are; snap points then move those members rather than adding "
-            + "to them. Zero hands control to the geometry, where every detected point becomes "
-            + "a node in its own right.",
-            GH_ParamAccess.item, 0);
 
         pManager.AddPointParameter("Snap Points", "P",
             "Extra points to snap to, on top of the polyline vertices and curve kinks already "
@@ -59,8 +60,8 @@ public sealed class Truss2DComponent : GH_Component
         pManager[5].Optional = true;
 
         pManager.AddNumberParameter("Snap Spacing", "S",
-            "Target panel spacing in model units — another way to say Divisions when you care "
-            + "about panel length rather than count. Divisions wins if both are set.",
+            "Target panel spacing on plan, in model units — another way to say Divisions when "
+            + "you care about panel length rather than count. Divisions wins if both are set.",
             GH_ParamAccess.item, 0.0);
 
         pManager.AddBooleanParameter("Flip", "F",
@@ -68,10 +69,12 @@ public sealed class Truss2DComponent : GH_Component
             + "zigzag starts the other way up. No effect on Vierendeel or cross-braced.",
             GH_ParamAccess.item, false);
 
-        // Right-click the input for a readable menu instead of raw integers.
+        // Right-click the input for a readable menu instead of raw integers, or
+        // drop a Truss Type list on the canvas and wire it in. Both read the
+        // same choices, so they cannot come to disagree about what one is called.
         var typeParam = (Param_Integer)pManager[2];
-        foreach (TrussType value in Enum.GetValues<TrussType>())
-            typeParam.AddNamedValue(Naming.Humanise(value), (int)value);
+        foreach (var (label, value) in EnumChoices.Of<TrussType>())
+            typeParam.AddNamedValue(label, value);
     }
 
     /// <summary>
@@ -100,8 +103,8 @@ public sealed class Truss2DComponent : GH_Component
         Curve? top = null;
         Curve? bottom = null;
         int type = (int)TrussType.Warren;
-        bool endPosts = true;
         int divisions = 0;
+        bool endPosts = true;
         var snapPoints = new List<GH_Point>();
         double spacing = 0.0;
         bool flip = false;
@@ -109,8 +112,8 @@ public sealed class Truss2DComponent : GH_Component
         if (!da.GetData(0, ref top)) return;
         if (!da.GetData(1, ref bottom)) return;
         if (!da.GetData(2, ref type)) return;
-        if (!da.GetData(3, ref endPosts)) return;
-        if (!da.GetData(4, ref divisions)) return;
+        if (!da.GetData(3, ref divisions)) return;
+        if (!da.GetData(4, ref endPosts)) return;
         da.GetDataList(5, snapPoints);
         if (!da.GetData(6, ref spacing)) return;
         if (!da.GetData(7, ref flip)) return;

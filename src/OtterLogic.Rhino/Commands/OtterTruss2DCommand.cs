@@ -99,25 +99,26 @@ public sealed class OtterTruss2DCommand : Command
         step = SelectTrussType(ref _type);
         if (step != Result.Success) return step;
 
-        // Step 4: mirror the bracing.
-        bool flip = _flip;
-        step = RhinoGet.GetBool("Flip the bracing", true, "No", "Yes", ref flip);
-        if (step != Result.Success) return step;
-        _flip = flip;
-
-        // Step 5: end posts.
-        bool endPosts = _endPosts;
-        step = RhinoGet.GetBool("Generate end posts", true, "No", "Yes", ref endPosts);
-        if (step != Result.Success) return step;
-        _endPosts = endPosts;
-
-        // Step 6: how many panels, before anything snaps.
+        // Step 4: how many panels. Straight after the type, because the two of
+        // them are the whole shape of the truss; everything below is detail.
         int divisions = _divisions;
         step = RhinoGet.GetInteger(
             "Number of divisions (0 to take nodes from the chords themselves)",
             true, ref divisions, 0, 10000);
         if (step != Result.Success) return step;
         _divisions = divisions;
+
+        // Step 5: mirror the bracing.
+        bool flip = _flip;
+        step = RhinoGet.GetBool("Flip the bracing", true, "No", "Yes", ref flip);
+        if (step != Result.Success) return step;
+        _flip = flip;
+
+        // Step 6: end posts.
+        bool endPosts = _endPosts;
+        step = RhinoGet.GetBool("Generate end posts", true, "No", "Yes", ref endPosts);
+        if (step != Result.Success) return step;
+        _endPosts = endPosts;
 
         // Step 7: additional snap points.
         step = SelectSnapPoints(out Point3d[] snapPoints);
@@ -126,7 +127,7 @@ public sealed class OtterTruss2DCommand : Command
         // Step 8: panel spacing, for when you would rather set a length than a count.
         double spacing = _spacing;
         step = RhinoGet.GetNumber(
-            "Panel spacing (0 to leave it to the divisions)",
+            "Panel spacing on plan (0 to leave it to the divisions)",
             true, ref spacing, 0.0, 1e9);
         if (step != Result.Success) return step;
         _spacing = spacing;
@@ -406,6 +407,24 @@ public sealed class OtterTruss2DCommand : Command
     private static int AddLayer(RhinoDoc doc, string name, Guid parent, Color colour)
         => doc.Layers.Add(new Layer { Name = name, Color = colour, ParentLayerId = parent });
 
+    /// <summary>
+    /// A sub-layer of the run's layer, falling back to the run's layer itself.
+    /// <para>
+    /// The fallback should never fire — the parent was created moments ago, so
+    /// every name under it is free — but the alternative to checking is baking
+    /// with <c>LayerIndex = -1</c>, which quietly puts geometry on a layer
+    /// nobody chose. Landing one level up is findable; landing anywhere is not.
+    /// </para>
+    /// </summary>
+    private static int SubLayer(RhinoDoc doc, string name, Guid parent, Color colour, int fallback)
+    {
+        int index = AddLayer(doc, name, parent, colour);
+        if (index >= 0) return index;
+
+        RhinoApp.WriteLine($"OtterTruss2D: could not create the {name} sub-layer, so those objects went one level up.");
+        return fallback;
+    }
+
     private static ObjectAttributes Attributes(string name, int layerIndex, int group)
     {
         var attributes = new ObjectAttributes { Name = name, LayerIndex = layerIndex };
@@ -465,7 +484,7 @@ public sealed class OtterTruss2DCommand : Command
 
         foreach (var (layerName, colour, lines) in byRole)
         {
-            int layer = AddLayer(doc, layerName, rootId, colour);
+            int layer = SubLayer(doc, layerName, rootId, colour, root);
 
             foreach (Line line in lines)
                 doc.Objects.AddLine(line, Attributes(layerName, layer, group));
@@ -474,7 +493,7 @@ public sealed class OtterTruss2DCommand : Command
         }
 
         var nodes = trusses.SelectMany(t => t.DistinctNodes).ToList();
-        int nodeLayer = AddLayer(doc, NodeLayer, rootId, NodeColour);
+        int nodeLayer = SubLayer(doc, NodeLayer, rootId, NodeColour, root);
 
         foreach (Point3d node in nodes)
             doc.Objects.AddPoint(node, Attributes(NodeLayer, nodeLayer, group));

@@ -59,6 +59,7 @@
          LogicalName is what EmbeddedIcons looks up, so it must match there. -->
     <EmbeddedResource Include="..\..\assets\icons\otterlogic.png" LogicalName="OtterLogic.Icons.otterlogic.png" />
     <EmbeddedResource Include="..\..\assets\icons\truss2d.png" LogicalName="OtterLogic.Icons.truss2d.png" />
+    <EmbeddedResource Include="..\..\assets\icons\TrussType.png" LogicalName="OtterLogic.Icons.trusstype.png" />
   </ItemGroup>
 
 </Project>
