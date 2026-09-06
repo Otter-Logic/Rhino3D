@@ -66,6 +66,10 @@ filters the autocomplete down to this plug-in.
   the trusses and lets you keep changing type, flip, divisions, spacing and end
   posts before anything is added to the document.
 - Grasshopper: *OtterLogic → Structural Form → Truss 2D*, the same inputs as ports.
+  *Truss Type* sits beside it in the same panel: drop it on the canvas for a
+  dropdown of the bracing patterns and wire it into the Type input. The input's
+  own right-click menu carries the same list, for when you would rather not have
+  a second object on the canvas.
 
 Both chord picks take a **set**, so a whole bay of trusses goes up in one run:
 pick the top chords, press Enter, pick the bottom chords in the same order, press
@@ -109,12 +113,18 @@ are applied to the same thing.
 Warren zigzag starts the other way up. Vierendeel has no diagonals to mirror and
 cross-bracing already draws both, so neither is affected.
 
-`Divisions` is the primary control: it fixes how many verticals and diagonals
-there are, laying them out evenly, after which each node **snaps** onto a nearby
-snap point rather than adding to them. The two chords snap **independently** —
-each owns its own vertices and kinks plus the picked points nearest to it, so a
-point beside the bottom chord moves the bottom node and leaves the top one alone.
+`Divisions` is the primary control, and sits right after the truss type in both
+front-ends because the two of them are the whole shape of the truss. It fixes how
+many verticals and diagonals there are, laying them out evenly **on plan**, after
+which each node **snaps** onto a nearby snap point rather than adding to them.
 Reach is half a panel, and no two nodes can claim the same point.
+
+Panels are set out by plan distance, not distance along the chord, so a pitched
+top chord over a level bottom one still gives verticals that stand up rather than
+lean. Whatever does not snap is then **spread evenly between the nodes that did**,
+so a snap point re-divides the truss around it instead of leaving one short panel
+and one long one. Snap points anchor both chords at once — a panel point is where
+the whole truss steps.
 
 Leave `Divisions` at 0 and control inverts: every detected point becomes a node
 in its own right. Two plain lines then give a single panel, which is the honest

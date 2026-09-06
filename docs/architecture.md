@@ -182,41 +182,67 @@ the display conduits.
 
 ## Truss stations
 
-`Truss2DGenerator` places nodes at *stations* — normalised arc-length positions
-from 0 to 1 along a chord. Each chord carries **its own** station list, always
-the same length as the other, so top node `i` still pairs with bottom node `i`
-and every web pattern stays index arithmetic over panel count — but the two
-chords are free to put that node at different points along their own length.
+`Truss2DGenerator` places nodes at *stations* — positions from 0 to 1 along a
+chord, measured as a fraction of its **plan** length. One list, shared by both
+chords, so top node `i` and bottom node `i` sit at the same plan position and
+every web pattern stays index arithmetic over panel count.
 
-There are two ways those lists get built, and the distinction is the important
-part of the design:
+### Why plan distance
+
+A pitched top chord is longer than the level bottom chord beneath it. Divide each
+by its own length and node `i` lands a different distance along each of them, so
+the member joining the pair leans — visibly, and worse the steeper the pitch.
+Measuring in plan puts the pair at the same place on the ground, and the vertical
+stands up. The plan ruler is the chord projected onto world XY; the chord itself
+is still what the node is evaluated on, so nothing is flattened.
+
+That correspondence has to be exact, which is why chords are converted to NURBS
+first. Project an arc as an arc and the projection runs at a different speed
+along itself, so a parameter stops meaning the same place on both — measured on a
+12 m chord that is a 24 mm error in every node. A NURBS projects to a NURBS with
+the same knots and the same domain, and the error is zero. A chord seen edge-on
+in plan has no plan length to divide, so it measures along itself instead.
+
+### How the list gets built
 
 **Divisions drive, snap points steer.** With `Divisions` (or `SnapSpacing`) set,
-the panel count is fixed up front, both chords are laid out evenly, and then each
-is snapped **independently** onto its own snap points. A chord owns its vertices
-and kinks, plus the picked points lying nearer to it than to the other chord — so
-a point beside the bottom chord moves the bottom node and leaves the top one
-where it was.
+the panel count is fixed up front, the chord is laid out evenly on plan, and the
+stations then snap onto nearby targets: the vertices and kinks of *either* chord,
+plus the picked points. Reach is half a panel — far enough to catch a nearby
+vertex, never far enough for two stations to swap places or collapse together.
+Assignment is greedy, nearest pair first, with both sides claimed exclusively,
+because otherwise two stations converge on one popular point and the panels
+either side degenerate. Member count is exactly what was asked for; snap points
+move members but never add them.
 
-Member count is exactly what was asked for; snap points move members but never
-add them. Reach is half a panel — far enough to catch a nearby vertex, never far
-enough for two stations to swap places or collapse together. Assignment is
-greedy, nearest pair first, with both sides claimed exclusively, because
-otherwise two stations converge on one popular point and the panels either side
-degenerate.
-
-The snapped lists are deliberately *not* de-duplicated afterwards. Merging a
-close pair on one chord but not the other would leave the lists different lengths
-and break the pairing; the snap radius already guarantees stations stay ordered
-and apart.
+**Then what did not snap is spread.** Snapping alone leaves the two panels either
+side of a snapped node short and long while the whole rest of the chord keeps its
+original spacing, which reads as a mistake because it is not how anyone sets a
+truss out. The snapped stations are fixed points, the chord ends are fixed
+points, and what lies between two fixed points is divided evenly. Panel count is
+untouched — stations move between anchors, they are never added or removed.
 
 **Geometry drives.** With neither set, the snap points *are* the stations:
-polyline vertices, curve kinks and picked points each become a node. Here the two
-chords must share one list — the points are what decide how many panels there
-are, so the chords have to agree on that — which means a vertex on either chord
-induces a node on both. A plain line contributes none, so two lines give a single
-panel. That is deliberate: the alternative is inventing a panel count the user
-did not ask for.
+polyline vertices, curve kinks and picked points each become a node, with nothing
+to spread. A plain line contributes none, so two lines give a single panel. That
+is deliberate: the alternative is inventing a panel count the user did not ask
+for.
+
+### One list, not two
+
+Stations used to be per chord, each snapping only to its own points, so that a
+point beside the bottom chord moved the bottom node and left the top one alone.
+Spreading is what ended that. With one chord anchored and the other not, every
+station after the anchor moves on one chord only, and a single picked point tilts
+the whole run of verticals after it rather than the one beside it. Measured on a
+30 m truss with two snap points, every vertical came out leaning, by up to 1.5 m
+at the worst node.
+
+So a snap point now anchors both chords. Which chord it belongs to still decides
+*where* it lands — it is measured against the one it sits nearer to, because a
+point beside a sagging bottom chord is at a different plan position from the one
+directly above it — but a panel point is a place where the whole truss steps, and
+both chords step there. That is also what trusses do.
 
 Where the chords converge to a shared point, `ChordsMeetAtStart` /
 `ChordsMeetAtEnd` suppress that end post. It would otherwise collapse onto the
@@ -311,6 +337,29 @@ rather than about hosts, and it belongs below them:
 What deliberately stayed in the adapter: the layer colours (Core may not
 reference `System.Drawing`, and a colour is a host decision anyway), the pairing
 of picked chords, and the layer naming. Those describe Rhino, not trusses.
+
+## Enum dropdowns
+
+An option that is a closed set gets a `GH_ValueList` of its own in the ribbon —
+`Truss Type` is the first — rather than only a right-click menu on the input.
+The menu is fine once you know to look; the dropdown is for when you do not, and
+it leaves the choice visible on the canvas to whoever opens the definition next.
+
+`EnumValueList<TEnum>` carries all of the behaviour, so a concrete one is a
+constructor call, a GUID and an icon. Generic because every domain grows option
+enums and each will want the same thing; writing the second one by hand is how
+the two of them drift.
+
+Both the dropdown and the receiving input build their labels from
+`EnumChoices.Of<TEnum>()`, which is `Naming.Humanise` over the enum's values. One
+call, so a dropdown and the input it feeds cannot come to spell an option two
+different ways — the same reason `Humanise` is in Core rather than in either
+front-end.
+
+The enum itself stays in the domain. `TrussType` is truss knowledge and lives in
+StructuralForm next to the generator that reads it; the dropdown is an adaptor
+that knows how to show an enum and nothing about trusses beyond which one to
+show. That split is why the next dropdown costs a file and not a design.
 
 ## Where BHoM-style layering fits, and where it does not
 
