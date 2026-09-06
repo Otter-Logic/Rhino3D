@@ -228,15 +228,89 @@ is Howe; cross-braced draws both diagonals already, so it comes out identical.
 
 ## Where the front-ends legitimately differ
 
-Adapters are thin, but thin is not the same as identical. The one place they
-diverge on purpose: the Rhino command bakes **only web and end posts**, because
-the chords are curves the user drew and then picked — adding the generated
-copies would leave two curves on top of each other. The Grasshopper component
-outputs the chord members, since on a canvas they are the only chords there are.
+Adapters are thin, but thin is not the same as identical. Both front-ends hand
+back every member the engine produced; what they do with them is where they
+diverge, and that divergence is the adapter's whole job.
 
-The filtering lives in the command, not the engine. `Truss2DGenerator` always
-produces the full member list; deciding what to do with it is exactly the kind
-of host-specific judgement an adapter is for.
+Grasshopper sorts the members onto output ports, because a port is how a canvas
+passes work along. Rhino has no ports, so the command uses what Rhino does have:
+each run gets a root layer — `OtterTruss1`, then `OtterTruss2`, numbered from the
+highest already in the document rather than from a count, so deleting one does
+not make a later run merge into what is left of it — with a sub-layer per section
+group underneath, and the run in one group.
+
+The unit is the **run**, not the truss. Trusses raised together are a bay: picked
+together, answered for together, sized together. Splitting them into a tree each
+would mean assigning the same section four times over, which is precisely the
+sorting the layers exist to avoid. So they share the layers and the group, and a
+truss keeps its identity through geometry rather than bookkeeping.
+
+The two sets are the same six groups in the same order, and both take their
+names from `TrussMemberRole.DisplayName()` rather than spelling them out, so a
+port and a layer cannot come to disagree about what a diagonal is called.
+
+The two carry different halves of the same information, deliberately. The group
+says *which* truss a member belongs to, so it stays one thing to select, move
+and hand on. The layer says *what* the member is, so the next tool along can put
+a section against a whole layer without inspecting any geometry — which is why
+the layers are the likely section groups (top chord, bottom chord, vertical,
+diagonal, end post, node) rather than the four structural families.
+
+That taxonomy is the reason `TrussMemberRole` splits `Vertical` from `Diagonal`
+rather than carrying a single `Web`. The distinction is structural, not
+presentational — a vertical and a diagonal are specified separately — so it
+belongs in the engine, where both front-ends can see it. `Truss2D.Web` still
+returns the two together for callers that do not care.
+
+Rhino baking the chord members is not a duplicate of the curves the user picked:
+those are whole curves, these are members split at every node, which is the form
+a section and an analysis both want. The picked curves are left untouched.
+
+The other real divergence is multiplicity. Grasshopper gets a truss per branch
+for free — that is what a data tree is — so the component stays one truss in, one
+truss out. Rhino has no such thing, so the command takes a set of top chords and
+a set of bottom chords and builds the bay in one pass, pairing them by pick
+order: top chord *i* with bottom chord *i*.
+
+Pick order rather than anything cleverer, deliberately. A geometric rule —
+nearest chord, say — reads well until two trusses sit closer together than they
+are deep, at which point it silently pairs the wrong chords and the user has no
+way to see why. Pick order is a rule the user is already following while they
+pick, so a wrong result is a wrong pick, and the fix is to run the command again.
+Guessing would trade an obvious mistake for an invisible one.
+
+Matching the two counts is therefore the command's business and nobody else's: a
+mismatched pick is a question to put back to the user, not a state the engine
+should ever be handed.
+
+## What belongs where, checked against the front-ends
+
+Every time both front-ends say the same thing, that is a claim about trusses
+rather than about hosts, and it belongs below them:
+
+- **The wording of a warning.** "The two chords are not coplanar, so this truss
+  is warped" was written out twice, in two files, in two repositories. It is now
+  `Truss2D.Notes`, a list of `TrussNote` carrying a level the host maps onto
+  whatever it has — a Grasshopper bubble, a command-line line. The domain decides
+  *what* is worth saying; the adapter decides only how loudly.
+- **The rules an option has to obey.** The component used to re-check divisions,
+  spacing and truss type before calling a generator that checks all three itself
+  and throws with a usable message. The duplicates are gone; `Truss2DGenerator`
+  validates its own options, including the truss type it previously let through
+  to fail deeper in.
+- **Which nodes are actually distinct.** Where the chords meet, top node *i* and
+  bottom node *i* are the same point, and both front-ends wanted the merged list
+  — one to bake, one to output. `Truss2D.DistinctNodes` does the merging;
+  `Truss2D.Nodes` still carries the duplicates, because member connectivity
+  indexes into it.
+- **How an enum reads to a human.** `Naming.Humanise` is in Core rather than the
+  domain, because it knows nothing about trusses: every domain grows option
+  enums and both front-ends have to show them. It was Grasshopper-only before,
+  which is why the Rhino prompt used to say "WarrenWithVerticals".
+
+What deliberately stayed in the adapter: the layer colours (Core may not
+reference `System.Drawing`, and a colour is a host decision anyway), the pairing
+of picked chords, and the layer naming. Those describe Rhino, not trusses.
 
 ## Where BHoM-style layering fits, and where it does not
 

@@ -2,6 +2,7 @@ using System.Drawing;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
+using OtterLogic.Core;
 using OtterLogic.StructuralForm;
 using Rhino;
 using Rhino.Geometry;
@@ -70,16 +71,28 @@ public sealed class Truss2DComponent : GH_Component
         // Right-click the input for a readable menu instead of raw integers.
         var typeParam = (Param_Integer)pManager[2];
         foreach (TrussType value in Enum.GetValues<TrussType>())
-            typeParam.AddNamedValue(Nicify(value), (int)value);
+            typeParam.AddNamedValue(Naming.Humanise(value), (int)value);
     }
 
+    /// <summary>
+    /// One port per section group, in the same order and under the same names
+    /// as the layers the OtterTruss2D command bakes onto. Whatever sizes the top
+    /// chord sizes all of it and nothing else, so a port feeds a section
+    /// straight through with no sorting in between.
+    /// </summary>
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
         pManager.AddLineParameter("Top Chord", "T", "Top chord members.", GH_ParamAccess.list);
         pManager.AddLineParameter("Bottom Chord", "B", "Bottom chord members.", GH_ParamAccess.list);
-        pManager.AddLineParameter("Web", "W", "Web members.", GH_ParamAccess.list);
-        pManager.AddLineParameter("End Posts", "E", "End posts.", GH_ParamAccess.list);
-        pManager.AddPointParameter("Nodes", "N", "Panel points, top chord first.", GH_ParamAccess.list);
+        pManager.AddLineParameter("Vertical", "V",
+            "Web members running from a top node to the bottom node paired with it.",
+            GH_ParamAccess.list);
+        pManager.AddLineParameter("Diagonal", "D",
+            "Web members running across a panel, from one chord to the other.",
+            GH_ParamAccess.list);
+        pManager.AddLineParameter("End Post", "E", "End posts.", GH_ParamAccess.list);
+        pManager.AddPointParameter("Node", "N",
+            "Panel points, top chord first, with coincident ones merged.", GH_ParamAccess.list);
     }
 
     protected override void SolveInstance(IGH_DataAccess da)
@@ -108,25 +121,10 @@ public sealed class Truss2DComponent : GH_Component
             return;
         }
 
-        if (!Enum.IsDefined(typeof(TrussType), type))
-        {
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
-                $"Type {type} is not a truss type. Valid values are 0-{Enum.GetValues<TrussType>().Length - 1}.");
-            return;
-        }
-
-        if (divisions < 0)
-        {
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Divisions cannot be negative.");
-            return;
-        }
-
-        if (spacing < 0.0)
-        {
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Snap Spacing cannot be negative.");
-            return;
-        }
-
+        // Type, Divisions and Snap Spacing are deliberately not checked here.
+        // The generator validates its own options and throws ArgumentException
+        // carrying the message to show, so a second copy of those rules on the
+        // canvas would only be a second thing to keep in step with them.
         var options = new Truss2DOptions
         {
             Type = (TrussType)type,
@@ -142,48 +140,27 @@ public sealed class Truss2DComponent : GH_Component
         {
             Truss2D truss = Truss2DGenerator.Generate(top, bottom, options);
 
-            if (!truss.IsPlanar)
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
-                    "The two chords are not coplanar, so this truss is warped.");
-
-            if (endPosts && (truss.ChordsMeetAtStart || truss.ChordsMeetAtEnd))
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
-                    truss.ChordsMeetAtStart && truss.ChordsMeetAtEnd
-                        ? "The chords meet at both ends, so no end posts were generated."
-                        : "The chords meet at one end, so only one end post was generated.");
+            // The truss decides what is worth saying; the component only
+            // decides how loudly to say it. The Rhino command reads the same list.
+            foreach (TrussNote note in truss.Notes)
+                AddRuntimeMessage(
+                    note.Level == TrussNoteLevel.Warning
+                        ? GH_RuntimeMessageLevel.Warning
+                        : GH_RuntimeMessageLevel.Remark,
+                    note.Message);
 
             da.SetDataList(0, truss.TopChord);
             da.SetDataList(1, truss.BottomChord);
-            da.SetDataList(2, truss.Web);
-            da.SetDataList(3, truss.EndPosts);
-            da.SetDataList(4, truss.Nodes);
+            da.SetDataList(2, truss.Verticals);
+            da.SetDataList(3, truss.Diagonals);
+            da.SetDataList(4, truss.EndPosts);
+            da.SetDataList(5, truss.DistinctNodes);
 
-            Message = $"{Nicify(truss.Type)}\n{truss.PanelCount} panels";
+            Message = $"{Naming.Humanise(truss.Type)}\n{truss.PanelCount} panels";
         }
         catch (ArgumentException ex)
         {
             AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ex.Message);
         }
-    }
-
-    /// <summary>"WarrenWithVerticals" reads better as "Warren with verticals".</summary>
-    private static string Nicify(TrussType type)
-    {
-        string name = type.ToString();
-        var text = new System.Text.StringBuilder(name.Length + 4);
-
-        for (int i = 0; i < name.Length; i++)
-        {
-            if (i > 0 && char.IsUpper(name[i]))
-            {
-                text.Append(' ');
-                text.Append(char.ToLowerInvariant(name[i]));
-                continue;
-            }
-
-            text.Append(name[i]);
-        }
-
-        return text.ToString();
     }
 }
