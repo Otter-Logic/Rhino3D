@@ -5,8 +5,14 @@ name: build
 # reasons unrelated to the change. Run tests locally; CI guards compilation.
 #
 # The sibling repos are checked out so the project references resolve. Once
-# the dependencies are published on nuget.org, these extra checkouts can go and the
-# build will fall through to the pinned packages instead.
+# the dependencies are published, these extra checkouts can go and the build
+# will fall through to the pinned packages instead.
+#
+# They need an explicit token. The default GITHUB_TOKEN is scoped to the one
+# repository running the workflow, so a checkout of another private repo in
+# the org fails - and fails as "Not Found" rather than "Forbidden", because
+# GitHub will not confirm that a repo you cannot read exists. Supply a token
+# with Contents: Read on the other OtterLogic repos as the secret below.
 
 on:
   push:
@@ -27,11 +33,19 @@ jobs:
         with:
           repository: Otter-Logic/Core
           path: Core
+          token: ${{ secrets.OTTERLOGIC_REPOS_TOKEN }}
 
       - uses: actions/checkout@v4
         with:
           repository: Otter-Logic/StructuralForm
           path: StructuralForm
+          token: ${{ secrets.OTTERLOGIC_REPOS_TOKEN }}
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Otter-Logic/MachineLearning
+          path: MachineLearning
+          token: ${{ secrets.OTTERLOGIC_REPOS_TOKEN }}
 
       - uses: actions/setup-dotnet@v4
         with:
