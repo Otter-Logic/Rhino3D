@@ -26,7 +26,7 @@ $rui      = Join-Path $repoRoot 'src\OtterLogic.Rhino\UI\OtterLogic.rui'
 # bitmap_id in the .rui. Adding a tool means adding a row here and a matching
 # bitmap_id on its macro.
 $slots = @(
-    @{ Name = 'truss2d'; Guid = '0b3809d9-6ce0-4f3f-b427-8d596b600b0d' }
+    @{ Name = 'flattruss'; Guid = '0b3809d9-6ce0-4f3f-b427-8d596b600b0d' }
 )
 
 foreach ($slot in $slots) {

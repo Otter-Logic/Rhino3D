@@ -18,6 +18,7 @@ name is no help.
 |---|---|---|
 | `Rhino3D` | both adaptors, `build/`, `assets/`, `docs/` | the `.yak` |
 | `Core` | `src/OtterLogic.Core` | NuGet package `OtterLogic.Core` |
+| `MachineLearning` | `src/OtterLogic.MachineLearning`, `python/`, `models/` | NuGet package `OtterLogic.MachineLearning` |
 | `StructuralForm` | domain + its tests | NuGet package `OtterLogic.StructuralForm` |
 | `.github` | `profile/README.md` only | the organisation landing page |
 
@@ -37,8 +38,9 @@ Because the adaptor repo builds both front-ends, it can own packaging too — so
 there is no need for a fourth release repo. The org profile README lives in a
 repo called `.github`, which costs nothing.
 
-Later domains (`Fabrication`, `FormFinding`, `Learning`) become siblings of
-`StructuralForm` on the same pattern.
+Later domains (`Fabrication`, `FormFinding`) become siblings of
+`StructuralForm` on the same pattern. `MachineLearning` is not a sibling — it is
+a layer beneath them, and pins Core the way a toolkit does.
 
 ## How adaptors consume domains
 

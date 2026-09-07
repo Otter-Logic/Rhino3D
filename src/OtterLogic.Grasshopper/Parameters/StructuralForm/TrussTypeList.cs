@@ -4,7 +4,7 @@ using OtterLogic.StructuralForm;
 namespace OtterLogic.Grasshopper.Parameters.StructuralForm;
 
 /// <summary>
-/// The truss bracing patterns as a dropdown, for the Type input of Truss 2D.
+/// The truss bracing patterns as a dropdown, for the Type input of Flat Truss.
 /// <para>
 /// Everything specific to trusses is in this file: the enum it reads, the name,
 /// the icon and the GUID. The behaviour is
@@ -16,7 +16,7 @@ public sealed class TrussTypeList : EnumValueList<TrussType>
 {
     public TrussTypeList()
         : base("Truss Type", "TrussType",
-               "Web bracing patterns for a 2D truss. Plug it into the Type input of Truss 2D.",
+               "Web bracing patterns for a flat truss. Plug it into the Type input of Flat Truss.",
                Categories.StructuralForm)
     {
     }

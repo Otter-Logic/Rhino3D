@@ -10,25 +10,25 @@ using Rhino.Geometry;
 namespace OtterLogic.Grasshopper.Components.StructuralForm;
 
 /// <summary>
-/// Builds a 2D truss between two chords.
+/// Builds a flat truss between two chords.
 /// <para>
 /// Adapter only. Every decision about where nodes land and which diagonals get
-/// drawn belongs to <see cref="Truss2DGenerator"/>, which the OtterTruss2D Rhino
+/// drawn belongs to <see cref="FlatTrussGenerator"/>, which the OtterFlatTruss Rhino
 /// command calls in exactly the same way.
 /// </para>
 /// </summary>
-public sealed class Truss2DComponent : GH_Component
+public sealed class FlatTrussComponent : GH_Component
 {
-    public Truss2DComponent()
-        : base("Truss 2D", "Truss2D",
-               "Generate a 2D truss between a top and a bottom chord.",
+    public FlatTrussComponent()
+        : base("Flat Truss", "FlatTruss",
+               "Generate a flat truss between a top and a bottom chord.",
                Categories.Root, Categories.StructuralForm)
     {
     }
 
     public override Guid ComponentGuid => new("6a430957-4853-4f58-bd90-71a07fcf248a");
     public override GH_Exposure Exposure => GH_Exposure.primary;
-    protected override Bitmap? Icon => EmbeddedIcons.Load("truss2d", 24);
+    protected override Bitmap? Icon => EmbeddedIcons.Load("flattruss", 24);
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
@@ -54,8 +54,10 @@ public sealed class Truss2DComponent : GH_Component
             "Close the truss with a post at each end.", GH_ParamAccess.item, true);
 
         pManager.AddPointParameter("Snap Points", "P",
-            "Extra points to snap to, on top of the polyline vertices and curve kinks already "
-            + "detected. Each is pulled onto whichever chord is nearer.",
+            "Extra points to snap to. Secondary to the polyline vertices and curve kinks on the "
+            + "chords themselves, which are checked first and take every node they can reach. "
+            + "Each point is pulled onto whichever chord is nearer, and a node takes the one "
+            + "point nearest to it.",
             GH_ParamAccess.list);
         pManager[5].Optional = true;
 
@@ -69,6 +71,13 @@ public sealed class Truss2DComponent : GH_Component
             + "zigzag starts the other way up. No effect on Vierendeel or cross-braced.",
             GH_ParamAccess.item, false);
 
+        pManager.AddNumberParameter("Snap Distance", "SD",
+            "How near a node has to come to a Snap Point for it to snap — the radius of a "
+            + "sphere around each point, in model units. Zero means no limit, so a point "
+            + "reaches its chord however far to the side it sits. Never overrides the chords' "
+            + "own vertices and kinks, and never moves a node past its neighbour.",
+            GH_ParamAccess.item, 0.0);
+
         // Right-click the input for a readable menu instead of raw integers, or
         // drop a Truss Type list on the canvas and wire it in. Both read the
         // same choices, so they cannot come to disagree about what one is called.
@@ -79,7 +88,7 @@ public sealed class Truss2DComponent : GH_Component
 
     /// <summary>
     /// One port per section group, in the same order and under the same names
-    /// as the layers the OtterTruss2D command bakes onto. Whatever sizes the top
+    /// as the layers the OtterFlatTruss command bakes onto. Whatever sizes the top
     /// chord sizes all of it and nothing else, so a port feeds a section
     /// straight through with no sorting in between.
     /// </summary>
@@ -108,6 +117,7 @@ public sealed class Truss2DComponent : GH_Component
         var snapPoints = new List<GH_Point>();
         double spacing = 0.0;
         bool flip = false;
+        double snapDistance = 0.0;
 
         if (!da.GetData(0, ref top)) return;
         if (!da.GetData(1, ref bottom)) return;
@@ -117,6 +127,7 @@ public sealed class Truss2DComponent : GH_Component
         da.GetDataList(5, snapPoints);
         if (!da.GetData(6, ref spacing)) return;
         if (!da.GetData(7, ref flip)) return;
+        if (!da.GetData(8, ref snapDistance)) return;
 
         if (top is null || !top.IsValid || bottom is null || !bottom.IsValid)
         {
@@ -124,11 +135,11 @@ public sealed class Truss2DComponent : GH_Component
             return;
         }
 
-        // Type, Divisions and Snap Spacing are deliberately not checked here.
+        // Type, Divisions, Snap Spacing and Snap Distance are not checked here.
         // The generator validates its own options and throws ArgumentException
         // carrying the message to show, so a second copy of those rules on the
         // canvas would only be a second thing to keep in step with them.
-        var options = new Truss2DOptions
+        var options = new FlatTrussOptions
         {
             Type = (TrussType)type,
             GenerateEndPosts = endPosts,
@@ -136,12 +147,13 @@ public sealed class Truss2DComponent : GH_Component
             Divisions = divisions,
             AdditionalSnapPoints = snapPoints.Select(p => p.Value).ToArray(),
             SnapSpacing = spacing,
+            SnapDistance = snapDistance,
             SnapTolerance = RhinoDoc.ActiveDoc?.ModelAbsoluteTolerance ?? 0.01,
         };
 
         try
         {
-            Truss2D truss = Truss2DGenerator.Generate(top, bottom, options);
+            FlatTruss truss = FlatTrussGenerator.Generate(top, bottom, options);
 
             // The truss decides what is worth saying; the component only
             // decides how loudly to say it. The Rhino command reads the same list.

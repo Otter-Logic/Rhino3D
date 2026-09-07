@@ -6,10 +6,10 @@ truss, a fabrication sheet, a goal.
 The pattern, when you need it:
 
 ```csharp
-public sealed class GH_Truss : GH_Goo<Truss2D>
+public sealed class GH_Truss : GH_Goo<FlatTruss>
 {
     public GH_Truss() { }
-    public GH_Truss(Truss2D truss) : base(truss) { }
+    public GH_Truss(FlatTruss truss) : base(truss) { }
 
     public override bool IsValid => Value is not null;
     public override string TypeName => "Truss";

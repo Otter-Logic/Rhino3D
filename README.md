@@ -58,14 +58,15 @@ filters the autocomplete down to this plug-in.
 
 ## Try it
 
-**Truss 2D.** Draw two curves, one above the other.
+**Flat Truss.** Draw two curves, one above the other.
 
-- Rhino: `OtterTruss2D` walks you through it — pick the top chords, the bottom
+- Rhino: `OtterFlatTruss` walks you through it — pick the top chords, the bottom
   chords, a bracing pattern, whether to flip it, whether to cap the ends, a
-  division count, any extra snap points, and a panel spacing. It then previews
-  the trusses and lets you keep changing type, flip, divisions, spacing and end
-  posts before anything is added to the document.
-- Grasshopper: *OtterLogic → Structural Form → Truss 2D*, the same inputs as ports.
+  division count, any extra snap points and how far each of them reaches, and a
+  panel spacing. It then previews the trusses and lets you keep changing type,
+  flip, divisions, spacing, snap distance and end posts before anything is added
+  to the document.
+- Grasshopper: *OtterLogic → Structural Form → Flat Truss*, the same inputs as ports.
   *Truss Type* sits beside it in the same panel: drop it on the canvas for a
   dropdown of the bracing patterns and wire it into the Type input. The input's
   own right-click menu carries the same list, for when you would rather not have
@@ -80,25 +81,36 @@ command says so and stops, rather than guessing which chord went with which —
 pick order is the only thing that says what you meant, so a miscount is
 something to see and redo, not something to have quietly patched up.
 
-Snap points are picked once and applied to **every** truss in the run. A point
-is projected square onto each chord with no distance cutoff, so sideways
-distance makes no difference: a point at *x* = 5 puts a node at *x* = 5 on every
-truss in the bay, however far away they are. Across a bay of parallel trusses
-that is the point of it — the nodes line up. It is only worth thinking about
-when the trusses are not parallel, since then "the same place" on one is not the
-same place on another.
+Snap points are picked once and applied to **every** truss in the run, and they
+are the *secondary* rule. The vertices and kinks of the chords themselves are
+checked first and take every node they can reach, because a node anywhere but a
+kink leaves a chord member cutting that corner; the picked points are then
+offered whatever is left over, and each node takes the one point nearest to it.
+
+**Snap distance** is how near a node has to come to a picked point for it to
+snap — the radius of a sphere around that point. Leave it at zero and there is
+no cutoff at all: a point is projected square onto the chord however far to the
+side it sits, so a point at *x* = 5 puts a node at *x* = 5 on every truss in the
+bay. Across a bay of parallel trusses that is exactly what you want — the nodes
+line up. Set a radius when you would rather a point only affect the trusses it
+is actually near, which is what the case of non-parallel trusses asks for, since
+then "the same place" on one is not the same place on another.
+
+Where the two chords meet — the tip of a cantilever, the apex of a tapered truss
+— that end panel gets no end post and no diagonal. Both its nodes are the same
+point, so a diagonal out of it would only draw a chord member a second time.
 
 Every setting applies to the whole set: one bay of trusses is one design
 decision, and tuning them apart from each other is what the component is for.
 
 Rhino bakes **the whole run** onto one layer tree: a root layer called
-`OtterTruss1` — `OtterTruss2` for the next run — with a sub-layer per section
+`OtterFlatTruss1` — `OtterFlatTruss2` for the next run — with a sub-layer per section
 group beneath it: *Top chord*, *Bottom chord*, *Vertical*, *Diagonal*, *End post*
 and *Node*. Trusses raised together share those layers, so four trusses of six
 panels put all twenty-four of their top chord members on one *Top chord* layer,
-and a section is assigned to the bay in one action rather than four. The run also
-goes into one group, so the bay stays a single thing to select and hand on while
-each member still says what it is.
+and a section is assigned to the bay in one action rather than four. Nothing is
+grouped: the layer tree already says what every member is and which run it came
+from, and a group on top of that is only a second thing to select through.
 
 A role with nothing in it gets no layer, so a Vierendeel run has no *Diagonal*.
 The chord members are generated copies split at every node, which is what a
@@ -140,7 +152,7 @@ src/OtterLogic.Core/            shared vocabulary and helpers — deliberately s
 src/OtterLogic.StructuralForm/  domain: trusses, frames, discrete layouts
 src/OtterLogic.FormFinding/     domain, planned — relaxation and equilibrium
 src/OtterLogic.Fabrication/     domain, planned — unrolling, nesting, toolpaths
-src/OtterLogic.Learning/        domain, planned — inference and dataset capture
+src/OtterLogic.MachineLearning/ layer, separate repo — clustering, inference, datasets
 src/OtterLogic.Rhino/           adaptor: .rhp — commands, conduits, the Eto panel
 src/OtterLogic.Grasshopper/     adaptor: .gha — components, GH_Goo types
 tests/                          per domain (Rhino.Inside boots Rhino for geometry)

@@ -14,8 +14,8 @@ namespace OtterLogic.Rhino.Commands;
 /// <summary>
 /// Builds 2D trusses through a guided sequence of command-line prompts.
 /// <para>
-/// The Rhino counterpart to the Truss 2D Grasshopper component. Identical
-/// engine — <see cref="Truss2DGenerator.Generate"/> — presented as a walkthrough
+/// The Rhino counterpart to the Flat Truss Grasshopper component. Identical
+/// engine — <see cref="FlatTrussGenerator.Generate"/> — presented as a walkthrough
 /// rather than a node: pick the chords, answer the setup questions in turn, then
 /// adjust the result against a live preview before anything is added to the
 /// document.
@@ -28,7 +28,7 @@ namespace OtterLogic.Rhino.Commands;
 /// trusses come out in.
 /// </para>
 /// </summary>
-public sealed class OtterTruss2DCommand : Command
+public sealed class OtterFlatTrussCommand : Command
 {
     // Remembered between runs within a session, as Rhino commands normally do.
     private static TrussType _type = TrussType.Warren;
@@ -36,9 +36,10 @@ public sealed class OtterTruss2DCommand : Command
     private static bool _endPosts = true;
     private static int _divisions;
     private static double _spacing;
+    private static double _snapDistance;
 
-    /// <summary>Root layer name, with the run number appended: OtterTruss1, OtterTruss2, ...</summary>
-    private const string LayerPrefix = "OtterTruss";
+    /// <summary>Root layer name, with the run number appended: OtterFlatTruss1, OtterFlatTruss2, ...</summary>
+    private const string LayerPrefix = "OtterFlatTruss";
 
     private const string NodeLayer = "Node";
     private static readonly Color NodeColour = Color.FromArgb(200, 60, 40);
@@ -64,11 +65,11 @@ public sealed class OtterTruss2DCommand : Command
         (TrussMemberRole.EndPost,     Color.FromArgb(200, 110,  40), 3),
     };
 
-    public OtterTruss2DCommand() => Instance = this;
+    public OtterFlatTrussCommand() => Instance = this;
 
-    public static OtterTruss2DCommand? Instance { get; private set; }
+    public static OtterFlatTrussCommand? Instance { get; private set; }
 
-    public override string EnglishName => "OtterTruss2D";
+    public override string EnglishName => "OtterFlatTruss";
 
     protected override Result RunCommand(RhinoDoc doc, RunMode mode)
     {
@@ -88,7 +89,7 @@ public sealed class OtterTruss2DCommand : Command
         if (bottoms.Length != tops.Length)
         {
             RhinoApp.WriteLine(
-                "OtterTruss2D: the top and bottom chords do not match — "
+                "OtterFlatTruss: the top and bottom chords do not match — "
                 + $"{tops.Length} top, {bottoms.Length} bottom. "
                 + "Run the command again and pick the same number of each, in the same order.");
 
@@ -120,9 +121,21 @@ public sealed class OtterTruss2DCommand : Command
         if (step != Result.Success) return step;
         _endPosts = endPosts;
 
-        // Step 7: additional snap points.
+        // Step 7: additional snap points, and how far each one reaches.
         step = SelectSnapPoints(out Point3d[] snapPoints);
         if (step != Result.Success) return step;
+
+        // Asked straight after the points, because on its own it means nothing:
+        // it is the radius of the sphere drawn around each of them.
+        if (snapPoints.Length > 0)
+        {
+            double snapDistance = _snapDistance;
+            step = RhinoGet.GetNumber(
+                "Snap distance — how near a node has to come to a snap point (0 for no limit)",
+                true, ref snapDistance, 0.0, 1e9);
+            if (step != Result.Success) return step;
+            _snapDistance = snapDistance;
+        }
 
         // Step 8: panel spacing, for when you would rather set a length than a count.
         double spacing = _spacing;
@@ -250,12 +263,12 @@ public sealed class OtterTruss2DCommand : Command
         {
             while (true)
             {
-                List<Truss2D> trusses;
+                List<FlatTruss> trusses;
 
                 try
                 {
                     trusses = pairs
-                        .Select(pair => Truss2DGenerator.Generate(pair.Top, pair.Bottom, new Truss2DOptions
+                        .Select(pair => FlatTrussGenerator.Generate(pair.Top, pair.Bottom, new FlatTrussOptions
                         {
                             Type = _type,
                             Flip = _flip,
@@ -263,13 +276,14 @@ public sealed class OtterTruss2DCommand : Command
                             Divisions = _divisions,
                             AdditionalSnapPoints = snapPoints,
                             SnapSpacing = _spacing,
+                            SnapDistance = _snapDistance,
                             SnapTolerance = doc.ModelAbsoluteTolerance,
                         }))
                         .ToList();
                 }
                 catch (ArgumentException ex)
                 {
-                    RhinoApp.WriteLine($"OtterTruss2D: {ex.Message}");
+                    RhinoApp.WriteLine($"OtterFlatTruss: {ex.Message}");
                     return Result.Failure;
                 }
 
@@ -285,6 +299,7 @@ public sealed class OtterTruss2DCommand : Command
                 int changeFlip = getter.AddOption("Flip");
                 int changeDivisions = getter.AddOption("Divisions");
                 int changeSpacing = getter.AddOption("Spacing");
+                int changeSnapDistance = snapPoints.Length > 0 ? getter.AddOption("SnapDistance") : -1;
                 int changeEnds = getter.AddOption("EndPosts");
                 getter.AcceptNothing(true);   // Enter accepts
 
@@ -321,6 +336,13 @@ public sealed class OtterTruss2DCommand : Command
                     if (RhinoGet.GetNumber("Panel spacing", true, ref spacing, 0.0, 1e9) == Result.Success)
                         _spacing = spacing;
                 }
+                else if (chosen == changeSnapDistance)
+                {
+                    double snapDistance = _snapDistance;
+                    if (RhinoGet.GetNumber("Snap distance (0 for no limit)", true, ref snapDistance, 0.0, 1e9)
+                        == Result.Success)
+                        _snapDistance = snapDistance;
+                }
                 else if (chosen == changeEnds)
                 {
                     _endPosts = !_endPosts;
@@ -334,7 +356,7 @@ public sealed class OtterTruss2DCommand : Command
         }
     }
 
-    private static string Summarise(IReadOnlyList<Truss2D> trusses)
+    private static string Summarise(IReadOnlyList<FlatTruss> trusses)
     {
         string type = Naming.Humanise(_type);
         int members = trusses.Sum(t => t.Members.Count);
@@ -349,17 +371,17 @@ public sealed class OtterTruss2DCommand : Command
     /// domain's, so the Grasshopper component says exactly the same things in
     /// its own bubbles; only the truss number is this front-end's addition.
     /// </summary>
-    private static void ReportNotes(IReadOnlyList<Truss2D> trusses)
+    private static void ReportNotes(IReadOnlyList<FlatTruss> trusses)
     {
         for (int i = 0; i < trusses.Count; i++)
             foreach (TrussNote note in trusses[i].Notes)
                 RhinoApp.WriteLine(
                     trusses.Count == 1
-                        ? $"OtterTruss2D: {note.Message}"
-                        : $"OtterTruss2D: truss {i + 1} — {note.Message}");
+                        ? $"OtterFlatTruss: {note.Message}"
+                        : $"OtterFlatTruss: truss {i + 1} — {note.Message}");
     }
 
-    private static void ShowPreview(WireframePreviewConduit conduit, IReadOnlyList<Truss2D> trusses)
+    private static void ShowPreview(WireframePreviewConduit conduit, IReadOnlyList<FlatTruss> trusses)
     {
         conduit.Clear();
 
@@ -377,11 +399,11 @@ public sealed class OtterTruss2DCommand : Command
     }
 
     /// <summary>
-    /// The name for this run's layer: OtterTruss1 the first time, then
-    /// OtterTruss2, and so on.
+    /// The name for this run's layer: OtterFlatTruss1 the first time, then
+    /// OtterFlatTruss2, and so on.
     /// <para>
     /// One name per run, not per truss. Numbering follows the highest number
-    /// already in the document rather than a count, so deleting OtterTruss2 does
+    /// already in the document rather than a count, so deleting OtterFlatTruss2 does
     /// not make the next run reuse that name and merge into what is left of it.
     /// </para>
     /// </summary>
@@ -391,7 +413,7 @@ public sealed class OtterTruss2DCommand : Command
 
         foreach (Layer layer in doc.Layers)
         {
-            // Root layers only: a sub-layer called OtterTruss3 inside someone
+            // Root layers only: a sub-layer called OtterFlatTruss3 inside someone
             // else's tree is their business, not a run of this command.
             if (layer.IsDeleted || layer.ParentLayerId != Guid.Empty) continue;
             if (!layer.Name.StartsWith(LayerPrefix, StringComparison.OrdinalIgnoreCase)) continue;
@@ -421,26 +443,26 @@ public sealed class OtterTruss2DCommand : Command
         int index = AddLayer(doc, name, parent, colour);
         if (index >= 0) return index;
 
-        RhinoApp.WriteLine($"OtterTruss2D: could not create the {name} sub-layer, so those objects went one level up.");
+        RhinoApp.WriteLine($"OtterFlatTruss: could not create the {name} sub-layer, so those objects went one level up.");
         return fallback;
     }
 
-    private static ObjectAttributes Attributes(string name, int layerIndex, int group)
-    {
-        var attributes = new ObjectAttributes { Name = name, LayerIndex = layerIndex };
-        attributes.AddToGroup(group);
-        return attributes;
-    }
+    private static ObjectAttributes Attributes(string name, int layerIndex)
+        => new() { Name = name, LayerIndex = layerIndex };
 
     /// <summary>
-    /// Adds the run — every truss, chords included — to one layer tree, as one
-    /// group.
+    /// Adds the run — every truss, chords included — to one layer tree.
     /// <para>
     /// Trusses raised together are one thing: a bay, sized and specified as a
-    /// unit. So they share a group, and they share a sub-layer per role — the
-    /// Top chord layer holds the top chord of every truss in the run, which is
-    /// what makes assigning a section to it a single action rather than one per
-    /// truss.
+    /// unit. So they share a sub-layer per role — the Top chord layer holds the
+    /// top chord of every truss in the run, which is what makes assigning a
+    /// section to it a single action rather than one per truss.
+    /// </para>
+    /// <para>
+    /// The layer tree is the whole of that organisation. Nothing is grouped:
+    /// a group over geometry already sorted into named sub-layers only adds a
+    /// second thing to select through and gets in the way of picking a single
+    /// member.
     /// </para>
     /// <para>
     /// The chord members are generated copies split at every node, which is what
@@ -448,7 +470,7 @@ public sealed class OtterTruss2DCommand : Command
     /// them.
     /// </para>
     /// </summary>
-    private static Result Commit(RhinoDoc doc, IReadOnlyList<Truss2D> trusses)
+    private static Result Commit(RhinoDoc doc, IReadOnlyList<FlatTruss> trusses)
     {
         // Gathered before anything is created, so a run with nothing in it
         // leaves no empty layers behind. Roles with no members are dropped here
@@ -461,7 +483,7 @@ public sealed class OtterTruss2DCommand : Command
 
         if (byRole.Count == 0)
         {
-            RhinoApp.WriteLine("OtterTruss2D: nothing to add.");
+            RhinoApp.WriteLine("OtterFlatTruss: nothing to add.");
             return Result.Nothing;
         }
 
@@ -470,15 +492,11 @@ public sealed class OtterTruss2DCommand : Command
         int root = AddLayer(doc, name, Guid.Empty, RootColour);
         if (root < 0)
         {
-            RhinoApp.WriteLine($"OtterTruss2D: could not create the layer {name}, so nothing was added.");
+            RhinoApp.WriteLine($"OtterFlatTruss: could not create the layer {name}, so nothing was added.");
             return Result.Failure;
         }
 
         Guid rootId = doc.Layers[root].Id;
-
-        // Named after the layer, so the two ways of finding this run agree.
-        int group = doc.Groups.Add(name);
-        if (group < 0) group = doc.Groups.Add();
 
         int members = 0;
 
@@ -487,7 +505,7 @@ public sealed class OtterTruss2DCommand : Command
             int layer = SubLayer(doc, layerName, rootId, colour, root);
 
             foreach (Line line in lines)
-                doc.Objects.AddLine(line, Attributes(layerName, layer, group));
+                doc.Objects.AddLine(line, Attributes(layerName, layer));
 
             members += lines.Count;
         }
@@ -496,13 +514,13 @@ public sealed class OtterTruss2DCommand : Command
         int nodeLayer = SubLayer(doc, NodeLayer, rootId, NodeColour, root);
 
         foreach (Point3d node in nodes)
-            doc.Objects.AddPoint(node, Attributes(NodeLayer, nodeLayer, group));
+            doc.Objects.AddPoint(node, Attributes(NodeLayer, nodeLayer));
 
         doc.Views.Redraw();
 
         RhinoApp.WriteLine(
-            $"OtterTruss2D: added {trusses.Count} {(trusses.Count == 1 ? "truss" : "trusses")} "
-            + $"to {name} — {members} members and {nodes.Count} nodes, one group, split by section. "
+            $"OtterFlatTruss: added {trusses.Count} {(trusses.Count == 1 ? "truss" : "trusses")} "
+            + $"to {name} — {members} members and {nodes.Count} nodes, split by section. "
             + "The chord curves you picked were left as they are.");
 
         return Result.Success;

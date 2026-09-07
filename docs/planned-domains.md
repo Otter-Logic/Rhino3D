@@ -2,7 +2,8 @@
 
 Each becomes its own repository alongside
 [Core](https://github.com/Otter-Logic/Core) and [StructuralForm](https://github.com/Otter-Logic/StructuralForm), on the same pattern:
-its own types and its own logic together, depending on Core and on nothing else.
+its own types and its own logic together, depending on Core and on nothing
+else. Machine Learning is the exception — see below.
 
 ## Form Finding
 
@@ -21,13 +22,22 @@ Unrolling, planarisation, nesting, joint generation, toolpaths, DXF export.
 If it turns out to need something from StructuralForm, that something belongs in
 Core — domains do not reference each other.
 
-## Learning
+## Machine Learning
 
-The one that will not fit the pattern cleanly. Machine learning is
-cross-cutting: every domain will want to capture datasets and evaluate
-surrogates over its own results.
+Decided, and it does not fit the domain pattern — so it is not a domain. Machine
+learning is cross-cutting: every toolkit will want to capture datasets and run a
+model over its own results.
 
-The likely split is ONNX inference plumbing and the dataset contract in
-**Core**, with each domain owning its own feature extraction. That is a guess,
-and it should be decided when there is a second domain to look at. Training
-itself stays offline in `/python` — see [machine-learning.md](machine-learning.md).
+It sits instead as an **intermediate layer** between Core and the toolkits, in
+its own repo,
+[MachineLearning](https://github.com/Otter-Logic/MachineLearning). Toolkits may
+reference it; it references only Core.
+
+It owns the ONNX plumbing, the dataset contract, and the model implementations.
+Core keeps only the section vocabulary. Each toolkit still owns its own feature
+extraction, because what a truss considers a feature is not what a nesting
+problem does.
+
+It is a toolkit in its own right too: clustering and inference components ship
+under the **Machine Learning** section. Training stays offline in that repo's
+`/python` — see [machine-learning.md](machine-learning.md).

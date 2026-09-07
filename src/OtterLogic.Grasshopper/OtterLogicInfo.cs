@@ -58,5 +58,5 @@ public static class Categories
     public const string StructuralForm = OtterLogic.Core.Sections.StructuralForm;
     public const string FormFinding = OtterLogic.Core.Sections.FormFinding;
     public const string Fabrication = OtterLogic.Core.Sections.Fabrication;
-    public const string Learning = OtterLogic.Core.Sections.Learning;
+    public const string MachineLearning = OtterLogic.Core.Sections.MachineLearning;
 }

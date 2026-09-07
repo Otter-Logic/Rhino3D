@@ -18,24 +18,30 @@
 -->
 <RhinoUI major_ver="5" minor_ver="0" guid="314953c7-93fd-4112-b048-671a7c3c8ce2">
 
+  <!--
+    Five display strings, each read somewhere different: text in Rhino's button
+    editor, tooltip on hover, help_text in the status bar, button_text on the
+    button face (only when the toolbar is set to show text), menu_text in
+    menus. Only tooltip shows on hover, so it leads with the tool's name.
+  -->
   <macros>
     <macro_item guid="4e53c0fe-9ee5-4a87-ad0c-4e397620ee93" bitmap_id="0b3809d9-6ce0-4f3f-b427-8d596b600b0d">
       <text>
-        <locale_1033>Truss 2D</locale_1033>
+        <locale_1033>Flat Truss</locale_1033>
       </text>
       <tooltip>
-        <locale_1033>Bracing between two chords you drew</locale_1033>
+        <locale_1033>Flat Truss: bracing between two chords you drew</locale_1033>
       </tooltip>
       <help_text>
-        <locale_1033>Generate a 2D truss between a top and a bottom chord.</locale_1033>
+        <locale_1033>Generate a flat truss between a top and a bottom chord.</locale_1033>
       </help_text>
       <button_text>
-        <locale_1033>Truss 2D</locale_1033>
+        <locale_1033>Flat Truss</locale_1033>
       </button_text>
       <menu_text>
-        <locale_1033>Truss 2D</locale_1033>
+        <locale_1033>Flat Truss</locale_1033>
       </menu_text>
-      <script>! _OtterTruss2D</script>
+      <script>! _OtterFlatTruss</script>
     </macro_item>
   </macros>
 
@@ -44,7 +50,7 @@
     bitmap_id there indexes Rhino's internal icon library, which a third
     party cannot reference. Custom icons ride here instead: one horizontal
     strip per size, base64 PNG, with each bitmap_item naming the slot it
-    occupies. Index 0 is the OtterLogic mark, index 1 is Truss 2D.
+    occupies. Index 0 is Flat Truss.
 
     Regenerate with build/build-rui-icons.ps1 after changing assets/icons.
   -->
@@ -72,7 +78,7 @@
       <text>
         <locale_1033>OtterLogic Toolbar Group</locale_1033>
       </text>
-      <tool_bar_group_item guid="cb09938f-eb86-48db-9d2b-2166837dcc16" major_version="1" minor_version="0">
+      <tool_bar_group_item guid="cb09938f-eb86-48db-9d2b-2166837dcc16" major_version="2" minor_version="0">
         <text>
           <locale_1033>OtterLogic</locale_1033>
         </text>
@@ -93,9 +99,9 @@
       <text>
         <locale_1033>OtterLogic</locale_1033>
       </text>
-      <tool_bar_item guid="dd19c716-7d1d-4a42-856b-f89103ad62cf">
+      <tool_bar_item guid="560c5049-8bd5-450a-a2e3-c7a3b1b72f0e">
         <text>
-          <locale_1033>Truss 2D</locale_1033>
+          <locale_1033>Flat Truss</locale_1033>
         </text>
         <left_macro_id>4e53c0fe-9ee5-4a87-ad0c-4e397620ee93</left_macro_id>
       </tool_bar_item>

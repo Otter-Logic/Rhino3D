@@ -20,6 +20,22 @@ way to prototype. It is a bad way to ship: you inherit a heavyweight dependency
 into the plugin, GPU driver problems become Rhino crashes, and a training loop
 inside `SolveInstance` blocks the UI thread. Keep the boundary at ONNX.
 
+### Not every model has a training phase
+
+The table above describes *learned* models — ones whose behaviour lives in
+weights that had to be found by optimisation. Those must be trained offline and
+shipped as an `.onnx`.
+
+Some models have no weights at all. A Gaussian mixture fitted to the values on a
+Grasshopper wire computes its own parameters from that input, on every solve, and
+there is nothing to ship. Those are written directly in C# and touch neither
+Python nor ONNX at runtime.
+
+One question decides which you are looking at: *are there numbers that had to be
+learned from data the user does not have?* If yes, it crosses the ONNX boundary.
+If no, it is an algorithm, and it belongs in `OtterLogic.MachineLearning` as
+ordinary C#.
+
 ## Why ONNX is the seam
 
 An `.onnx` file is a frozen computation graph. Python writes it, C# reads it,
@@ -29,11 +45,15 @@ neither needs to know about the other. Concretely:
 - Switching sklearn → PyTorch changes nothing on the C# side.
 - Inference is a native forward pass — fast enough to sit behind a slider.
 
-To wire it up, add the runtime to Core only:
+The runtime goes in the MachineLearning layer, not Core:
 
 ```
-dotnet add src/OtterLogic.Core package Microsoft.ML.OnnxRuntime
+dotnet add src/OtterLogic.MachineLearning package Microsoft.ML.OnnxRuntime
 ```
+
+Core stays free of native binaries that way. Because MachineLearning sits above
+Core and below the toolkits, anything wanting inference can still reach it
+without Core carrying a dependency it does not itself use.
 
 Leave `ExcludeAssets="runtime"` **off** that one — unlike RhinoCommon, it has
 native binaries that genuinely must be copied next to the `.gha`.
@@ -87,7 +107,7 @@ gradients — not before.
 Phase 1 is the part people skip and then regret. A sweep component that writes
 one CSV row per generated design — inputs and measured outputs — is the
 highest-value thing to build once there is something worth sweeping. Put the writer in
-`OtterLogic.Core/Learning` so both front-ends can drive it.
+`OtterLogic.MachineLearning` so both front-ends and every toolkit can drive it.
 
 Record more than you think you need. Re-running a 5,000-sample sweep because you
 forgot to log edge length is a slow afternoon.

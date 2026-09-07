@@ -16,7 +16,7 @@ public sealed class TrussTypeList : EnumValueList<TrussType>
 {
     public TrussTypeList()
         : base("Truss Type", "TrussType",
-               "Web bracing patterns for a 2D truss. Plug it into the Type input of Truss 2D.",
+               "Web bracing patterns for a 2D truss. Plug it into the Type input of Flat Truss.",
                Categories.StructuralForm)
     {
     }

@@ -6,9 +6,14 @@
 other.** A domain that needs another domain is the signal that something belongs
 in Core — not that the two should be coupled.
 
+There is one sanctioned exception, `OtterLogic.MachineLearning`, described below.
+
 ```
                     OtterLogic.Core
               small, stable, slow-moving
+                          ↑
+              OtterLogic.MachineLearning
+        cross-cutting — a domain may reference this one
                           ↑
               OtterLogic.StructuralForm          (+ Fabrication, FormFinding, ...)
               types and logic for one domain
@@ -32,7 +37,7 @@ data, with the logic in a separate engine layer. That split exists to serve
 reflection-driven component generation across hundreds of methods and many
 disciplines, and it forces Core to grow a section per discipline.
 
-Here, `TrussType`, `Truss2DOptions`, `Truss2D` and `Truss2DGenerator` live
+Here, `TrussType`, `FlatTrussOptions`, `FlatTruss` and `FlatTrussGenerator` live
 together, because they change together — every one of them changed in the same
 sitting, repeatedly. Splitting them across a boundary would mean a two-step
 release dance to add a field to an options record.
@@ -54,6 +59,23 @@ belongs in the domain. The failure mode to avoid is not drift, it is Core
 becoming a grab-bag, or a bottleneck where every domain change needs a Core
 release first.
 
+### Why Machine Learning is a layer, not a domain
+
+Machine learning is not a discipline alongside trusses and nesting; it is
+something every discipline wants to apply to its own results. Left as a domain it
+would be unreachable — Fabrication could not cluster its panels without either a
+domain-to-domain reference or its own copy of the algorithm.
+
+The alternative was to push the ONNX plumbing and the clustering algorithms down
+into Core. That fails the test above: it drags a native runtime dependency into
+the foundation every domain compiles against, whether or not it does any
+inference, and it turns Core into the grab-bag it is meant not to be.
+
+So `OtterLogic.MachineLearning` sits between the two. It references Core;
+toolkits may reference it; it references no toolkit. The arrow is one-way, so the
+no-cycles rule holds. It also ships components of its own under the **Machine
+Learning** section — being a shared layer does not stop it being a tool.
+
 ### Why RhinoCommon rather than neutral geometry
 
 Using `Point3d`, `Curve` and `Mesh` throughout, rather than a neutral geometry
@@ -61,7 +83,7 @@ layer with converters, is a deliberate trade. BHoM must abstract geometry becaus
 it targets Revit, ETABS and Tekla, where RhinoCommon does not exist. Every
 context this code runs in is a Rhino host, tests included.
 
-The cost of abstracting would be concrete: `Truss2DGenerator` alone leans on
+The cost of abstracting would be concrete: `FlatTrussGenerator` alone leans on
 arc-length parameterisation, curve subdomain length, closest-point, continuity
 analysis and least-squares plane fitting. A neutral `ICurve` supplies none of
 that, so the choice would be reimplementing a numerical curve library or
@@ -82,7 +104,7 @@ subcategories, listed in `Categories` in `OtterLogicInfo.cs`:
 - **Structural Form** — trusses, frames, discrete structural layouts.
 - **Form Finding** — relaxation and equilibrium. Empty; to be designed.
 - **Fabrication** — unrolling, nesting, toolpaths.
-- **Learning** — dataset capture and inference.
+- **Machine Learning** — dataset capture, clustering, and inference.
 
 Add sections there rather than typing category strings into components: the
 Category string is literally what names the tab, so one typo silently creates a
@@ -182,7 +204,7 @@ the display conduits.
 
 ## Truss stations
 
-`Truss2DGenerator` places nodes at *stations* — positions from 0 to 1 along a
+`FlatTrussGenerator` places nodes at *stations* — positions from 0 to 1 along a
 chord, measured as a fraction of its **plan** length. One list, shared by both
 chords, so top node `i` and bottom node `i` sit at the same plan position and
 every web pattern stays index arithmetic over panel count.
@@ -207,13 +229,27 @@ in plan has no plan length to divide, so it measures along itself instead.
 
 **Divisions drive, snap points steer.** With `Divisions` (or `SnapSpacing`) set,
 the panel count is fixed up front, the chord is laid out evenly on plan, and the
-stations then snap onto nearby targets: the vertices and kinks of *either* chord,
-plus the picked points. Reach is half a panel — far enough to catch a nearby
-vertex, never far enough for two stations to swap places or collapse together.
-Assignment is greedy, nearest pair first, with both sides claimed exclusively,
-because otherwise two stations converge on one popular point and the panels
-either side degenerate. Member count is exactly what was asked for; snap points
-move members but never add them.
+stations then snap onto nearby targets. Member count is exactly what was asked
+for; snap points move members but never add them.
+
+**The two kinds of target are not equal.** The chords' own points — the vertices
+and kinks of *either* chord — go first and take every station they can reach. A
+node anywhere but a kink leaves a chord member cutting that corner, which is a
+truss that is wrong rather than a truss that is arranged differently, so these
+are not up for negotiation. Only then are the picked points offered whatever is
+left, and each reaches only as far as `SnapDistance`: the radius of a sphere
+drawn around it, measured as a real 3D distance from the point to the node it
+would move, with zero meaning no limit. Measuring that on plan instead would let
+a point far above or below a chord pull a node it is nowhere near.
+
+Both passes cap reach at half a panel — far enough to catch a nearby vertex,
+never far enough for two stations to swap places or collapse together — so no
+`SnapDistance`, however generous, can reorder the truss. Assignment within a pass
+is greedy, nearest pair first, with both sides claimed exclusively, because
+otherwise two stations converge on one popular point and the panels either side
+degenerate. Ties break on the lower station: `List.Sort` is unstable, and a point
+equidistant between two stations is a point in the middle of a panel, which is
+nothing unusual.
 
 **Then what did not snap is spread.** Snapping alone leaves the two panels either
 side of a snapped node short and long while the whole rest of the chord keeps its
@@ -244,9 +280,14 @@ point beside a sagging bottom chord is at a different plan position from the one
 directly above it — but a panel point is a place where the whole truss steps, and
 both chords step there. That is also what trusses do.
 
-Where the chords converge to a shared point, `ChordsMeetAtStart` /
-`ChordsMeetAtEnd` suppress that end post. It would otherwise collapse onto the
-shared point and clash with the chords running into it.
+Where the chords converge to a shared point — the tip of a cantilever, the apex
+of a tapered truss — `ChordsMeetAtStart` / `ChordsMeetAtEnd` suppress both the
+end post and the end diagonal at that end. The post would collapse onto the
+shared point and clash with the chords running into it. The diagonal is subtler:
+top node *i* and bottom node *i* are the same point there, so a diagonal out of
+it runs to the next node along one chord or the other, which is that chord
+member drawn a second time. The generator's seen-set does not catch that one —
+same line, different node indices — so the panel is skipped outright.
 
 `Flip` mirrors each diagonal within its own panel, implemented by swapping which
 way the two web helpers run rather than by branching per pattern. Pratt flipped
@@ -260,32 +301,34 @@ diverge, and that divergence is the adapter's whole job.
 
 Grasshopper sorts the members onto output ports, because a port is how a canvas
 passes work along. Rhino has no ports, so the command uses what Rhino does have:
-each run gets a root layer — `OtterTruss1`, then `OtterTruss2`, numbered from the
+each run gets a root layer — `OtterFlatTruss1`, then `OtterFlatTruss2`, numbered from the
 highest already in the document rather than from a count, so deleting one does
 not make a later run merge into what is left of it — with a sub-layer per section
-group underneath, and the run in one group.
+group underneath.
 
 The unit is the **run**, not the truss. Trusses raised together are a bay: picked
 together, answered for together, sized together. Splitting them into a tree each
 would mean assigning the same section four times over, which is precisely the
-sorting the layers exist to avoid. So they share the layers and the group, and a
-truss keeps its identity through geometry rather than bookkeeping.
+sorting the layers exist to avoid. So they share the layers, and a truss keeps
+its identity through geometry rather than bookkeeping.
+
+Nothing is grouped. A group was doing the same job the layer tree already does
+— saying which run a member came from — while making a single member harder to
+pick, since selecting one selects the bay. The layers carry that on their own.
 
 The two sets are the same six groups in the same order, and both take their
 names from `TrussMemberRole.DisplayName()` rather than spelling them out, so a
 port and a layer cannot come to disagree about what a diagonal is called.
 
-The two carry different halves of the same information, deliberately. The group
-says *which* truss a member belongs to, so it stays one thing to select, move
-and hand on. The layer says *what* the member is, so the next tool along can put
-a section against a whole layer without inspecting any geometry — which is why
-the layers are the likely section groups (top chord, bottom chord, vertical,
-diagonal, end post, node) rather than the four structural families.
+A layer says *what* a member is, so the next tool along can put a section
+against a whole layer without inspecting any geometry — which is why the layers
+are the likely section groups (top chord, bottom chord, vertical, diagonal, end
+post, node) rather than the four structural families.
 
 That taxonomy is the reason `TrussMemberRole` splits `Vertical` from `Diagonal`
 rather than carrying a single `Web`. The distinction is structural, not
 presentational — a vertical and a diagonal are specified separately — so it
-belongs in the engine, where both front-ends can see it. `Truss2D.Web` still
+belongs in the engine, where both front-ends can see it. `FlatTruss.Web` still
 returns the two together for callers that do not care.
 
 Rhino baking the chord members is not a duplicate of the curves the user picked:
@@ -316,18 +359,18 @@ rather than about hosts, and it belongs below them:
 
 - **The wording of a warning.** "The two chords are not coplanar, so this truss
   is warped" was written out twice, in two files, in two repositories. It is now
-  `Truss2D.Notes`, a list of `TrussNote` carrying a level the host maps onto
+  `FlatTruss.Notes`, a list of `TrussNote` carrying a level the host maps onto
   whatever it has — a Grasshopper bubble, a command-line line. The domain decides
   *what* is worth saying; the adapter decides only how loudly.
 - **The rules an option has to obey.** The component used to re-check divisions,
   spacing and truss type before calling a generator that checks all three itself
-  and throws with a usable message. The duplicates are gone; `Truss2DGenerator`
+  and throws with a usable message. The duplicates are gone; `FlatTrussGenerator`
   validates its own options, including the truss type it previously let through
   to fail deeper in.
 - **Which nodes are actually distinct.** Where the chords meet, top node *i* and
   bottom node *i* are the same point, and both front-ends wanted the merged list
-  — one to bake, one to output. `Truss2D.DistinctNodes` does the merging;
-  `Truss2D.Nodes` still carries the duplicates, because member connectivity
+  — one to bake, one to output. `FlatTruss.DistinctNodes` does the merging;
+  `FlatTruss.Nodes` still carries the duplicates, because member connectivity
   indexes into it.
 - **How an enum reads to a human.** `Naming.Humanise` is in Core rather than the
   domain, because it knows nothing about trusses: every domain grows option
@@ -389,7 +432,7 @@ The line drawn in this repo:
   Object-shaped.
 
 If you later want BHoM's free-component trick, add a reflection-driven component
-generator over Core's static entry points — `Truss2DGenerator.Generate` is
+generator over Core's static entry points — `FlatTrussGenerator.Generate` is
 already shaped for it. Build that when you have thirty methods, not three.
 
 ## Naming trap

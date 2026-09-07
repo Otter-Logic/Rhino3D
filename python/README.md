@@ -9,7 +9,7 @@ The loop, end to end:
 2. **Train** — `python training/train_surrogate.py` reads the dataset and writes
    a `.onnx` into `../models/`.
 3. **Infer** — a component in `OtterLogic.Grasshopper` loads that `.onnx` through
-   `OtterLogic.Core/Learning` and evaluates it in under a millisecond.
+   `OtterLogic.MachineLearning` and evaluates it in under a millisecond.
 
 Step 2 takes seconds to hours. Steps 1 and 3 are the interactive ones. Nothing
 about this is "live training" — see `docs/machine-learning.md`.
