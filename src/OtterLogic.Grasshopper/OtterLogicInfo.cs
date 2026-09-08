@@ -55,6 +55,7 @@ public static class Categories
 {
     public const string Root = OtterLogic.Core.Sections.Root;
 
+    public const string Document = OtterLogic.Core.Sections.Document;
     public const string StructuralForm = OtterLogic.Core.Sections.StructuralForm;
     public const string FormFinding = OtterLogic.Core.Sections.FormFinding;
     public const string Fabrication = OtterLogic.Core.Sections.Fabrication;

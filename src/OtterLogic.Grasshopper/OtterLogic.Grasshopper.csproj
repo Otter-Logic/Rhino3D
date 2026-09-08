@@ -53,6 +53,23 @@
     </Otherwise>
   </Choose>
 
+  <!-- A sibling checkout of Document_Tool wins; the published package is the
+       fallback. The repo is Document_Tool and the project inside it is
+       OtterLogic.Document - the folder name is the odd one out, not the
+       assembly. -->
+  <Choose>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\Document_Tool\src\OtterLogic.Document\OtterLogic.Document.csproj')">
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\Document_Tool\src\OtterLogic.Document\OtterLogic.Document.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="OtterLogic.Document" Version="[$(Version)]" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
   <!-- A sibling checkout of StructuralForm wins; the published package is the
        fallback. Clone the repos side by side and the inner loop is unchanged;
        CI has no siblings, so it builds against the published package. -->
@@ -76,6 +93,7 @@
     <EmbeddedResource Include="..\..\assets\icons\otterlogic.png" LogicalName="OtterLogic.Icons.otterlogic.png" />
     <EmbeddedResource Include="..\..\assets\icons\flattruss.png" LogicalName="OtterLogic.Icons.flattruss.png" />
     <EmbeddedResource Include="..\..\assets\icons\TrussType.png" LogicalName="OtterLogic.Icons.trusstype.png" />
+    <EmbeddedResource Include="..\..\assets\icons\layerpicker.png" LogicalName="OtterLogic.Icons.layerpicker.png" />
   </ItemGroup>
 
 </Project>

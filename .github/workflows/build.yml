@@ -30,6 +30,11 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
+          repository: Otter-Logic/Document_Tool
+          path: Document_Tool
+
+      - uses: actions/checkout@v4
+        with:
           repository: Otter-Logic/StructuralForm
           path: StructuralForm
 

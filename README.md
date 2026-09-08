@@ -145,10 +145,45 @@ answer rather than a guess.
 Where the two chords meet at an end, no end post is generated there — it would
 collapse onto the shared point and sit on top of the chords.
 
+**Layer Picker.** *OtterLogic → Document → Layer Picker*. The other half of the
+bake above: the layer tree of the open model, drawn on the component itself with
+a tick box against every layer and sub-layer. Tick the groups you want and their
+full paths come out, one per line —
+
+```
+OtterFlatTruss1::Diagonal
+OtterFlatTruss2::Diagonal
+OtterFlatTruss2::Vertical
+```
+
+— which is exactly what the *Layer* input of Rhino 8's **Query Model Objects**
+takes. Bake a bay, tick its *Diagonal* layer, and every diagonal in it arrives on
+the canvas as one branch ready for a section, with nothing typed and nothing to
+re-type when a layer is renamed.
+
+`::` is Rhino's own separator between the levels of a layer path, not an
+invention of this component, so the output reads the same as everywhere else in
+Rhino and Grasshopper.
+
+Clicking anywhere in a row toggles it — the box, the colour swatch, the name.
+The arrow at the left of a parent folds its children away instead; a folded
+parent with ticks inside it draws that arrow **filled**, so tidying a branch away
+never hides what it is still contributing. Shift-click a parent to take its whole
+branch with it. The right-click menu has *Tick all*, *Tick none* and
+*Expand/Collapse all*.
+
+The list follows the document: run `OtterFlatTruss` again and the new layers
+appear without touching the component. Ticks are stored by path, so they survive
+saving the definition and reopening it against the same model. A ticked layer
+that has gone missing is left out of the output and reported as a warning rather
+than forgotten, because deleting a layer is undoable and the tick should come
+back with it.
+
 ## Layout
 
 ```
 src/OtterLogic.Core/            shared vocabulary and helpers — deliberately small
+src/OtterLogic.Document/        domain, separate repo (Document_Tool) — reading layers and objects
 src/OtterLogic.StructuralForm/  domain: trusses, frames, discrete layouts
 src/OtterLogic.FormFinding/     domain, planned — relaxation and equilibrium
 src/OtterLogic.Fabrication/     domain, planned — unrolling, nesting, toolpaths
