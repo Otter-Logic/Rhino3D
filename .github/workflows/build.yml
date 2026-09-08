@@ -43,6 +43,16 @@ jobs:
           repository: Otter-Logic/MachineLearning
           path: MachineLearning
 
+      # The path has to match the repository name exactly. The Grasshopper
+      # csproj looks for a sibling checkout at ..\..\..\6DOF_Behaviour_Classifier
+      # and falls back to a NuGet package that does not exist yet when it is not
+      # found, which fails restore rather than the build and so reads as a
+      # missing package rather than a missing checkout.
+      - uses: actions/checkout@v4
+        with:
+          repository: Otter-Logic/6DOF_Behaviour_Classifier
+          path: 6DOF_Behaviour_Classifier
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
