@@ -5,7 +5,7 @@ namespace OtterLogic.Grasshopper.Parameters.MachineLearning;
 
 /// <summary>
 /// The covariance shapes as a dropdown, for the Covariance input of the
-/// clustering components.
+/// Gaussian Mixture component.
 /// <para>
 /// Everything specific to this enum is in this file: the name, the icon and the
 /// GUID. The behaviour is <see cref="EnumValueList{TEnum}"/>'s.
@@ -15,8 +15,9 @@ public sealed class CovarianceTypeList : EnumValueList<CovarianceType>
 {
     public CovarianceTypeList()
         : base("Covariance Type", "Covariance",
-               "The shape each group's spread may take. Plug it into the Covariance input of "
-               + "Cluster Design Groups or Choose Group Count.",
+               "The shape each group is allowed to take: spherical is a round ball, diagonal an "
+               + "axis-aligned ellipsoid, full an ellipsoid at any orientation.\n\n"
+               + "Plug it into the Covariance input of Gaussian Mixture.",
                Categories.MachineLearning)
     {
     }

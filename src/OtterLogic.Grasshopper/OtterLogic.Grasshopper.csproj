@@ -70,6 +70,22 @@
     </Otherwise>
   </Choose>
 
+  <!-- The 6DOF behaviour classifier: the end product built on MachineLearning.
+       Its assembly cannot be named for the tool, because a C# identifier cannot
+       start with a digit. -->
+  <Choose>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\6DOF_Behaviour_Classifier\src\OtterLogic.SixDofBehaviour\OtterLogic.SixDofBehaviour.csproj')">
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\6DOF_Behaviour_Classifier\src\OtterLogic.SixDofBehaviour\OtterLogic.SixDofBehaviour.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="OtterLogic.SixDofBehaviour" Version="[$(Version)]" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
   <!-- A sibling checkout of StructuralForm wins; the published package is the
        fallback. Clone the repos side by side and the inner loop is unchanged;
        CI has no siblings, so it builds against the published package. -->
