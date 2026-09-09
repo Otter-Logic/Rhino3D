@@ -20,6 +20,13 @@
     <TargetFramework>net7.0-windows</TargetFramework>
     <RhinoVersion>8.0.23304.9001</RhinoVersion>
 
+    <!-- Core and the domains live outside this solution, reached by
+         ProjectReference. A solution build unsets Configuration on the way down,
+         so those five projects were compiled Debug even under `-c Release` and
+         the Debug binaries were what got packaged. This keeps the parent
+         configuration, so one `-c Release` means Release everywhere. -->
+    <ShouldUnsetParentConfigurationAndPlatform>false</ShouldUnsetParentConfigurationAndPlatform>
+
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>true</ImplicitUsings>

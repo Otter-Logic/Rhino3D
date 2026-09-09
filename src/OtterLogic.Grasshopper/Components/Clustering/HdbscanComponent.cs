@@ -4,7 +4,7 @@ using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using OtterLogic.MachineLearning.Clustering;
 
-namespace OtterLogic.Grasshopper.Components.MachineLearning;
+namespace OtterLogic.Grasshopper.Components.Clustering;
 
 /// <summary>
 /// HDBSCAN in its raw form: density-based, told how small a cluster may be and
@@ -22,7 +22,7 @@ public sealed class HdbscanComponent : GH_Component
                + "The only one of the three that is not told how many clusters to look for, and the "
                + "only one that can say a sample is an outlier rather than filing it in the nearest "
                + "group. Use it when clusters are irregular or the data has genuine one-offs.",
-               Categories.Root, Categories.MachineLearning)
+               Categories.Root, Categories.Clustering)
     {
     }
 

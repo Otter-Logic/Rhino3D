@@ -70,18 +70,19 @@
     </Otherwise>
   </Choose>
 
-  <!-- The 6DOF behaviour classifier: the end product built on MachineLearning.
-       Its assembly cannot be named for the tool, because a C# identifier cannot
-       start with a digit. -->
+  <!-- The clustering tool: the end product built on MachineLearning. The repo
+       is Clustering_Tool and the project inside it is OtterLogic.Clustering,
+       following Document_Tool - the folder name is the odd one out, not the
+       assembly. -->
   <Choose>
-    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\6DOF_Behaviour_Classifier\src\OtterLogic.SixDofBehaviour\OtterLogic.SixDofBehaviour.csproj')">
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\Clustering_Tool\src\OtterLogic.Clustering\OtterLogic.Clustering.csproj')">
       <ItemGroup>
-        <ProjectReference Include="..\..\..\6DOF_Behaviour_Classifier\src\OtterLogic.SixDofBehaviour\OtterLogic.SixDofBehaviour.csproj" />
+        <ProjectReference Include="..\..\..\Clustering_Tool\src\OtterLogic.Clustering\OtterLogic.Clustering.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="OtterLogic.SixDofBehaviour" Version="[$(Version)]" />
+        <PackageReference Include="OtterLogic.Clustering" Version="[$(Version)]" />
       </ItemGroup>
     </Otherwise>
   </Choose>

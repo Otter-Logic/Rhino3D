@@ -5,7 +5,7 @@ using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
 using OtterLogic.MachineLearning.Clustering;
 
-namespace OtterLogic.Grasshopper.Components.MachineLearning;
+namespace OtterLogic.Grasshopper.Components.Clustering;
 
 /// <summary>
 /// A Gaussian mixture in its raw form, fitted by expectation-maximisation.
@@ -22,7 +22,7 @@ public sealed class GaussianMixtureComponent : GH_Component
                + "Soft assignment is what this has that k-means does not: a sample can be mostly one "
                + "group and partly another, and you can see which. Use it when groups overlap or are "
                + "elongated rather than round.",
-               Categories.Root, Categories.MachineLearning)
+               Categories.Root, Categories.Clustering)
     {
     }
 

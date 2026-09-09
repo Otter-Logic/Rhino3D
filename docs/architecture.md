@@ -101,10 +101,17 @@ test runnable without Rhino.
 The Grasshopper ribbon tab is `OtterLogic`; the panels within it are
 subcategories, listed in `Categories` in `OtterLogicInfo.cs`:
 
+- **Document** — reading layers and objects out of the Rhino document.
 - **Structural Form** — trusses, frames, discrete structural layouts.
 - **Form Finding** — relaxation and equilibrium. Empty; to be designed.
 - **Fabrication** — unrolling, nesting, toolpaths.
-- **Machine Learning** — dataset capture, clustering, and inference.
+- **Clustering** — the three raw methods and the 6DOF Behaviour Classifier that
+  chooses between them, in one panel. Named for the technique because it has to
+  cover both; the classifier keeps its own name because it is specific to
+  six-degree-of-freedom analysis results.
+- **Machine Learning** — dataset capture and inference. Empty; the clustering
+  components that once sat here moved to **Clustering**, which is what a user is
+  looking for when they go hunting for them.
 
 Add sections there rather than typing category strings into components: the
 Category string is literally what names the tab, so one typo silently creates a

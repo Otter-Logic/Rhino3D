@@ -188,6 +188,7 @@ src/OtterLogic.StructuralForm/  domain: trusses, frames, discrete layouts
 src/OtterLogic.FormFinding/     domain, planned — relaxation and equilibrium
 src/OtterLogic.Fabrication/     domain, planned — unrolling, nesting, toolpaths
 src/OtterLogic.MachineLearning/ layer, separate repo — clustering, inference, datasets
+src/OtterLogic.Clustering/      toolkit, separate repo (Clustering_Tool) — picks the clustering model
 src/OtterLogic.Rhino/           adaptor: .rhp — commands, conduits, the Eto panel
 src/OtterLogic.Grasshopper/     adaptor: .gha — components, GH_Goo types
 tests/                          per domain (Rhino.Inside boots Rhino for geometry)

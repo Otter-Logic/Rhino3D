@@ -1,7 +1,7 @@
 using Grasshopper;
 using Grasshopper.Kernel.Data;
 
-namespace OtterLogic.Grasshopper.Components.MachineLearning;
+namespace OtterLogic.Grasshopper;
 
 /// <summary>Packing helpers shared by the clustering components.</summary>
 internal static class Trees

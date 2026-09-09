@@ -3,21 +3,19 @@ using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
-using OtterLogic.Grasshopper.Components.MachineLearning;
-using OtterLogic.SixDofBehaviour;
+using OtterLogic.Clustering;
 
-namespace OtterLogic.Grasshopper.Components.SixDofBehaviour;
+namespace OtterLogic.Grasshopper.Components.Clustering;
 
 /// <summary>
-/// The end product: six-degree-of-freedom results in, behaviour groups out, no
-/// settings in between.
+/// The end product of the section: six-degree-of-freedom results in, behaviour
+/// groups out, no settings in between.
 /// <para>
-/// Adapter only. Every decision belongs to
-/// <see cref="SixDofBehaviourClassifier"/>; this unpacks a tree, calls it once,
-/// and packs the answer back out.
+/// Adapter only. Every decision belongs to <see cref="Clusterer"/>; this unpacks
+/// a tree, calls it once, and packs the answer back out.
 /// </para>
 /// <para>
-/// Deliberately the opposite of the three Machine Learning components it is
+/// Deliberately the opposite of the three raw components beside it, which it is
 /// built on. Those expose everything so an advanced user can drive them; this
 /// exposes one input, because a structural engineer with analysis results should
 /// not have to hold an opinion about covariance shapes to find out which members
@@ -32,14 +30,14 @@ public sealed class SixDofBehaviourClassifierComponent : GH_Component
                "Group structural members by how they behave, from the six-degree-of-freedom demand "
                + "on each one. Feed it analysis results and read the groups off — nothing to set "
                + "up.\n\n"
-               + "It combines K-Means, Gaussian Mixture and HDBSCAN, tailored to 6DOF data: it "
+               + "It combines the three raw components beside it, tailored to 6DOF data: it "
                + "standardises the six degrees of freedom, reduces them to the few directions the "
                + "demand really varies along, fits all three models, and picks the one the data "
                + "supports. Clean, well-separated behaviours go to K-Means; behaviours that overlap "
                + "go to the Gaussian Mixture, which can say a member sits between two; data with "
                + "genuine one-off members goes to HDBSCAN, which can leave them unassigned rather "
                + "than forcing them into the nearest group. Report says which it chose and why.",
-               Categories.Root, Categories.SixDofBehaviour)
+               Categories.Root, Categories.Clustering)
     {
     }
 
@@ -66,7 +64,7 @@ public sealed class SixDofBehaviourClassifierComponent : GH_Component
         pManager[1].Optional = true;
 
         var model = (Param_Integer)pManager[1];
-        foreach (var (label, value) in EnumChoices.Of<BehaviourModel>())
+        foreach (var (label, value) in EnumChoices.Of<ClusteringModel>())
             model.AddNamedValue(label, value);
     }
 
@@ -128,26 +126,26 @@ public sealed class SixDofBehaviourClassifierComponent : GH_Component
             return;
         }
 
-        BehaviourModel? forced = null;
+        ClusteringModel? forced = null;
         int model = -1;
         if (da.GetData(1, ref model))
         {
-            if (!Enum.IsDefined(typeof(BehaviourModel), model))
+            if (!Enum.IsDefined(typeof(ClusteringModel), model))
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
                     "Model must be one of "
-                    + string.Join(", ", EnumChoices.Of<BehaviourModel>().Select(c => $"{c.Value} ({c.Label})"))
+                    + string.Join(", ", EnumChoices.Of<ClusteringModel>().Select(c => $"{c.Value} ({c.Label})"))
                     + ".");
                 return;
             }
 
-            forced = (BehaviourModel)model;
+            forced = (ClusteringModel)model;
         }
 
         try
         {
-            var result = SixDofBehaviourClassifier.Classify(
-                data, new SixDofClassifierOptions { Model = forced });
+            var result = Clusterer.Classify(
+                data, new ClusteringOptions { Model = forced });
 
             Warn(result, data.GetLength(1));
 
@@ -157,10 +155,10 @@ public sealed class SixDofBehaviourClassifierComponent : GH_Component
             da.SetDataTree(3, Trees.FromRows(result.Centres));
             da.SetDataList(4, result.Unassigned());
             da.SetDataTree(5, Trees.FromRows(result.Projection));
-            da.SetData(6, SixDofClassifierResultName(result));
+            da.SetData(6, ModelName(result));
             da.SetData(7, result.Report());
 
-            Message = $"{SixDofClassifierResultName(result)}\n{result.Groups} behaviours";
+            Message = $"{ModelName(result)}\n{result.Groups} behaviours";
         }
         catch (ArgumentException ex)
         {
@@ -176,7 +174,7 @@ public sealed class SixDofBehaviourClassifierComponent : GH_Component
     /// Says the things a user would otherwise have to read the report to
     /// notice — and would not, because the component looks like it worked.
     /// </summary>
-    private void Warn(SixDofClassifierResult result, int columns)
+    private void Warn(ClusteringResult result, int columns)
     {
         if (result.KeptColumns.Length < columns)
             AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
@@ -202,11 +200,11 @@ public sealed class SixDofBehaviourClassifierComponent : GH_Component
                 $"{weak} member(s) sit below 0.6 confidence, between two behaviours. Check Confidence.");
     }
 
-    private static string SixDofClassifierResultName(SixDofClassifierResult result) => result.Chosen switch
+    private static string ModelName(ClusteringResult result) => result.Chosen switch
     {
-        BehaviourModel.KMeans => "K-Means",
-        BehaviourModel.GaussianMixture => "Gaussian Mixture",
-        BehaviourModel.Hdbscan => "HDBSCAN",
+        ClusteringModel.KMeans => "K-Means",
+        ClusteringModel.GaussianMixture => "Gaussian Mixture",
+        ClusteringModel.Hdbscan => "HDBSCAN",
         _ => result.Chosen.ToString(),
     };
 }

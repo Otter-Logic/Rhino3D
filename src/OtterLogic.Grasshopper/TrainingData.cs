@@ -1,7 +1,7 @@
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 
-namespace OtterLogic.Grasshopper.Components.MachineLearning;
+namespace OtterLogic.Grasshopper;
 
 /// <summary>
 /// Turns the Training Inputs tree every clustering component takes into the

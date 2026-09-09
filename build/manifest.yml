@@ -13,3 +13,10 @@ keywords:
   - structural-form
   - fabrication
   - machine-learning
+  # Rhino keys "which plug-in did this package install" on a guid: keyword, and
+  # that is how it knows the plug-in is already there. yak reads the Grasshopper
+  # id out of the .gha by itself but does not find the Rhino plug-in id in the
+  # .rhp, so the Rhino side has to be spelled out here or the package installs
+  # without ever registering the plug-in. Must stay equal to the assembly Guid
+  # in src/OtterLogic.Rhino/Properties/AssemblyInfo.cs.
+  - guid:a8c6eee6-f04f-4af6-9613-a7d425fd73b7

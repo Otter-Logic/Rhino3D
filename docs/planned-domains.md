@@ -38,6 +38,9 @@ Core keeps only the section vocabulary. Each toolkit still owns its own feature
 extraction, because what a truss considers a feature is not what a nesting
 problem does.
 
-It is a toolkit in its own right too: clustering and inference components ship
-under the **Machine Learning** section. Training stays offline in that repo's
-`/python` — see [machine-learning.md](machine-learning.md).
+It is a toolkit in its own right too. Its clustering components ship under the
+**Clustering** section, beside the 6DOF Behaviour Classifier that chooses
+between them; dataset
+capture and inference will ship under **Machine Learning**. Training stays
+offline in that repo's `/python` — see
+[machine-learning.md](machine-learning.md).

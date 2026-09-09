@@ -4,7 +4,7 @@ using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using OtterLogic.MachineLearning.Clustering;
 
-namespace OtterLogic.Grasshopper.Components.MachineLearning;
+namespace OtterLogic.Grasshopper.Components.Clustering;
 
 /// <summary>
 /// k-means in its raw form: told how many clusters to find, and nothing else.
@@ -22,7 +22,7 @@ public sealed class KMeansComponent : GH_Component
                + "Assumes clusters are round and of roughly similar size, and places every sample in "
                + "one. Fast and steady when that holds. When clusters overlap use Gaussian Mixture; "
                + "when they are irregular or there are outliers use HDBSCAN.",
-               Categories.Root, Categories.MachineLearning)
+               Categories.Root, Categories.Clustering)
     {
     }
 
