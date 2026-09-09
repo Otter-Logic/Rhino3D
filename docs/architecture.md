@@ -101,21 +101,60 @@ test runnable without Rhino.
 The Grasshopper ribbon tab is `OtterLogic`; the panels within it are
 subcategories, listed in `Categories` in `OtterLogicInfo.cs`:
 
+The panels split into two families, and a user only ever needs one of them.
+
+**Named for a job** — what somebody is here to do:
+
 - **Document** — reading layers and objects out of the Rhino document.
 - **Structural Form** — trusses, frames, discrete structural layouts.
+- **Structural Design** — tools that act on analysis results rather than
+  producing geometry. The 6DOF Behaviour Classifier today; deflection surrogates
+  and section sizers as they arrive.
 - **Form Finding** — relaxation and equilibrium. Empty; to be designed.
 - **Fabrication** — unrolling, nesting, toolpaths.
-- **Clustering** — the three raw methods and the 6DOF Behaviour Classifier that
-  chooses between them, in one panel. Named for the technique because it has to
-  cover both; the classifier keeps its own name because it is specific to
-  six-degree-of-freedom analysis results.
-- **Machine Learning** — dataset capture and inference. Empty; the clustering
-  components that once sat here moved to **Clustering**, which is what a user is
-  looking for when they go hunting for them.
+
+**Named for a technique** — how it is done:
+
+- **Machine Learning** — every raw method, whatever its paradigm: the three
+  clustering algorithms today, regression and classification later, plus dataset
+  capture and inference when those exist.
 
 Add sections there rather than typing category strings into components: the
 Category string is literally what names the tab, so one typo silently creates a
 second one.
+
+### Why the split is by user and not by paradigm
+
+There was a **Clustering** panel holding the three raw methods and the 6DOF
+classifier together, on the argument that splitting them across two panels would
+hide one half from whoever went looking in the other. That argument is right for
+four components and wrong immediately after: the panel would have to hold both
+the next algorithm family and the next structural tool, and neither belongs with
+the other.
+
+So the raw methods went to **Machine Learning** and the classifier to
+**Structural Design**, and the line between them is *who is asking*. A structural
+engineer with analysis results is looking for a job, and finds it in a panel
+named for one without ever needing to know what a covariance shape is. Somebody
+driving a method directly, or reproducing what a finished tool did with their own
+choices, goes to the panel named for the technique.
+
+Machine Learning stays **one** panel rather than one per paradigm. `GH_Exposure`
+draws a divider between tiers inside a panel, so the pipeline stages — data,
+features, learning, evaluation, then enum dropdowns — get their structure without
+four near-empty subcategories. Split it when it genuinely overflows, around
+twenty-five components.
+
+### Re-cutting the ribbon is free
+
+Grasshopper serialises a component instance by its `ComponentGuid`; `Category`
+and `SubCategory` are display-only. **Moving a component between panels does not
+break a saved definition.** That is what makes the arrangement above a judgement
+call rather than a commitment: it costs one constant in `Sections` and one string
+per component to change your mind, so the ribbon should be cut for the user you
+have rather than hedged for the one you might.
+
+The GUID is the thing that must never change. Everything else here can.
 
 Those constants live in `OtterLogic.Core.Sections`, and the Grasshopper
 `Categories` class is a thin alias over them. That is a deliberate exception to

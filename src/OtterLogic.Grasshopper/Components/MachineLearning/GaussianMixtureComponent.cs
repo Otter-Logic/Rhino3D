@@ -1,11 +1,11 @@
-using System.Drawing;
+﻿using System.Drawing;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
 using OtterLogic.MachineLearning.Clustering;
 
-namespace OtterLogic.Grasshopper.Components.Clustering;
+namespace OtterLogic.Grasshopper.Components.MachineLearning;
 
 /// <summary>
 /// A Gaussian mixture in its raw form, fitted by expectation-maximisation.
@@ -22,13 +22,16 @@ public sealed class GaussianMixtureComponent : GH_Component
                + "Soft assignment is what this has that k-means does not: a sample can be mostly one "
                + "group and partly another, and you can see which. Use it when groups overlap or are "
                + "elongated rather than round.",
-               Categories.Root, Categories.Clustering)
+               Categories.Root, Categories.MachineLearning)
     {
     }
 
     public override Guid ComponentGuid => new("b41c0d67-5a92-4e83-8f16-2d7a90c3e5b4");
 
-    public override GH_Exposure Exposure => GH_Exposure.primary;
+    // The Learn tier of the Machine Learning panel. Grasshopper draws a
+    // divider between exposures, which is what groups this panel by pipeline
+    // stage without needing a subcategory each.
+    public override GH_Exposure Exposure => GH_Exposure.tertiary;
 
     protected override Bitmap? Icon => EmbeddedIcons.Load("gaussianmixture", 24);
 

@@ -1,25 +1,31 @@
-using System.Drawing;
+﻿using System.Drawing;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
 using OtterLogic.Clustering;
 
-namespace OtterLogic.Grasshopper.Components.Clustering;
+namespace OtterLogic.Grasshopper.Components.StructuralDesign;
 
 /// <summary>
-/// The end product of the section: six-degree-of-freedom results in, behaviour
-/// groups out, no settings in between.
+/// Six-degree-of-freedom results in, behaviour groups out, no settings in
+/// between.
 /// <para>
 /// Adapter only. Every decision belongs to <see cref="Clusterer"/>; this unpacks
 /// a tree, calls it once, and packs the answer back out.
 /// </para>
 /// <para>
-/// Deliberately the opposite of the three raw components beside it, which it is
-/// built on. Those expose everything so an advanced user can drive them; this
-/// exposes one input, because a structural engineer with analysis results should
-/// not have to hold an opinion about covariance shapes to find out which members
-/// behave alike. Anyone who wants to reproduce or vary what it does can wire the
+/// Deliberately the opposite of the three raw methods under Machine Learning,
+/// which it is built on. Those expose everything so an advanced user can drive
+/// them; this exposes one input, because a structural engineer with analysis
+/// results should not have to hold an opinion about covariance shapes to find
+/// out which members behave alike.
+/// </para>
+/// <para>
+/// It sits under Structural Design rather than beside those methods because what
+/// it knows is structural, not statistical: that these columns are forces and
+/// moments, that demand data should not be logged, and how many directions such
+/// data really varies along. Anyone wanting to reproduce or vary it can wire the
 /// three raw components up themselves.
 /// </para>
 /// </summary>
@@ -30,14 +36,15 @@ public sealed class SixDofBehaviourClassifierComponent : GH_Component
                "Group structural members by how they behave, from the six-degree-of-freedom demand "
                + "on each one. Feed it analysis results and read the groups off — nothing to set "
                + "up.\n\n"
-               + "It combines the three raw components beside it, tailored to 6DOF data: it "
+               + "It combines the three clustering methods under Machine Learning, tailored "
+               + "to 6DOF data: it "
                + "standardises the six degrees of freedom, reduces them to the few directions the "
                + "demand really varies along, fits all three models, and picks the one the data "
                + "supports. Clean, well-separated behaviours go to K-Means; behaviours that overlap "
                + "go to the Gaussian Mixture, which can say a member sits between two; data with "
                + "genuine one-off members goes to HDBSCAN, which can leave them unassigned rather "
                + "than forcing them into the nearest group. Report says which it chose and why.",
-               Categories.Root, Categories.Clustering)
+               Categories.Root, Categories.StructuralDesign)
     {
     }
 

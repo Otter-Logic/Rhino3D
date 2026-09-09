@@ -39,8 +39,26 @@ extraction, because what a truss considers a feature is not what a nesting
 problem does.
 
 It is a toolkit in its own right too. Its clustering components ship under the
-**Clustering** section, beside the 6DOF Behaviour Classifier that chooses
-between them; dataset
-capture and inference will ship under **Machine Learning**. Training stays
-offline in that repo's `/python` — see
-[machine-learning.md](machine-learning.md).
+**Machine Learning** section, along with dataset capture and inference when those
+exist — every raw method in one panel, ordered by `GH_Exposure` into pipeline
+stages. The 6DOF Behaviour Classifier that chooses between them is not there: it
+carries a structural opinion, so it ships under **Structural Design** with the
+other tools named for a job. Training stays offline in that repo's `/python` —
+see [machine-learning.md](machine-learning.md).
+
+## Structural Design
+
+Tools that act on analysis results rather than producing geometry: grouping
+members by behaviour, sizing, predicting demand. Sibling to Structural Form,
+which generates a structure where this answers questions about one that already
+exists.
+
+It is where every purpose-built model lands. The general rule: **a purpose-built
+model lives in the toolkit for the domain it has an opinion about, never in the
+layer that owns the algorithm.** The layer owns the mechanism; the toolkit owns
+what the numbers mean. That is what lets Fabrication group panels with the same
+clustering machinery and its own judgement, with no domain-to-domain reference
+and no second copy of anything.
+
+Today it is the 6DOF Behaviour Classifier, which lives in the
+[Clustering Tool](https://github.com/Otter-Logic/Clustering_Tool) repo.

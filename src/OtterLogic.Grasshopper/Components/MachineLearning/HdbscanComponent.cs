@@ -1,10 +1,10 @@
-using System.Drawing;
+﻿using System.Drawing;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using OtterLogic.MachineLearning.Clustering;
 
-namespace OtterLogic.Grasshopper.Components.Clustering;
+namespace OtterLogic.Grasshopper.Components.MachineLearning;
 
 /// <summary>
 /// HDBSCAN in its raw form: density-based, told how small a cluster may be and
@@ -22,13 +22,16 @@ public sealed class HdbscanComponent : GH_Component
                + "The only one of the three that is not told how many clusters to look for, and the "
                + "only one that can say a sample is an outlier rather than filing it in the nearest "
                + "group. Use it when clusters are irregular or the data has genuine one-offs.",
-               Categories.Root, Categories.Clustering)
+               Categories.Root, Categories.MachineLearning)
     {
     }
 
     public override Guid ComponentGuid => new("6e2b53c9-77a4-4d18-b0f5-9c831ae64d2f");
 
-    public override GH_Exposure Exposure => GH_Exposure.primary;
+    // The Learn tier of the Machine Learning panel. Grasshopper draws a
+    // divider between exposures, which is what groups this panel by pipeline
+    // stage without needing a subcategory each.
+    public override GH_Exposure Exposure => GH_Exposure.tertiary;
 
     protected override Bitmap? Icon => EmbeddedIcons.Load("hdbscan", 24);
 

@@ -1,10 +1,10 @@
-using System.Drawing;
+﻿using System.Drawing;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using OtterLogic.MachineLearning.Clustering;
 
-namespace OtterLogic.Grasshopper.Components.Clustering;
+namespace OtterLogic.Grasshopper.Components.MachineLearning;
 
 /// <summary>
 /// k-means in its raw form: told how many clusters to find, and nothing else.
@@ -22,13 +22,16 @@ public sealed class KMeansComponent : GH_Component
                + "Assumes clusters are round and of roughly similar size, and places every sample in "
                + "one. Fast and steady when that holds. When clusters overlap use Gaussian Mixture; "
                + "when they are irregular or there are outliers use HDBSCAN.",
-               Categories.Root, Categories.Clustering)
+               Categories.Root, Categories.MachineLearning)
     {
     }
 
     public override Guid ComponentGuid => new("3f7f8f2a-6c1e-4f0b-9a3d-5b2e7c14a081");
 
-    public override GH_Exposure Exposure => GH_Exposure.primary;
+    // The Learn tier of the Machine Learning panel. Grasshopper draws a
+    // divider between exposures, which is what groups this panel by pipeline
+    // stage without needing a subcategory each.
+    public override GH_Exposure Exposure => GH_Exposure.tertiary;
 
     protected override Bitmap? Icon => EmbeddedIcons.Load("kmeans", 24);
 
