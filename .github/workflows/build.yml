@@ -7,6 +7,13 @@ name: build
 # The sibling repos are checked out so the project references resolve. Once
 # the dependencies are published on nuget.org, these extra checkouts can go and the
 # build will fall through to the pinned packages instead.
+#
+# Every `path` below has to match the directory name the csproj looks for,
+# because the sibling toggles test for a directory rather than asking git what
+# was cloned. Get one wrong and that project falls through to a NuGet package
+# that does not exist yet, which fails *restore* rather than the build - so it
+# reads as a missing package when the real fault is a missing checkout. A repo
+# rename that is not mirrored here fails in exactly that misleading way.
 
 on:
   push:
@@ -30,28 +37,30 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          repository: Otter-Logic/Document_Tool
-          path: Document_Tool
+          repository: Otter-Logic/Document
+          path: Document
 
       - uses: actions/checkout@v4
         with:
           repository: Otter-Logic/StructuralForm
           path: StructuralForm
 
+      # The machine learning stack, bottom up: the shared base, then the
+      # paradigm repo holding the algorithms, then the toolkit with the opinion.
       - uses: actions/checkout@v4
         with:
           repository: Otter-Logic/MachineLearning
           path: MachineLearning
 
-      # The path has to match the repository name exactly. The Grasshopper
-      # csproj looks for a sibling checkout at ..\..\..\Clustering_Tool and
-      # falls back to a NuGet package that does not exist yet when it is not
-      # found, which fails restore rather than the build and so reads as a
-      # missing package rather than a missing checkout.
       - uses: actions/checkout@v4
         with:
-          repository: Otter-Logic/Clustering_Tool
-          path: Clustering_Tool
+          repository: Otter-Logic/Unsupervised
+          path: Unsupervised
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Otter-Logic/StructuralDesign
+          path: StructuralDesign
 
       - uses: actions/setup-dotnet@v4
         with:
