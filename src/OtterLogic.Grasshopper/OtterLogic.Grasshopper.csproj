@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <RootNamespace>OtterLogic.Grasshopper</RootNamespace>
@@ -37,6 +37,21 @@
     </Otherwise>
   </Choose>
 
+  <!-- Unsupervised: where the clustering components' algorithms live. A
+       sibling checkout wins; the published package is the fallback. -->
+  <Choose>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\Unsupervised\src\OtterLogic.Unsupervised\OtterLogic.Unsupervised.csproj')">
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\Unsupervised\src\OtterLogic.Unsupervised\OtterLogic.Unsupervised.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="OtterLogic.Unsupervised" Version="[$(Version)]" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
   <!-- A sibling checkout of MachineLearning wins; the published package is the
        fallback. It is a layer rather than a domain - it sits above Core and
        below the toolkits, and a toolkit may reference it. -->
@@ -53,14 +68,12 @@
     </Otherwise>
   </Choose>
 
-  <!-- A sibling checkout of Document_Tool wins; the published package is the
-       fallback. The repo is Document_Tool and the project inside it is
-       OtterLogic.Document - the folder name is the odd one out, not the
-       assembly. -->
+  <!-- A sibling checkout of Document wins; the published package is the
+       fallback. -->
   <Choose>
-    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\Document_Tool\src\OtterLogic.Document\OtterLogic.Document.csproj')">
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\Document\src\OtterLogic.Document\OtterLogic.Document.csproj')">
       <ItemGroup>
-        <ProjectReference Include="..\..\..\Document_Tool\src\OtterLogic.Document\OtterLogic.Document.csproj" />
+        <ProjectReference Include="..\..\..\Document\src\OtterLogic.Document\OtterLogic.Document.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
@@ -70,19 +83,18 @@
     </Otherwise>
   </Choose>
 
-  <!-- The clustering tool: the end product built on MachineLearning. The repo
-       is Clustering_Tool and the project inside it is OtterLogic.Clustering,
-       following Document_Tool - the folder name is the odd one out, not the
-       assembly. -->
+  <!-- Structural Design: tools that act on analysis results. The 6DOF
+       Behaviour Classifier lives here; the clustering it runs on lives one
+       layer down in Unsupervised. -->
   <Choose>
-    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\Clustering_Tool\src\OtterLogic.Clustering\OtterLogic.Clustering.csproj')">
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\StructuralDesign\src\OtterLogic.StructuralDesign\OtterLogic.StructuralDesign.csproj')">
       <ItemGroup>
-        <ProjectReference Include="..\..\..\Clustering_Tool\src\OtterLogic.Clustering\OtterLogic.Clustering.csproj" />
+        <ProjectReference Include="..\..\..\StructuralDesign\src\OtterLogic.StructuralDesign\OtterLogic.StructuralDesign.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="OtterLogic.Clustering" Version="[$(Version)]" />
+        <PackageReference Include="OtterLogic.StructuralDesign" Version="[$(Version)]" />
       </ItemGroup>
     </Otherwise>
   </Choose>

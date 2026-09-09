@@ -61,4 +61,4 @@ clustering machinery and its own judgement, with no domain-to-domain reference
 and no second copy of anything.
 
 Today it is the 6DOF Behaviour Classifier, which lives in the
-[Clustering Tool](https://github.com/Otter-Logic/Clustering_Tool) repo.
+[StructuralDesign](https://github.com/Otter-Logic/StructuralDesign) repo.

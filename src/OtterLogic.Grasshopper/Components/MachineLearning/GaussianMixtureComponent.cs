@@ -3,7 +3,7 @@ using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
-using OtterLogic.MachineLearning.Clustering;
+using OtterLogic.Unsupervised.Clustering;
 
 namespace OtterLogic.Grasshopper.Components.MachineLearning;
 

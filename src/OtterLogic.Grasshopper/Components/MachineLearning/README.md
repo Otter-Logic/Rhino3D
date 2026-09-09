@@ -2,8 +2,10 @@
 
 The raw methods, for somebody assembling their own pipeline. Adaptors only — the
 algorithms live in the
-[MachineLearning](https://github.com/Otter-Logic/MachineLearning) repo,
-`OtterLogic.MachineLearning`.
+[Unsupervised](https://github.com/Otter-Logic/Unsupervised) repo,
+`OtterLogic.Unsupervised`, and the feature preparation they share with every
+other paradigm one layer below that in
+[MachineLearning](https://github.com/Otter-Logic/MachineLearning).
 
 - **K-Means Clustering** — hard partition into a fixed number of clusters.
 - **Gaussian Mixture** — soft assignment, with a probability per group.

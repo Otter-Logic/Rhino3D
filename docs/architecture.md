@@ -6,16 +6,19 @@
 other.** A domain that needs another domain is the signal that something belongs
 in Core — not that the two should be coupled.
 
-There is one sanctioned exception, `OtterLogic.MachineLearning`, described below.
+There is one sanctioned exception, the machine learning stack, described below.
 
 ```
                     OtterLogic.Core
               small, stable, slow-moving
                           ↑
               OtterLogic.MachineLearning
-        cross-cutting — a domain may reference this one
+     shared ML base - features, decomposition, datasets, ONNX
                           ↑
-              OtterLogic.StructuralForm          (+ Fabrication, FormFinding, ...)
+   Unsupervised   Supervised   Reinforcement   DeepLearning
+      one repo per paradigm - siblings, never referencing each other
+                          ↑
+   OtterLogic.StructuralForm  OtterLogic.StructuralDesign  (+ Fabrication, ...)
               types and logic for one domain
                     ↑              ↑
         OtterLogic.Rhino    OtterLogic.Grasshopper
@@ -66,15 +69,57 @@ something every discipline wants to apply to its own results. Left as a domain i
 would be unreachable — Fabrication could not cluster its panels without either a
 domain-to-domain reference or its own copy of the algorithm.
 
-The alternative was to push the ONNX plumbing and the clustering algorithms down
-into Core. That fails the test above: it drags a native runtime dependency into
-the foundation every domain compiles against, whether or not it does any
-inference, and it turns Core into the grab-bag it is meant not to be.
+The alternative was to push the ONNX plumbing and the algorithms down into Core.
+That fails the test above: it drags a native runtime dependency into the
+foundation every domain compiles against, whether or not it does any inference,
+and it turns Core into the grab-bag it is meant not to be.
 
-So `OtterLogic.MachineLearning` sits between the two. It references Core;
-toolkits may reference it; it references no toolkit. The arrow is one-way, so the
-no-cycles rule holds. It also ships components of its own under the **Machine
-Learning** section — being a shared layer does not stop it being a tool.
+So the stack sits between the two. It references Core; toolkits may reference it;
+it references no toolkit. The arrow is one-way, so the no-cycles rule holds. It
+also ships components of its own under the **Machine Learning** section — being a
+shared layer does not stop it being a tool.
+
+### Why a repo per paradigm, and one base beneath them
+
+`OtterLogic.MachineLearning` is not where the algorithms live. It holds only what
+*more than one paradigm* needs — feature preparation, decomposition, the dataset
+contract, and the ONNX runtime — and each paradigm gets its own repo above it:
+`Unsupervised` first, then `Supervised`, `Reinforcement` and `DeepLearning` as
+each gains a real algorithm.
+
+That is the same test Core passes one layer down, applied one layer up. Paradigm
+repos are siblings and never reference each other; a thing two of them need moves
+*down* into MachineLearning rather than sideways. Which is what keeps the base
+honest: `FeaturePipeline` and `PrincipalComponents` sit there because a regressor
+scales and projects its inputs exactly as a mixture does, not because it was
+convenient to leave them behind.
+
+The seam that earns a project boundary *inside* MachineLearning is the ONNX one,
+because it is the only one with a dependency difference. Fitted-at-solve-time
+algorithms carry nothing; inference carries a native runtime. Keeping
+`OtterLogic.MachineLearning.Inference` separate means a toolkit doing nothing but
+k-means never drags those binaries onto a test runner.
+
+### Where a purpose-built model goes
+
+**A purpose-built model lives in the toolkit for the domain it has an opinion
+about — never in a paradigm repo.** The paradigm repo owns the mechanism; the
+domain toolkit owns what the numbers mean.
+
+The 6DOF Behaviour Classifier is the worked example, and it split cleanly in two.
+Fitting three models across a range of counts, scoring them and applying the
+selection rules is `Unsupervised.ClusterSelector`: it reasons about the shape of
+a point cloud, which is a property of points and not of beams. Standardising per
+degree of freedom, refusing to log demand, projecting onto three components and
+mapping centres back into forces and moments is
+`StructuralDesign.SixDofBehaviourClassifier`: every one of those is a claim about
+structural data.
+
+The test is one question — *would changing this require knowing what a bending
+moment is?* If yes it belongs in the toolkit. The payoff is that a Fabrication
+tool grouping panels extracts its own features and calls the same selector, with
+no domain-to-domain reference and no second copy of the judgement to keep in
+step.
 
 ### Why RhinoCommon rather than neutral geometry
 

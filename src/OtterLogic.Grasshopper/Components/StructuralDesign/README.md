@@ -2,8 +2,10 @@
 
 Tools that act on analysis results rather than producing geometry. Adaptors
 only — the judgement lives in the
-[Clustering Tool](https://github.com/Otter-Logic/Clustering_Tool) repo,
-`OtterLogic.Clustering`, and the algorithms beneath it in
+[StructuralDesign](https://github.com/Otter-Logic/StructuralDesign) repo,
+`OtterLogic.StructuralDesign`; the clustering it runs on lives one layer down in
+[Unsupervised](https://github.com/Otter-Logic/Unsupervised), and the feature
+preparation below that in
 [MachineLearning](https://github.com/Otter-Logic/MachineLearning).
 
 - **6DOF Behaviour Classifier** — one required input and no settings. Fits all

@@ -18,8 +18,12 @@ name is no help.
 |---|---|---|
 | `Rhino3D` | both adaptors, `build/`, `assets/`, `docs/` | the `.yak` |
 | `Core` | `src/OtterLogic.Core` | NuGet package `OtterLogic.Core` |
-| `MachineLearning` | `src/OtterLogic.MachineLearning`, `python/`, `models/` | NuGet package `OtterLogic.MachineLearning` |
+| `MachineLearning` | the shared ML base, `python/`, `models/` | NuGet package `OtterLogic.MachineLearning` |
+| `Unsupervised` | clustering and model selection, its own `python/` fixtures | NuGet package `OtterLogic.Unsupervised` |
+| `Supervised`, `Reinforcement`, `DeepLearning` | one paradigm each, created when it has a real algorithm | one NuGet package each |
 | `StructuralForm` | domain + its tests | NuGet package `OtterLogic.StructuralForm` |
+| `StructuralDesign` | analysis-result tools + their tests | NuGet package `OtterLogic.StructuralDesign` |
+| `Document` | domain + its tests | NuGet package `OtterLogic.Document` |
 | `.github` | `profile/README.md` only | the organisation landing page |
 
 There is deliberately no plain `OtterLogic` repo. A meta repo holding a README,
@@ -38,9 +42,17 @@ Because the adaptor repo builds both front-ends, it can own packaging too — so
 there is no need for a fourth release repo. The org profile README lives in a
 repo called `.github`, which costs nothing.
 
-Later domains (`Fabrication`, `FormFinding`) become siblings of
-`StructuralForm` on the same pattern. `MachineLearning` is not a sibling — it is
-a layer beneath them, and pins Core the way a toolkit does.
+Later domains (`Fabrication`, `FormFinding`) become siblings of `StructuralForm`
+and `StructuralDesign` on the same pattern. The machine learning repos are not
+siblings of those — they are layers beneath them. `MachineLearning` pins Core the
+way a toolkit does; each paradigm repo pins `MachineLearning` and nothing else at
+its own level.
+
+Repos are created for a new **paradigm** or a new **engineering domain**, never
+for a new algorithm. A new algorithm is a namespace in the paradigm repo that
+already covers it; a thing two paradigms both need moves down into
+`MachineLearning`; a new ribbon panel is one constant in `Core.Sections` and no
+repo at all.
 
 ## How adaptors consume domains
 

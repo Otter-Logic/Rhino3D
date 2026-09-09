@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 using Grasshopper.Kernel;
-using OtterLogic.MachineLearning.Clustering;
+using OtterLogic.Unsupervised.Clustering;
 
 namespace OtterLogic.Grasshopper.Parameters.MachineLearning;
 

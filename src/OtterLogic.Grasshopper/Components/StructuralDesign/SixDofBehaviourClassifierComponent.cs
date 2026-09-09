@@ -3,7 +3,8 @@ using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
-using OtterLogic.Clustering;
+using OtterLogic.StructuralDesign;
+using OtterLogic.Unsupervised.Clustering;
 
 namespace OtterLogic.Grasshopper.Components.StructuralDesign;
 
@@ -11,7 +12,7 @@ namespace OtterLogic.Grasshopper.Components.StructuralDesign;
 /// Six-degree-of-freedom results in, behaviour groups out, no settings in
 /// between.
 /// <para>
-/// Adapter only. Every decision belongs to <see cref="Clusterer"/>; this unpacks
+/// Adapter only. Every decision belongs to <see cref="SixDofBehaviourClassifier"/>; this unpacks
 /// a tree, calls it once, and packs the answer back out.
 /// </para>
 /// <para>
@@ -151,8 +152,12 @@ public sealed class SixDofBehaviourClassifierComponent : GH_Component
 
         try
         {
-            var result = Clusterer.Classify(
-                data, new ClusteringOptions { Model = forced });
+            var result = SixDofBehaviourClassifier.Classify(
+                data,
+                new SixDofClassificationOptions
+                {
+                    Selection = new ClusterSelectorOptions { Model = forced },
+                });
 
             Warn(result, data.GetLength(1));
 
@@ -181,7 +186,7 @@ public sealed class SixDofBehaviourClassifierComponent : GH_Component
     /// Says the things a user would otherwise have to read the report to
     /// notice — and would not, because the component looks like it worked.
     /// </summary>
-    private void Warn(ClusteringResult result, int columns)
+    private void Warn(SixDofClassificationResult result, int columns)
     {
         if (result.KeptColumns.Length < columns)
             AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
@@ -207,7 +212,7 @@ public sealed class SixDofBehaviourClassifierComponent : GH_Component
                 $"{weak} member(s) sit below 0.6 confidence, between two behaviours. Check Confidence.");
     }
 
-    private static string ModelName(ClusteringResult result) => result.Chosen switch
+    private static string ModelName(SixDofClassificationResult result) => result.Chosen switch
     {
         ClusteringModel.KMeans => "K-Means",
         ClusteringModel.GaussianMixture => "Gaussian Mixture",
