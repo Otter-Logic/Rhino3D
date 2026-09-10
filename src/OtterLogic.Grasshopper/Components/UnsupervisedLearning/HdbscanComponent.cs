@@ -4,7 +4,7 @@ using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using OtterLogic.Unsupervised.Clustering;
 
-namespace OtterLogic.Grasshopper.Components.MachineLearning;
+namespace OtterLogic.Grasshopper.Components.UnsupervisedLearning;
 
 /// <summary>
 /// HDBSCAN in its raw form: density-based, told how small a cluster may be and
@@ -19,16 +19,18 @@ public sealed class HdbscanComponent : GH_Component
         : base("HDBSCAN Clustering", "HDBSCAN",
                "Find clusters as dense regions of any shape, and leave the samples that belong to "
                + "none of them unassigned.\n\n"
-               + "The only one of the three that is not told how many clusters to look for, and the "
-               + "only one that can say a sample is an outlier rather than filing it in the nearest "
-               + "group. Use it when clusters are irregular or the data has genuine one-offs.",
-               Categories.Root, Categories.MachineLearning)
+               + "Not told how many clusters to look for — it reports however many the data supports "
+               + "— and the only method here that can say a sample is an outlier rather than filing "
+               + "it in the nearest group. Use it when clusters are irregular or the data has genuine "
+               + "one-offs. Refine Labels can place the outliers afterwards from their neighbours, "
+               + "if they must go somewhere.",
+               Categories.Root, Categories.UnsupervisedLearning)
     {
     }
 
     public override Guid ComponentGuid => new("6e2b53c9-77a4-4d18-b0f5-9c831ae64d2f");
 
-    // The Learn tier of the Machine Learning panel. Grasshopper draws a
+    // The methods tier of the Unsupervised Learning panel. Grasshopper draws a
     // divider between exposures, which is what groups this panel by pipeline
     // stage without needing a subcategory each.
     public override GH_Exposure Exposure => GH_Exposure.tertiary;

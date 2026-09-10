@@ -16,7 +16,7 @@ namespace OtterLogic.Grasshopper.Components.StructuralDesign;
 /// a tree, calls it once, and packs the answer back out.
 /// </para>
 /// <para>
-/// Deliberately the opposite of the three raw methods under Machine Learning,
+/// Deliberately the opposite of the raw methods under Unsupervised Learning,
 /// which it is built on. Those expose everything so an advanced user can drive
 /// them; this exposes one input, because a structural engineer with analysis
 /// results should not have to hold an opinion about covariance shapes to find
@@ -37,7 +37,7 @@ public sealed class SixDofBehaviourClassifierComponent : GH_Component
                "Group structural members by how they behave, from the six-degree-of-freedom demand "
                + "on each one. Feed it analysis results and read the groups off — nothing to set "
                + "up.\n\n"
-               + "It combines the three clustering methods under Machine Learning, tailored "
+               + "It combines three of the clustering methods under Unsupervised Learning, tailored "
                + "to 6DOF data: it "
                + "standardises the six degrees of freedom, reduces them to the few directions the "
                + "demand really varies along, fits all three models, and picks the one the data "

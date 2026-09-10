@@ -158,11 +158,15 @@ The panels split into two families, and a user only ever needs one of them.
 - **Form Finding** — relaxation and equilibrium. Empty; to be designed.
 - **Fabrication** — unrolling, nesting, toolpaths.
 
-**Named for a technique** — how it is done:
+**Named for a technique** — how it is done, one panel per learning paradigm,
+mirroring the repos:
 
-- **Machine Learning** — every raw method, whatever its paradigm: the three
-  clustering algorithms today, regression and classification later, plus dataset
-  capture and inference when those exist.
+- **Unsupervised Learning** — every raw unsupervised method: k-means, Gaussian
+  mixture, HDBSCAN, spectral, hierarchical and message-passing clustering, the
+  graph builders they run on, and label refinement.
+- **Machine Learning** — reserved for the steps every paradigm shares: dataset
+  capture, feature preparation, inference. Empty until those have components.
+- **Supervised Learning** and the rest arrive with their paradigm repos.
 
 Add sections there rather than typing category strings into components: the
 Category string is literally what names the tab, so one typo silently creates a
@@ -177,18 +181,20 @@ four components and wrong immediately after: the panel would have to hold both
 the next algorithm family and the next structural tool, and neither belongs with
 the other.
 
-So the raw methods went to **Machine Learning** and the classifier to
+So the raw methods went to a technique panel and the classifier to
 **Structural Design**, and the line between them is *who is asking*. A structural
 engineer with analysis results is looking for a job, and finds it in a panel
 named for one without ever needing to know what a covariance shape is. Somebody
 driving a method directly, or reproducing what a finished tool did with their own
 choices, goes to the panel named for the technique.
 
-Machine Learning stays **one** panel rather than one per paradigm. `GH_Exposure`
-draws a divider between tiers inside a panel, so the pipeline stages — data,
-features, learning, evaluation, then enum dropdowns — get their structure without
-four near-empty subcategories. Split it when it genuinely overflows, around
-twenty-five components.
+The technique panels were first one **Machine Learning** panel for every
+paradigm. They are now one per paradigm — **Unsupervised Learning** first —
+because that is how an advanced user looks for a raw method, and because a panel
+that mirrors a repo says where each component's algorithm lives. Machine Learning
+is kept for what the paradigms share, the same job its repo does. Inside each
+panel `GH_Exposure` still draws the stages — graphs or features, methods,
+refinement or evaluation, then enum dropdowns — without a subcategory each.
 
 ### Re-cutting the ribbon is free
 

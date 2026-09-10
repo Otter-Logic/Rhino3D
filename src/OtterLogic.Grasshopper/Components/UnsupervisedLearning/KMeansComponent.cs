@@ -4,7 +4,7 @@ using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using OtterLogic.Unsupervised.Clustering;
 
-namespace OtterLogic.Grasshopper.Components.MachineLearning;
+namespace OtterLogic.Grasshopper.Components.UnsupervisedLearning;
 
 /// <summary>
 /// k-means in its raw form: told how many clusters to find, and nothing else.
@@ -21,14 +21,15 @@ public sealed class KMeansComponent : GH_Component
                + "centre.\n\n"
                + "Assumes clusters are round and of roughly similar size, and places every sample in "
                + "one. Fast and steady when that holds. When clusters overlap use Gaussian Mixture; "
-               + "when they are irregular or there are outliers use HDBSCAN.",
-               Categories.Root, Categories.MachineLearning)
+               + "when they are irregular or there are outliers use HDBSCAN; when they are long, "
+               + "curved or defined by what connects to what, use Spectral Clustering.",
+               Categories.Root, Categories.UnsupervisedLearning)
     {
     }
 
     public override Guid ComponentGuid => new("3f7f8f2a-6c1e-4f0b-9a3d-5b2e7c14a081");
 
-    // The Learn tier of the Machine Learning panel. Grasshopper draws a
+    // The methods tier of the Unsupervised Learning panel. Grasshopper draws a
     // divider between exposures, which is what groups this panel by pipeline
     // stage without needing a subcategory each.
     public override GH_Exposure Exposure => GH_Exposure.tertiary;

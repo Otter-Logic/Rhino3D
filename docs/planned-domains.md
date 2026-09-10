@@ -38,10 +38,11 @@ Core keeps only the section vocabulary. Each toolkit still owns its own feature
 extraction, because what a truss considers a feature is not what a nesting
 problem does.
 
-It is a toolkit in its own right too. Its clustering components ship under the
-**Machine Learning** section, along with dataset capture and inference when those
-exist — every raw method in one panel, ordered by `GH_Exposure` into pipeline
-stages. The 6DOF Behaviour Classifier that chooses between them is not there: it
+It is a toolkit in its own right too. The raw methods ship in a panel per
+paradigm — the clustering and graph methods under **Unsupervised Learning** today
+— and the shared steps, dataset capture and inference, under **Machine Learning**
+when those exist, each panel ordered by `GH_Exposure` into pipeline stages. The
+6DOF Behaviour Classifier that chooses between clustering methods is not there: it
 carries a structural opinion, so it ships under **Structural Design** with the
 other tools named for a job. Training stays offline in that repo's `/python` —
 see [machine-learning.md](machine-learning.md).

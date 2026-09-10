@@ -2,7 +2,7 @@
 using Grasshopper.Kernel;
 using OtterLogic.Unsupervised.Clustering;
 
-namespace OtterLogic.Grasshopper.Parameters.MachineLearning;
+namespace OtterLogic.Grasshopper.Parameters.UnsupervisedLearning;
 
 /// <summary>
 /// The covariance shapes as a dropdown, for the Covariance input of the
@@ -19,7 +19,7 @@ public sealed class CovarianceTypeList : EnumValueList<CovarianceType>
                "The shape each group is allowed to take: spherical is a round ball, diagonal an "
                + "axis-aligned ellipsoid, full an ellipsoid at any orientation.\n\n"
                + "Plug it into the Covariance input of Gaussian Mixture.",
-               Categories.MachineLearning)
+               Categories.UnsupervisedLearning)
     {
     }
 

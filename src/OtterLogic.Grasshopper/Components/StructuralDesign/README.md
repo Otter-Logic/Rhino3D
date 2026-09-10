@@ -26,7 +26,8 @@ questions about one that already exists. Deflection surrogates, section sizers
 and capacity classifiers land here as they arrive, sharing the same
 demand-column feature extraction.
 
-Whatever method a tool here uses lives under **Machine Learning**, and a user in
+Whatever method a tool here uses lives under **Unsupervised Learning** (or its
+sibling paradigm panels, as they arrive), and a user in
 this panel should never need to go looking for it. That is the whole point of the
 split: these are named for jobs, those are named for techniques.
 
