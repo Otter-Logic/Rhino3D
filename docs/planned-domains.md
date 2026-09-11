@@ -42,9 +42,9 @@ It is a toolkit in its own right too. The raw methods ship in a panel per
 paradigm — the clustering and graph methods under **Unsupervised Learning** today
 — and the shared steps, dataset capture and inference, under **Machine Learning**
 when those exist, each panel ordered by `GH_Exposure` into pipeline stages. The
-6DOF Behaviour Classifier that chooses between clustering methods is not there: it
-carries a structural opinion, so it ships under **Structural Design** with the
-other tools named for a job. Training stays offline in that repo's `/python` —
+design groupings built on those methods are not there: they carry a structural
+opinion, so they ship under **Structural Design** with the other tools named for
+a job. Training stays offline in that repo's `/python` —
 see [machine-learning.md](machine-learning.md).
 
 ## Structural Design
@@ -61,5 +61,5 @@ what the numbers mean. That is what lets Fabrication group panels with the same
 clustering machinery and its own judgement, with no domain-to-domain reference
 and no second copy of anything.
 
-Today it is the 6DOF Behaviour Classifier, which lives in the
+Today it is foundation and beam end plate design grouping, which live in the
 [StructuralDesign](https://github.com/Otter-Logic/StructuralDesign) repo.

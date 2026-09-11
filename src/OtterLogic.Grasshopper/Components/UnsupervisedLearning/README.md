@@ -35,12 +35,14 @@ preparation, inference.
 Moving a component between panels never breaks a saved definition — Grasshopper
 serialises it by `ComponentGuid`, and none of those changed.
 
-## Why the 6DOF classifier is not here
+## Why the design groupings are not here
 
-It is named for a job and carries a structural opinion — it knows the columns are
-forces and moments — so it lives under **Structural Design**, where a structural
-engineer with analysis results looks for a job rather than a method. Anyone
-wanting to reproduce or vary what it does wires these components up themselves.
+Foundation and Beam End Plate Design Grouping are named for a job and carry a
+structural opinion — they know the columns are forces and moments, and what
+governs each design — so they live under **Structural Design**, where a
+structural engineer with analysis results looks for a job rather than a method.
+Anyone wanting to reproduce or vary what they do wires these components up
+themselves.
 
 ## Shape
 
@@ -58,9 +60,10 @@ Branch position is the sample index everywhere. Ragged or miscounted trees are
 refused with an error rather than repaired, because a quiet repair ties results
 to the wrong samples.
 
-Every method numbers its clusters largest first, so a small upstream change does
-not shuffle every colour downstream — except Refine Labels, which keeps the
-numbers it was given, since it adjusts a labelling somebody already holds.
+Every method numbers its clusters largest first — Gaussian Mixture by mixing
+weight, the rest by count — so a small upstream change does not shuffle every
+colour downstream. The exception is Refine Labels, which keeps the numbers it was
+given, since it adjusts a labelling somebody already holds.
 
 Grasshopper only. Wire-data tools with no document-level shape, so nothing here
 gets a Rhino command or a toolbar button: the `.rhp` stays out of it.

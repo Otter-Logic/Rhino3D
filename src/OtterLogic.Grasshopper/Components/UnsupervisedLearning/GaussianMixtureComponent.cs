@@ -152,46 +152,18 @@ public sealed class GaussianMixtureComponent : GH_Component
 
             // Largest first, so a small upstream change does not permute the
             // groups and shuffle every colour downstream.
-            int k = result.ComponentCount;
-            var order = Enumerable.Range(0, k)
-                .OrderByDescending(c => result.MixingWeights[c])
-                .ThenBy(c => c)
-                .ToArray();
-
-            var rank = new int[k];
-            for (int position = 0; position < k; position++)
-                rank[order[position]] = position;
-
-            var raw = result.Labels();
-            var labels = raw.Select(c => rank[c]).ToArray();
-
-            int n = labels.Length;
-            var responsibilities = new double[n, k];
-            for (int i = 0; i < n; i++)
-                for (int c = 0; c < k; c++)
-                    responsibilities[i, c] = result.Responsibilities[i, order[c]];
-
-            var means = new double[k, data.GetLength(1)];
-            for (int c = 0; c < k; c++)
-                for (int j = 0; j < data.GetLength(1); j++)
-                    means[c, j] = result.Means[order[c], j];
-
-            var buckets = new List<int>[k];
-            for (int c = 0; c < k; c++)
-                buckets[c] = new List<int>();
-            for (int i = 0; i < n; i++)
-                buckets[labels[i]].Add(i);
+            var ordered = result.OrderedByWeight();
 
             int weak = result.Confidence().Count(c => c < 0.75);
             if (weak > 0)
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
                     $"{weak} sample(s) sit below 0.75 confidence, between two groups. Check Confidence.");
 
-            da.SetDataList(0, labels);
-            da.SetDataTree(1, Trees.FromBuckets(buckets.Select(b => b.ToArray()).ToArray()));
-            da.SetDataTree(2, Trees.FromRows(responsibilities));
-            da.SetDataList(3, result.Confidence());
-            da.SetDataTree(4, Trees.FromRows(means));
+            da.SetDataList(0, ordered.Labels());
+            da.SetDataTree(1, Trees.FromBuckets(ordered.Clusters()));
+            da.SetDataTree(2, Trees.FromRows(ordered.Responsibilities));
+            da.SetDataList(3, ordered.Confidence());
+            da.SetDataTree(4, Trees.FromRows(ordered.Means));
             da.SetData(5, result.LogLikelihood);
             da.SetData(6, result.Bic);
 

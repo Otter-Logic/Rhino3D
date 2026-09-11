@@ -153,8 +153,8 @@ The panels split into two families, and a user only ever needs one of them.
 - **Document** — reading layers and objects out of the Rhino document.
 - **Structural Form** — trusses, frames, discrete structural layouts.
 - **Structural Design** — tools that act on analysis results rather than
-  producing geometry. The 6DOF Behaviour Classifier today; deflection surrogates
-  and section sizers as they arrive.
+  producing geometry. Foundation and Beam End Plate Design Grouping today;
+  deflection surrogates and section sizers as they arrive.
 - **Form Finding** — relaxation and equilibrium. Empty; to be designed.
 - **Fabrication** — unrolling, nesting, toolpaths.
 

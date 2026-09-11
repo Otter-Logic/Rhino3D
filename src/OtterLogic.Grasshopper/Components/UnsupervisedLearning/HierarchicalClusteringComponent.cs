@@ -158,9 +158,7 @@ public sealed class HierarchicalClusteringComponent : GH_Component
             }
 
             da.SetDataList(0, labels);
-            da.SetDataTree(1, Trees.FromBuckets(
-                Enumerable.Range(0, count).Select(c =>
-                    Enumerable.Range(0, labels.Length).Where(i => labels[i] == c).ToArray()).ToArray()));
+            da.SetDataTree(1, Trees.FromBuckets(ClusterLabels.Members(labels, count)));
             da.SetDataTree(2, merges);
             da.SetData(3, count);
             da.SetData(4, result.GraphComponents);
