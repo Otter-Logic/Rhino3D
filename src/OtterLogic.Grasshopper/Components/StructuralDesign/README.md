@@ -1,6 +1,7 @@
 # Structural Design components
 
-Tools that act on analysis results rather than producing geometry. Adaptors
+Tools that act on analysis models and their results rather than producing
+geometry. Adaptors
 only — the judgement lives in the
 [StructuralDesign](https://github.com/Otter-Logic/StructuralDesign) repo,
 `OtterLogic.StructuralDesign`; the clustering it runs on lives one layer down in
@@ -23,6 +24,22 @@ preparation below that in
   Fx is enveloped with its sign; the other five by size, so a bar's two ends,
   equal and opposite, read the same. See `StructuralDesign.BeamEndPlateGrouping`
   for why this is not the behaviour classifier the foundations use.
+
+- **Load Path Hierarchy** — a model before analysis: its lines and supports in,
+  nothing else. The lines come out sorted onto branch `{category; rank; part}` —
+  columns by storey, beams and trusses by order, truss chords apart from verticals
+  and diagonals — with the same branch meaning the same thing in every model.
+  Lines outside the gravity path (bracing, anything reaching no support,
+  duplicates) come out separately with the reason; outliers are the points where
+  the model is not joined as it looks meant to be; and Release Start and Release
+  End suggest six releases for each end of every line, from the Connections
+  input, in the order the lines came. Plug Connection Style in for a dropdown.
+  See `StructuralDesign.LoadPathHierarchy`. It sits in the secondary tier, below
+  the design groupings: it runs before analysis, where they run after.
+
+The force inputs are read the same way by both design groupings: `ForceInputs`
+holds the reading and the wording of every complaint about a mis-shaped tree, so
+a flattened tree gets the same advice whichever component it is wired into.
 
 The two design grouping components carry the geometry through a grouping, for
 the common case of "which of these can share a design". They share

@@ -28,7 +28,7 @@ namespace OtterLogic.Grasshopper.Components.StructuralDesign;
 public abstract class DesignGroupingComponent : GH_Component
 {
     /// <summary>The six force inputs, in this order.</summary>
-    protected static readonly string[] ForceNames = { "Fx", "Fy", "Fz", "Mx", "My", "Mz" };
+    protected static readonly string[] ForceNames = ForceInputs.Names;
 
     /// <summary>Input position of the first force; the other five follow it.</summary>
     private const int FirstForceInput = 1;
@@ -207,103 +207,9 @@ public abstract class DesignGroupingComponent : GH_Component
         }
     }
 
-    /// <summary>
-    /// Reads force input <paramref name="j"/> as one branch per element, each
-    /// holding the element's values, or says why it cannot.
-    /// <para>
-    /// A single flat list with one value per element is taken as one combination,
-    /// so a definition wired for one combination works unchanged. Anything else
-    /// must have exactly one branch per element: branch position is what ties the
-    /// values to an element. Every element must have the same combinations in
-    /// every force; the library checks that and names what differs.
-    /// </para>
-    /// </summary>
+    /// <summary>Reads force input <paramref name="j"/> as one branch per element; see <see cref="ForceInputs.TryRead"/>.</summary>
     private bool TryReadForce(IGH_DataAccess da, int j, int count, out double[][] values)
-    {
-        values = Array.Empty<double[]>();
-        string force = ForceNames[j];
-
-        if (!da.GetDataTree(FirstForceInput + j, out GH_Structure<GH_Number> tree))
-            return false;
-
-        var branches = tree.Branches;
-
-        if (branches.Count == 1 && count > 1 && branches[0].Count == count)
-        {
-            if (!TryUnpack(branches[0], force, null, out var row))
-                return false;
-
-            values = row.Select(value => new[] { value }).ToArray();
-            return true;
-        }
-
-        // A flat list holding a whole number of values per element is almost always
-        // a tree that lost its branches on the way — two ends per bar, flattened.
-        // Say how to put it back rather than suggest the wrong fix.
-        if (branches.Count == 1 && count > 1 && branches[0].Count % count == 0)
-        {
-            int per = branches[0].Count / count;
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
-                $"{force} is one flat list of {branches[0].Count} values for {count} {ElementName}(s) — {per} each, "
-                + $"it looks like. It needs one branch per {ElementName}: run it through Partition List with a "
-                + $"size of {per}, or keep the branches it had before it was flattened.");
-            return false;
-        }
-
-        if (branches.Count != count)
-        {
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
-                $"{force} has {branches.Count} branch(es) but there are {count} {ElementName}(s). It needs one "
-                + $"branch per {ElementName}, holding that {ElementName}'s {force} values. If each branch holds "
-                + "a combination instead, run it through Flip Matrix first.");
-            return false;
-        }
-
-        values = new double[count][];
-        for (int i = 0; i < count; i++)
-        {
-            if (branches[i].Count == 0)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
-                    $"{force} of {ElementName} {i} is empty. Every {ElementName} needs the same values in "
-                    + "every force — zero where there is none.");
-                return false;
-            }
-
-            if (!TryUnpack(branches[i], force, i, out values[i]))
-                return false;
-        }
-
-        return true;
-    }
-
-    /// <summary>
-    /// The values of one list or branch, or an error naming the first null.
-    /// <paramref name="element"/> is the element a branch belongs to, or null when
-    /// the list holds one value per element.
-    /// </summary>
-    private bool TryUnpack(IList<GH_Number> items, string force, int? element, out double[] values)
-    {
-        values = new double[items.Count];
-        for (int k = 0; k < items.Count; k++)
-        {
-            if (items[k] is null)
-            {
-                string where = element is { } e
-                    ? $"{force} of {ElementName} {e}, value {k}"
-                    : $"{force} of {ElementName} {k}";
-
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
-                    $"{where} is missing. Give it a value — zero if there is none — or every value after it "
-                    + "pairs with the wrong one.");
-                return false;
-            }
-
-            values[k] = items[k].Value;
-        }
-
-        return true;
-    }
+        => ForceInputs.TryRead(this, da, FirstForceInput + j, ForceNames[j], count, ElementName, out values);
 
     protected static string Capitalised(string word)
         => word.Length == 0 ? word : char.ToUpperInvariant(word[0]) + word[1..];

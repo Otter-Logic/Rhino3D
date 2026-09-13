@@ -115,6 +115,23 @@
     </Otherwise>
   </Choose>
 
+  <!-- Structural Analysis: tools that read a model before analysis, sibling to
+       StructuralDesign. Load Path Hierarchy lives here; the clustering the
+       connectivity and topology-mapping components run on lives one layer
+       down in Unsupervised. -->
+  <Choose>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\Structural-Analysis\src\OtterLogic.StructuralAnalysis\OtterLogic.StructuralAnalysis.csproj')">
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\Structural-Analysis\src\OtterLogic.StructuralAnalysis\OtterLogic.StructuralAnalysis.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="OtterLogic.StructuralAnalysis" Version="[$(Version)]" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
 
   <ItemGroup>
     <!-- One set of masters in assets/icons, embedded into both front-ends.
