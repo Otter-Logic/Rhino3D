@@ -80,6 +80,14 @@ jobs:
           path: StructuralDesign
           token: ${{ secrets.OTTER_CI_TOKEN }}
 
+      # The repo name carries a hyphen, and so must the path: the csproj looks
+      # for ..\Structural-Analysis, not StructuralAnalysis.
+      - uses: actions/checkout@v4
+        with:
+          repository: Otter-Logic/Structural-Analysis
+          path: Structural-Analysis
+          token: ${{ secrets.OTTER_CI_TOKEN }}
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
