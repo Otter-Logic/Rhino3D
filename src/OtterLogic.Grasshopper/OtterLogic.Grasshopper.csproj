@@ -83,9 +83,9 @@
     </Otherwise>
   </Choose>
 
-  <!-- Structural Design: tools that act on analysis results. The 6DOF
-       Behaviour Classifier lives here; the clustering it runs on lives one
-       layer down in Unsupervised. -->
+  <!-- Structural Design: every multipurpose structural tool - the 6DOF
+       Behaviour Classifier and the Structural Insight Engine. The clustering
+       they run on lives one layer down in Unsupervised. -->
   <Choose>
     <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\StructuralDesign\src\OtterLogic.StructuralDesign\OtterLogic.StructuralDesign.csproj')">
       <ItemGroup>
@@ -111,23 +111,6 @@
     <Otherwise>
       <ItemGroup>
         <PackageReference Include="OtterLogic.StructuralForm" Version="[$(Version)]" />
-      </ItemGroup>
-    </Otherwise>
-  </Choose>
-
-  <!-- Structural Analysis: tools that read a model before analysis, sibling to
-       StructuralDesign. Load Path Hierarchy lives here; the clustering the
-       connectivity and topology-mapping components run on lives one layer
-       down in Unsupervised. -->
-  <Choose>
-    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\Structural-Analysis\src\OtterLogic.StructuralAnalysis\OtterLogic.StructuralAnalysis.csproj')">
-      <ItemGroup>
-        <ProjectReference Include="..\..\..\Structural-Analysis\src\OtterLogic.StructuralAnalysis\OtterLogic.StructuralAnalysis.csproj" />
-      </ItemGroup>
-    </When>
-    <Otherwise>
-      <ItemGroup>
-        <PackageReference Include="OtterLogic.StructuralAnalysis" Version="[$(Version)]" />
       </ItemGroup>
     </Otherwise>
   </Choose>

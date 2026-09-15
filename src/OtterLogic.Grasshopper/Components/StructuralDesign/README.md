@@ -1,94 +1,46 @@
 # Structural Design components
 
-Tools that act on analysis models and their results rather than producing
-geometry. Adaptors
-only — the judgement lives in the
-[StructuralDesign](https://github.com/Otter-Logic/StructuralDesign) repo,
-`OtterLogic.StructuralDesign`; the clustering it runs on lives one layer down in
+Multipurpose tools for structural engineering. Adaptors only — the engines live
+in the [StructuralDesign](https://github.com/Otter-Logic/StructuralDesign) repo,
+`OtterLogic.StructuralDesign`; the clustering they run on lives one layer down in
 [Unsupervised](https://github.com/Otter-Logic/Unsupervised), and the feature
-preparation below that in
+preparation and graphs below that in
 [MachineLearning](https://github.com/Otter-Logic/MachineLearning).
 
-- **Foundation Design Grouping** — column base nodes and their six forces under
-  any number of load combinations in; the nodes grouped for design, each with its
-  own envelope alongside — one set of seven forces per node, however many
-  combinations. Fz is read with its sign and kept as its largest and smallest
-  value, and a node in uplift under any combination never shares a group with
-  one in compression throughout; the other five are designed either way and are
-  enveloped by size.
-- **Beam End Plate Design Grouping** — bars and the six forces at their ends,
-  over any number of load combinations and either or both ends; the bars grouped
-  for end plate design, each with its own envelope alongside. Types are cut so
-  every bar carries at least the Efficiency input's share of its type's peak
-  tension, |Fz| and |My| — 0.6 by default; the number of types follows from it.
-  Fx is enveloped with its sign; the other five by size, so a bar's two ends,
-  equal and opposite, read the same. See `StructuralDesign.BeamEndPlateGrouping`
-  for why this is not the behaviour classifier the foundations use.
+- **6DOF Behaviour Classifier** — six lists in, Fx to Mz, one value per element;
+  the elements grouped by behaviour out, with each group's centre, minimum and
+  maximum in the units that came in. It fits K-Means, a Gaussian Mixture and
+  HDBSCAN and picks the one the data supports. Nothing in it knows whether the six
+  values are member end forces, support reactions or displacements: the envelope
+  over combinations, forces taken by size, parts that may never share a group are
+  all prepared upstream in the user's own definition. Plug **Unassigned** into its
+  Unassigned input for what happens to elements that fit no group — leave them at
+  -1, give each a group of its own, or file them with the nearest.
+- **Structural Insight Engine** — lines, surfaces (Breps, surfaces, meshes — one
+  element per face) and supports in; the natural groups of the structure the
+  geometry describes out, with each element's agreement between views, every
+  view's own grouping, the raw features and element graph, and QA issues:
+  duplicates, degenerate elements, isolated and disconnected pieces, no route to a
+  support, free ends, single elements holding a large part on, near misses,
+  outliers and low agreement. No structural type is hard-coded — frames, shells,
+  bridges, stadium bowls and gridshells go through the same engine, and groups
+  are described by what was measured, never named.
 
-- **Load Path Hierarchy** — a model before analysis: its lines and supports in,
-  nothing else. The lines come out sorted onto branch `{category; rank; part}` —
-  columns by storey, beams and trusses by order, truss chords apart from verticals
-  and diagonals — with the same branch meaning the same thing in every model.
-  Lines outside the gravity path (bracing, anything reaching no support,
-  duplicates) come out separately with the reason; outliers are the points where
-  the model is not joined as it looks meant to be; and Release Start and Release
-  End suggest six releases for each end of every line, from the Connections
-  input, in the order the lines came. Plug Connection Style in for a dropdown.
-  See `StructuralDesign.LoadPathHierarchy`. It sits in the secondary tier, below
-  the design groupings: it runs before analysis, where they run after.
-
-The force inputs are read the same way by both design groupings: `ForceInputs`
-holds the reading and the wording of every complaint about a mis-shaped tree, so
-a flattened tree gets the same advice whichever component it is wired into.
-
-The two design grouping components carry the geometry through a grouping, for
-the common case of "which of these can share a design". They share
-`DesignGroupingComponent`, since they differ only in whether the geometry is a
-point or a curve, which forces come back out, and which library call reads them
-— `FoundationGrouping` or `BeamEndPlateGrouping`. The forces go in as six inputs,
-Fx to Mz — a wire into Fz can only be Fz, where a branch of six per element could
-be short or out of order and still look right.
-
-Each input is one branch per element holding its values — every load
-combination, and for a bar either or both ends — and a flat list is one value
-each; if an analysis gives a branch per combination instead, Flip Matrix turns
-it round. Out come seven outputs, each element's own envelope: for foundations
-Fx, Fy, Fz Max, Fz Min, Mx, My, Mz, and for end plates Fx Max, Fx Min, Fy, Fz,
-Mx, My, Mz. Every output is grouped exactly like the geometry — branch g, item i
-belongs to item i of group g — so a value can be tagged at its element and pulled
-out of a group without a List Item on the canvas. A group's design envelope is a
-Bounds per branch of any output.
-
-A design grouping has one rule a behaviour grouping does not: every element must
-be designed, so every element lands in exactly one group. An element that fits no
-behaviour family comes back as a group of its own at the end rather than filed
-with its nearest family — usually it is the unusually loaded one, and grouping it
-would either inflate that family's governing forces or under-design it. That rule
-lives in `StructuralDesign.DesignGrouping`, not here.
+Features and Connectivity from the Insight Engine plug straight into the
+Unsupervised Learning components, so a user can take the grouping further with
+their own choices.
 
 ## What earns a place here
 
-A tool that carries a **structural** opinion — it knows what a bending moment is.
-The design groupings qualify on every count: they expect columns that mean Fx,
-Fy, Fz, Mx, My, Mz; they know which forces act either way and which one's sign
-changes the design; and they know what governs a foundation or an end plate.
-None of that is knowledge about clustering.
-
-There was a **6DOF Behaviour Classifier** component here too, grouping members by
-behaviour with no design reading on top. It was removed: the design groupings
-answer the question a user here actually has, and the classifier's own groups
-were not ones anybody would design to. The classifier itself stays in the
-library, where foundation grouping is built on it.
-
-Sibling to **Structural Form**, which generates a structure, where this answers
-questions about one that already exists. Deflection surrogates, section sizers
-and capacity classifiers land here as they arrive, sharing the same
-demand-column feature extraction.
+A tool that knows what structural data is — a stick model and its supports, six
+degrees of freedom — without hard-coding what any one structure or job makes of
+it. Tools that read foundations one way and end plates another were removed for
+exactly that reason: each served one job, where these serve any job a user can
+prepare the data for.
 
 Whatever method a tool here uses lives under **Unsupervised Learning** (or its
-sibling paradigm panels, as they arrive), and a user in
-this panel should never need to go looking for it. That is the whole point of the
-split: these are named for jobs, those are named for techniques.
+sibling paradigm panels, as they arrive), and a user in this panel should never
+need to go looking for it.
 
 Grasshopper only. Wire-data tools with no document-level shape, so nothing here
 gets a Rhino command or a toolbar button.
