@@ -7,60 +7,62 @@ using Grasshopper.Kernel.Types;
 
 namespace OtterLogic.Grasshopper.Components.Document;
 
-/// <summary>One name shared by one or more items: what to call it on screen, and how many items share it.</summary>
-internal readonly record struct BranchRow(string Name, int Count);
+/// <summary>One branch of the wired tree: its path, and how many items it holds.</summary>
+internal readonly record struct BranchRow(GH_Path Path, int Count)
+{
+    /// <summary>The path as text — what the row is labelled with, and what a tick is stored under.</summary>
+    public string Key => Path.ToString();
+}
 
 /// <summary>
-/// Ticks items of any data tree by name, and gives just those items back.
+/// Ticks branches of any data tree, and gives just those branches back.
 /// <para>
-/// Grows out of the same need <see cref="LayerPickerComponent"/> answers for
-/// layers — an overview with a box to tick, rather than wiring up a Param
-/// Viewer, a List Item and a Tree Branch just to look inside one group at a
-/// time. Where that component reads the Rhino document, this one reads two
-/// wired trees of the same shape: <c>Data</c>, and a matching <c>Names</c>
-/// tree, one name per item.
+/// Reads like Grasshopper's own <c>Explode Tree</c> — the branches of whatever
+/// is wired in, listed with their item counts — except that the branches are
+/// ticked rather than taken one per output. That keeps one component and one
+/// output however many branches arrive, where Explode Tree has to be zoomed
+/// and re-wired every time the branch count changes, and it replaces the
+/// Param Viewer / Tree Branch pair a user otherwise assembles just to look
+/// inside one group at a time.
 /// </para>
 /// <para>
-/// Rows are one per <em>distinct name</em>, not one per branch. A component
-/// that already gives every branch its own unique name — <c>Topology
-/// Mapping</c>'s four-level Groups tree, the motivating case — ends up with
-/// one row per branch anyway, since nothing else shares a name with it. But a
-/// component like <c>Connectivity QA</c> that reports many items against a
-/// flat, repeated set of reasons — a dozen free ends, all reading "free end —
-/// a cantilever tip, or a connection that was missed" — collapses those into
-/// one row, and ticking it selects every item that shares the wording,
-/// wherever in the tree each one came from.
+/// Rows are one per branch, labelled by path, because the path is the tree's
+/// own handle on a branch: it survives a re-solve, it is what the tooltip on
+/// the upstream wire already shows, and it needs nothing wired in beside the
+/// data to be meaningful. An earlier version paired the data against a second
+/// tree of names and grouped by name instead; that bought cross-branch
+/// grouping at the cost of a second input that had to be built and kept the
+/// same shape, which is the complication this component exists to avoid.
 /// </para>
 /// <para>
-/// Names need not match Data item for item within a branch — only Names'
-/// last item in a branch has to keep meaning what it says once Data runs
-/// longer. <c>Topology Mapping</c>'s Releases is the case this matters for:
-/// six release flags per branch, paired against a Group Names branch holding
-/// one name per line in that group. Past Names' last item, its final name is
-/// reused for the rest of Data's branch — the same name a moment longer,
-/// which is exactly what "fewer lines than DOF flags" already means — so six
-/// flags and a five-line group's worth of names still read as one named row.
+/// Ticked branches come out at <em>their own paths</em>, not renumbered. A
+/// picked branch therefore still lines up with any tree still carrying the
+/// full set — group names, a colour per group — so downstream components
+/// match them up without the user re-deriving which branch a selection came
+/// from.
 /// </para>
 /// </summary>
 public sealed class BranchPickerComponent : GH_Component
 {
     private const int DataInput = 0;
-    private const int NamesInput = 1;
 
-    /// <summary>Ticked names — the name text itself is the handle, since that is what a row now identifies.</summary>
+    /// <summary>
+    /// Ticked paths as text. Paths absent from the current tree are kept
+    /// rather than pruned: an upstream change that drops a branch and brings
+    /// it back — a filter being adjusted — should not quietly lose the tick.
+    /// </summary>
     private readonly HashSet<string> _ticked = new(StringComparer.Ordinal);
 
     private IReadOnlyList<BranchRow> _rows = Array.Empty<BranchRow>();
 
     public BranchPickerComponent()
         : base("Branch Picker", "Branches",
-               "Tick items of a data tree by name and get just those items back.\n\n"
-               + "Wire the tree to pick from into Data, and a matching tree of names, the same shape, one "
-               + "name per item, into Names. Every distinct name becomes one row here, ready to tick — items "
-               + "that share a name, wherever they sit in the tree, collapse into the same row and are "
-               + "selected together.\n\n"
-               + "Works with any data tree: this does not need to know what is in it, only what to call each "
-               + "item.",
+               "Tick branches of a data tree and get just those branches back.\n\n"
+               + "Wire in any tree: every branch becomes one row here, labelled by its path and showing how "
+               + "many items it holds, ready to tick. Ticked branches come out at their own paths, so they "
+               + "still line up with any tree carrying the full set.\n\n"
+               + "Use this instead of Explode Tree when the number of branches changes, or when the point is "
+               + "to look through the groups one at a time rather than wire all of them up at once.",
                Categories.Root, Categories.Document)
     {
     }
@@ -75,22 +77,17 @@ public sealed class BranchPickerComponent : GH_Component
 
     internal IReadOnlyList<BranchRow> Rows => _rows;
 
-    internal bool IsTicked(BranchRow row) => _ticked.Contains(row.Name);
+    internal bool IsTicked(BranchRow row) => _ticked.Contains(row.Key);
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
-        pManager.AddGenericParameter("Data", "D", "The tree to pick items from.", GH_ParamAccess.tree);
-
-        pManager.AddTextParameter("Names", "N",
-            "A name for every item of Data, the same shape — one name per item. Items that share an "
-            + "identical name, anywhere in the tree, are read as one group.",
-            GH_ParamAccess.tree);
+        pManager.AddGenericParameter("Data", "D", "The tree to pick branches from.", GH_ParamAccess.tree);
     }
 
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
         pManager.AddGenericParameter("Data", "D",
-            "The items whose name is ticked, one branch per ticked name in the order the rows are listed.",
+            "The items of every ticked branch, each kept at the path it came in on.",
             GH_ParamAccess.tree);
     }
 
@@ -98,77 +95,30 @@ public sealed class BranchPickerComponent : GH_Component
     {
         if (!da.GetDataTree(DataInput, out GH_Structure<IGH_Goo> data))
             return;
-        if (!da.GetDataTree(NamesInput, out GH_Structure<GH_String> names))
-            return;
 
-        // Every item paired with its own name, read by matching index within
-        // the same branch — not just the branch's first item — so a flat list
-        // of many items (Connectivity QA's Outliers) is read item by item
-        // rather than as a single, single-named group.
-        //
-        // Names is not always the same length as Data within a branch: a
-        // component reporting one fixed-width value per group — Topology
-        // Mapping's Releases, six DOF flags per branch — pairs against a Names
-        // branch that instead holds one name per line in that group. Past the
-        // end of a shorter Names branch, its last name is reused rather than
-        // treating the extra items as unnamed: Names repeats one string
-        // through a branch by convention, so reusing it is what "the same
-        // name, fewer times" already means, and it is what turns six release
-        // flags and a five-line group's worth of names into one named row
-        // instead of a name per item and one unnamed leftover.
-        var entries = new List<(object? Item, string Name)>();
-        int unnamed = 0;
-
-        foreach (var path in data.Paths)
-        {
-            var branch = data.get_Branch(path);
-            var nameBranch = names.PathExists(path) ? names.get_Branch(path) : null;
-
-            for (int i = 0; i < branch.Count; i++)
-            {
-                string name;
-                if (nameBranch is { Count: > 0 } && nameBranch[Math.Min(i, nameBranch.Count - 1)] is GH_String named)
-                {
-                    name = named.Value;
-                }
-                else
-                {
-                    name = $"{path}[{i}]";
-                    unnamed++;
-                }
-
-                entries.Add((branch[i], name));
-            }
-        }
-
-        if (unnamed > 0)
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
-                $"{unnamed} item(s) had no matching name in Names and were labelled by their position instead.");
-
-        var groups = entries.GroupBy(e => e.Name, StringComparer.Ordinal)
-            .OrderBy(g => g.Key, StringComparer.OrdinalIgnoreCase)
+        _rows = data.Paths
+            .Select(path => new BranchRow(path, data.get_Branch(path).Count))
             .ToList();
 
-        _rows = groups.Select(g => new BranchRow(g.Key, g.Count())).ToList();
-
+        // The row list is the component's size, so the canvas has to be told
+        // the moment the tree changes shape rather than at the next repaint.
         Attributes?.ExpireLayout();
 
         var output = new GH_Structure<IGH_Goo>();
-        int branchIndex = 0;
-        foreach (var group in groups)
+
+        foreach (BranchRow row in _rows)
         {
-            if (!_ticked.Contains(group.Key))
+            if (!_ticked.Contains(row.Key))
                 continue;
 
-            output.AppendRange(group.Select(e => (IGH_Goo)e.Item!), new GH_Path(branchIndex));
-            branchIndex++;
+            output.AppendRange(data.get_Branch(row.Path).Cast<IGH_Goo>(), row.Path);
         }
 
         da.SetDataTree(0, output);
 
-        int tickedCount = _rows.Count(row => _ticked.Contains(row.Name));
+        int tickedCount = _rows.Count(row => _ticked.Contains(row.Key));
         if (tickedCount == 0)
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Nothing ticked yet — click the names you want.");
+            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Nothing ticked yet — click the branches you want.");
 
         Message = $"{tickedCount} of {_rows.Count}";
     }
@@ -176,10 +126,10 @@ public sealed class BranchPickerComponent : GH_Component
     /// <summary>Ticks or clears one row.</summary>
     internal void Toggle(BranchRow row)
     {
-        RecordUndoEvent("Tick name");
+        RecordUndoEvent("Tick branch");
 
-        if (!_ticked.Remove(row.Name))
-            _ticked.Add(row.Name);
+        if (!_ticked.Remove(row.Key))
+            _ticked.Add(row.Key);
 
         ExpireSolution(true);
     }
@@ -187,12 +137,12 @@ public sealed class BranchPickerComponent : GH_Component
     /// <summary>Ticks or clears every row.</summary>
     internal void TickAll(bool ticked)
     {
-        RecordUndoEvent(ticked ? "Tick all names" : "Clear name ticks");
+        RecordUndoEvent(ticked ? "Tick all branches" : "Clear branch ticks");
 
         _ticked.Clear();
         if (ticked)
-            foreach (var row in _rows)
-                _ticked.Add(row.Name);
+            foreach (BranchRow row in _rows)
+                _ticked.Add(row.Key);
 
         ExpireSolution(true);
     }
@@ -204,8 +154,8 @@ public sealed class BranchPickerComponent : GH_Component
         writer.SetInt32("TickedCount", _ticked.Count);
 
         int i = 0;
-        foreach (string name in _ticked)
-            writer.SetString("Ticked", i++, name);
+        foreach (string path in _ticked)
+            writer.SetString("Ticked", i++, path);
 
         return base.Write(writer);
     }
@@ -219,9 +169,9 @@ public sealed class BranchPickerComponent : GH_Component
         {
             for (int i = 0; i < count; i++)
             {
-                string? name = null;
-                if (reader.TryGetString("Ticked", i, ref name) && !string.IsNullOrEmpty(name))
-                    _ticked.Add(name!);
+                string? path = null;
+                if (reader.TryGetString("Ticked", i, ref path) && !string.IsNullOrEmpty(path))
+                    _ticked.Add(path!);
             }
         }
 

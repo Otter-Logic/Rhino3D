@@ -9,8 +9,8 @@ namespace OtterLogic.Grasshopper.Components.Document;
 
 /// <summary>
 /// Draws <see cref="BranchPickerComponent"/> as the branch list itself: a
-/// header strip with the icon and name, and under it one row per branch with
-/// a tick box and how many items it holds.
+/// header strip with the icon and name, and under it one row per branch,
+/// labelled by its path, with a tick box and how many items it holds.
 /// <para>
 /// The same reasoning as <see cref="LayerPickerAttributes"/> — the list is on
 /// the component because the ticks are the definition, and the component
@@ -22,6 +22,7 @@ internal sealed class BranchPickerAttributes : GH_ComponentAttributes
 {
     private const int RowHeight = 18;
     private const int TickSize = 11;
+    private const int IconSize = 16;
     private const int Gap = 4;
     private const int Pad = 4;
 
@@ -34,7 +35,14 @@ internal sealed class BranchPickerAttributes : GH_ComponentAttributes
 
     private Rectangle _header;
     private Rectangle _panel;
-    private int _portInset;
+
+    /// <summary>
+    /// The strips either side of the capsule that Grasshopper lays the port
+    /// names out in. The header shares its line with them, so the title has to
+    /// be inset by both or it is drawn underneath "Data".
+    /// </summary>
+    private int _leftInset;
+    private int _rightInset;
 
     /// <summary>One rectangle per row, in the same order, for hit testing.</summary>
     private readonly List<Rectangle> _rowBounds = new();
@@ -60,7 +68,7 @@ internal sealed class BranchPickerAttributes : GH_ComponentAttributes
         IReadOnlyList<BranchRow> rows = Picker.Rows;
 
         int header = Math.Max(natural.Height, MinHeaderHeight);
-        int width = Math.Max(natural.Width, PanelWidth(rows));
+        int width = Math.Max(natural.Width, RequiredWidth(rows, leftStrip, rightStrip));
         int panel = Math.Max(rows.Count, 1) * RowHeight + 2 * Pad;
 
         var box = new Rectangle(natural.X, natural.Y, width, header + panel);
@@ -72,7 +80,8 @@ internal sealed class BranchPickerAttributes : GH_ComponentAttributes
         LayoutInputParams(Owner, iconBox);
         LayoutOutputParams(Owner, iconBox);
 
-        _portInset = rightStrip;
+        _leftInset = leftStrip;
+        _rightInset = rightStrip;
 
         _header = new Rectangle(box.X, box.Y, box.Width, header);
         _panel = new Rectangle(box.X, box.Y + header, box.Width, panel);
@@ -83,14 +92,27 @@ internal sealed class BranchPickerAttributes : GH_ComponentAttributes
                 _panel.X + Pad, _panel.Y + Pad + i * RowHeight, _panel.Width - 2 * Pad, RowHeight));
     }
 
-    private static int PanelWidth(IReadOnlyList<BranchRow> rows)
+    /// <summary>
+    /// How wide the component has to be for both of the things stacked inside
+    /// it: the rows, which have the full width to themselves, and the header,
+    /// which has only what the port names either side leave it. Sizing to the
+    /// rows alone is what let the title run back under the input name — the
+    /// header is the wider of the two whenever the paths are short, which for
+    /// a one-level tree they always are.
+    /// </summary>
+    private int RequiredWidth(IReadOnlyList<BranchRow> rows, int leftStrip, int rightStrip)
     {
         int widest = 0;
 
         foreach (BranchRow row in rows)
-            widest = Math.Max(widest, TextWidth($"{row.Name} ({row.Count})"));
+            widest = Math.Max(widest, TextWidth($"{row.Key} ({row.Count})"));
 
-        return Math.Clamp(widest + TickSize + Gap + 2 * Pad + Gap, MinPanelWidth, MaxPanelWidth);
+        int forRows = widest + TickSize + Gap + 2 * Pad + Gap;
+
+        int forHeader = leftStrip + rightStrip + 2 * Pad + IconSize + Gap
+            + GH_FontServer.StringWidth(Owner.NickName, GH_FontServer.StandardBold) + Gap;
+
+        return Math.Clamp(Math.Max(forRows, forHeader), MinPanelWidth, MaxPanelWidth);
     }
 
     private static int TextWidth(string text) => GH_FontServer.StringWidth(text, GH_FontServer.Standard);
@@ -133,12 +155,14 @@ internal sealed class BranchPickerAttributes : GH_ComponentAttributes
     private void RenderHeader(Graphics graphics, GH_PaletteStyle style)
     {
         var content = new Rectangle(
-            _header.X + Pad, _header.Y, _header.Width - 2 * Pad - _portInset, _header.Height);
+            _header.X + _leftInset + Pad, _header.Y,
+            _header.Width - _leftInset - _rightInset - 2 * Pad, _header.Height);
 
         Bitmap? icon = Owner.Icon_24x24;
         if (icon is not null)
         {
-            var box = new Rectangle(content.X, content.Y + (content.Height - 16) / 2, 16, 16);
+            var box = new Rectangle(
+                content.X, content.Y + (content.Height - IconSize) / 2, IconSize, IconSize);
             graphics.DrawImage(icon, box);
             content = new Rectangle(box.Right + Gap, content.Y, content.Right - box.Right - Gap, content.Height);
         }
@@ -208,7 +232,7 @@ internal sealed class BranchPickerAttributes : GH_ComponentAttributes
 
             var text = new Rectangle(
                 bounds.X + TickSize + Gap, bounds.Y, countBox.Left - (bounds.X + TickSize + Gap) - Gap, bounds.Height);
-            graphics.DrawString(row.Name, GH_FontServer.Standard, label, text, format2);
+            graphics.DrawString(row.Key, GH_FontServer.Standard, label, text, format2);
         }
 
         graphics.SmoothingMode = smoothing;

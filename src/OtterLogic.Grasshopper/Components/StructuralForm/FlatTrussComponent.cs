@@ -30,6 +30,16 @@ public sealed class FlatTrussComponent : GH_Component
     public override GH_Exposure Exposure => GH_Exposure.primary;
     protected override Bitmap? Icon => EmbeddedIcons.Load("flattruss", 24);
 
+    /// <summary>
+    /// Inputs in the order the truss is decided: the two chords, the bracing
+    /// pattern, how it is divided, what that division has to respect, then how
+    /// the ends are closed.
+    /// <para>
+    /// Divisions and Spacing sit together because they answer the same question
+    /// two ways round, and Strictness follows the points because it decides
+    /// what the division owes them.
+    /// </para>
+    /// </summary>
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
         pManager.AddCurveParameter("Top Chord", "T",
@@ -50,40 +60,47 @@ public sealed class FlatTrussComponent : GH_Component
             + "every detected point becomes a node in its own right.",
             GH_ParamAccess.item, 0);
 
-        pManager.AddBooleanParameter("End Posts", "E",
-            "Close the truss with a post at each end.", GH_ParamAccess.item, true);
+        pManager.AddNumberParameter("Spacing", "S",
+            "Target panel width on plan, in model units — the secondary way to say Divisions, "
+            + "for when you care about panel length rather than count. The span is divided by "
+            + "this and rounded to whole panels. Divisions overrides it whenever both are set, "
+            + "and zero from both leaves the panel count to the geometry.",
+            GH_ParamAccess.item, 0.0);
 
         pManager.AddPointParameter("Snap Points", "P",
-            "Extra points to snap to. Secondary to the polyline vertices and curve kinks on the "
-            + "chords themselves, which are checked first and take every node they can reach. "
-            + "Each point is pulled onto whichever chord is nearer, and a node takes the one "
-            + "point nearest to it.",
+            "Extra points to put a node on. Each has to lie on the top or bottom chord — one "
+            + "that does not is discounted, with a message saying so. Secondary to the polyline "
+            + "vertices and curve kinks on the chords themselves, which are checked first and "
+            + "take every node they can reach.",
             GH_ParamAccess.list);
         pManager[5].Optional = true;
 
-        pManager.AddNumberParameter("Snap Spacing", "S",
-            "Target panel spacing on plan, in model units — another way to say Divisions when "
-            + "you care about panel length rather than count. Divisions wins if both are set.",
-            GH_ParamAccess.item, 0.0);
+        pManager.AddIntegerParameter("Strictness", "SS",
+            "What happens to a Snap Point the even layout cannot reach. Relaxed keeps the "
+            + "spacing regular and leaves such a point unused, saying so in a message. Strict "
+            + "puts a node on every point and shares the panels out between them, growing the "
+            + "count only if there are more points than panels. Right-click for the list.",
+            GH_ParamAccess.item, (int)SnapStrictness.Relaxed);
+
+        pManager.AddBooleanParameter("End Posts", "E",
+            "Close the truss with a post at each end.", GH_ParamAccess.item, true);
 
         pManager.AddBooleanParameter("Flip", "F",
             "Mirror every diagonal within its own panel. Pratt becomes Howe, and the Warren "
             + "zigzag starts the other way up. No effect on Vierendeel or cross-braced.",
             GH_ParamAccess.item, false);
 
-        pManager.AddNumberParameter("Snap Distance", "SD",
-            "How near a node has to come to a Snap Point for it to snap — the radius of a "
-            + "sphere around each point, in model units. Zero means no limit, so a point "
-            + "reaches its chord however far to the side it sits. Never overrides the chords' "
-            + "own vertices and kinks, and never moves a node past its neighbour.",
-            GH_ParamAccess.item, 0.0);
-
-        // Right-click the input for a readable menu instead of raw integers, or
-        // drop a Truss Type list on the canvas and wire it in. Both read the
-        // same choices, so they cannot come to disagree about what one is called.
+        // Right-click either enum input for a readable menu instead of raw
+        // integers. Truss Type also has a dropdown to drop on the canvas; both
+        // read the same choices, so they cannot come to disagree about what one
+        // is called.
         var typeParam = (Param_Integer)pManager[2];
         foreach (var (label, value) in EnumChoices.Of<TrussType>())
             typeParam.AddNamedValue(label, value);
+
+        var strictnessParam = (Param_Integer)pManager[6];
+        foreach (var (label, value) in EnumChoices.Of<SnapStrictness>())
+            strictnessParam.AddNamedValue(label, value);
     }
 
     /// <summary>
@@ -91,6 +108,12 @@ public sealed class FlatTrussComponent : GH_Component
     /// as the layers the OtterFlatTruss command bakes onto. Whatever sizes the top
     /// chord sizes all of it and nothing else, so a port feeds a section
     /// straight through with no sorting in between.
+    /// <para>
+    /// The nodes come out per chord rather than as one merged list, because the
+    /// index is the useful thing about them: top <c>i</c> and bottom <c>i</c>
+    /// are the pair at one station. Merged, that correspondence is gone and a
+    /// downstream definition has to rediscover it by comparing coordinates.
+    /// </para>
     /// </summary>
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
@@ -103,8 +126,15 @@ public sealed class FlatTrussComponent : GH_Component
             "Web members running across a panel, from one chord to the other.",
             GH_ParamAccess.list);
         pManager.AddLineParameter("End Post", "E", "End posts.", GH_ParamAccess.list);
-        pManager.AddPointParameter("Node", "N",
-            "Panel points, top chord first, with coincident ones merged.", GH_ParamAccess.list);
+        pManager.AddPointParameter("Top Node", "TN",
+            "Panel points on the top chord, one per station, running start to end.",
+            GH_ParamAccess.list);
+        pManager.AddPointParameter("Bottom Node", "BN",
+            "Panel points on the bottom chord. Item i pairs with item i of Top Node — the two "
+            + "ends of the vertical at that station — so the two lists can be zipped straight "
+            + "into anything that wants the truss as a ladder. Where the chords meet, the pair "
+            + "is one point in two places.",
+            GH_ParamAccess.list);
     }
 
     protected override void SolveInstance(IGH_DataAccess da)
@@ -113,21 +143,21 @@ public sealed class FlatTrussComponent : GH_Component
         Curve? bottom = null;
         int type = (int)TrussType.Warren;
         int divisions = 0;
-        bool endPosts = true;
-        var snapPoints = new List<GH_Point>();
         double spacing = 0.0;
+        var snapPoints = new List<GH_Point>();
+        int strictness = (int)SnapStrictness.Relaxed;
+        bool endPosts = true;
         bool flip = false;
-        double snapDistance = 0.0;
 
         if (!da.GetData(0, ref top)) return;
         if (!da.GetData(1, ref bottom)) return;
         if (!da.GetData(2, ref type)) return;
         if (!da.GetData(3, ref divisions)) return;
-        if (!da.GetData(4, ref endPosts)) return;
+        if (!da.GetData(4, ref spacing)) return;
         da.GetDataList(5, snapPoints);
-        if (!da.GetData(6, ref spacing)) return;
-        if (!da.GetData(7, ref flip)) return;
-        if (!da.GetData(8, ref snapDistance)) return;
+        if (!da.GetData(6, ref strictness)) return;
+        if (!da.GetData(7, ref endPosts)) return;
+        if (!da.GetData(8, ref flip)) return;
 
         if (top is null || !top.IsValid || bottom is null || !bottom.IsValid)
         {
@@ -135,7 +165,7 @@ public sealed class FlatTrussComponent : GH_Component
             return;
         }
 
-        // Type, Divisions, Snap Spacing and Snap Distance are not checked here.
+        // Type, Strictness, Divisions and Spacing are not checked here.
         // The generator validates its own options and throws ArgumentException
         // carrying the message to show, so a second copy of those rules on the
         // canvas would only be a second thing to keep in step with them.
@@ -145,9 +175,9 @@ public sealed class FlatTrussComponent : GH_Component
             GenerateEndPosts = endPosts,
             Flip = flip,
             Divisions = divisions,
+            Spacing = spacing,
             AdditionalSnapPoints = snapPoints.Select(p => p.Value).ToArray(),
-            SnapSpacing = spacing,
-            SnapDistance = snapDistance,
+            Strictness = (SnapStrictness)strictness,
             SnapTolerance = RhinoDoc.ActiveDoc?.ModelAbsoluteTolerance ?? 0.01,
         };
 
@@ -169,7 +199,8 @@ public sealed class FlatTrussComponent : GH_Component
             da.SetDataList(2, truss.Verticals);
             da.SetDataList(3, truss.Diagonals);
             da.SetDataList(4, truss.EndPosts);
-            da.SetDataList(5, truss.DistinctNodes);
+            da.SetDataList(5, truss.TopNodes);
+            da.SetDataList(6, truss.BottomNodes);
 
             Message = $"{Naming.Humanise(truss.Type)}\n{truss.PanelCount} panels";
         }

@@ -324,24 +324,46 @@ in plan has no plan length to divide, so it measures along itself instead.
 
 ### How the list gets built
 
-**Divisions drive, snap points steer.** With `Divisions` (or `SnapSpacing`) set,
-the panel count is fixed up front, the chord is laid out evenly on plan, and the
+**Divisions drive, snap points steer.** With `Divisions` (or `Spacing`) set, the
+panel count is fixed up front, the chord is laid out evenly on plan, and the
 stations then snap onto nearby targets. Member count is exactly what was asked
 for; snap points move members but never add them.
+
+**`Strictness` decides which of those two gives way.** Everything below
+describes `Relaxed`, where the division is fixed and a point it cannot reach
+goes unused. `Strict` inverts it: the points become the setting-out, each bay
+between two of them is divided evenly on its own, and the requested count is
+apportioned between the bays by plan width rather than spread across the truss.
+The count grows only when there are more fixed points than panels to give them,
+because dropping one would defeat the choice. A point going unused under Relaxed
+is invisible on the geometry, so the count of them rides back on
+`FlatTruss.UnusedSnapPoints` and becomes a note — the one failure here with no
+visible symptom.
 
 **The two kinds of target are not equal.** The chords' own points — the vertices
 and kinks of *either* chord — go first and take every station they can reach. A
 node anywhere but a kink leaves a chord member cutting that corner, which is a
 truss that is wrong rather than a truss that is arranged differently, so these
 are not up for negotiation. Only then are the picked points offered whatever is
-left, and each reaches only as far as `SnapDistance`: the radius of a sphere
-drawn around it, measured as a real 3D distance from the point to the node it
-would move, with zero meaning no limit. Measuring that on plan instead would let
-a point far above or below a chord pull a node it is nowhere near.
+left.
+
+**A picked point has to be on a chord to count**, within `SnapTolerance`. Off
+the chords there is no honest station for it — projected square onto a sloped
+chord it lands at the foot of the perpendicular rather than the plan position it
+was picked at, and every extra metre to the side drags that further away.
+Requiring it on the curve removes the question rather than answering it badly.
+The ones discounted are counted on `FlatTruss.OffChordSnapPoints`, because a
+truss built without them looks perfectly reasonable.
+
+That reduction is what collapsed two snapping routines into one. Once a picked
+point is a station, it is the same kind of thing as a chord vertex, so both
+rules are the same greedy pass run twice over a shared claim array — the chords'
+own points first, the picked ones on what is left. The priority is the calling
+order, not a second implementation.
 
 Both passes cap reach at half a panel — far enough to catch a nearby vertex,
 never far enough for two stations to swap places or collapse together — so no
-`SnapDistance`, however generous, can reorder the truss. Assignment within a pass
+snap can reorder the truss. Assignment within a pass
 is greedy, nearest pair first, with both sides claimed exclusively, because
 otherwise two stations converge on one popular point and the panels either side
 degenerate. Ties break on the lower station: `List.Sort` is unstable, and a point
@@ -413,9 +435,15 @@ Nothing is grouped. A group was doing the same job the layer tree already does
 — saying which run a member came from — while making a single member harder to
 pick, since selecting one selects the bay. The layers carry that on their own.
 
-The two sets are the same six groups in the same order, and both take their
-names from `TrussMemberRole.DisplayName()` rather than spelling them out, so a
-port and a layer cannot come to disagree about what a diagonal is called.
+The two sets are the same seven groups in the same order. The five member groups
+take their names from `TrussMemberRole.DisplayName()` rather than spelling them
+out, so a port and a layer cannot come to disagree about what a diagonal is
+called; the two node groups are not members and are named in each adaptor.
+
+Nodes are split per chord rather than merged, on both sides. The index is what
+makes them worth having — top *i* and bottom *i* are the pair at one station —
+and a single merged list destroys that, leaving anything downstream to recover
+the pairing by comparing coordinates.
 
 A layer says *what* a member is, so the next tool along can put a section
 against a whole layer without inspecting any geometry — which is why the layers
@@ -465,10 +493,12 @@ rather than about hosts, and it belongs below them:
   validates its own options, including the truss type it previously let through
   to fail deeper in.
 - **Which nodes are actually distinct.** Where the chords meet, top node *i* and
-  bottom node *i* are the same point, and both front-ends wanted the merged list
-  — one to bake, one to output. `FlatTruss.DistinctNodes` does the merging;
-  `FlatTruss.Nodes` still carries the duplicates, because member connectivity
-  indexes into it.
+  bottom node *i* are the same point. `FlatTruss.DistinctNodes` merges them and
+  is what the preview conduit draws, since two dots on top of each other is a
+  pick nuisance; `FlatTruss.Nodes` keeps the duplicates, because member
+  connectivity indexes into it. Neither is what the front-ends emit any more —
+  both bake and output `TopNodes` and `BottomNodes` separately, to keep the
+  pairing by index.
 - **How an enum reads to a human.** `Naming.Humanise` is in Core rather than the
   domain, because it knows nothing about trusses: every domain grows option
   enums and both front-ends have to show them. It was Grasshopper-only before,

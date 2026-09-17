@@ -17,7 +17,7 @@ public sealed class OtterLogicInfo : GH_AssemblyInfo
     public override string Description => "Form finding, fabrication and machine learning playground.";
     public override Bitmap? Icon => EmbeddedIcons.Load("otterlogic", 24);
     public override Guid Id => new("d974722a-bd69-487c-815e-5b776d3705ad");
-    public override string AuthorName => "OtterLogic";
+    public override string AuthorName => "Marvin Suen";
     public override string AuthorContact => "https://github.com/Otter-Logic/Rhino3D";
     public override string AssemblyVersion => GetType().Assembly.GetName().Version!.ToString();
 }

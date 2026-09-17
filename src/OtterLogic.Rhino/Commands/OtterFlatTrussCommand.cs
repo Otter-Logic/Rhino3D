@@ -36,12 +36,15 @@ public sealed class OtterFlatTrussCommand : Command
     private static bool _endPosts = true;
     private static int _divisions;
     private static double _spacing;
-    private static double _snapDistance;
+    private static SnapStrictness _strictness = SnapStrictness.Relaxed;
 
     /// <summary>Root layer name, with the run number appended: OtterFlatTruss1, OtterFlatTruss2, ...</summary>
     private const string LayerPrefix = "OtterFlatTruss";
 
-    private const string NodeLayer = "Node";
+    // Per chord, matching the component's ports: the pairing by index is what
+    // makes the nodes worth having, and one merged layer throws it away.
+    private const string TopNodeLayer = "Top node";
+    private const string BottomNodeLayer = "Bottom node";
     private static readonly Color NodeColour = Color.FromArgb(200, 60, 40);
     private static readonly Color RootColour = Color.FromArgb(60, 60, 65);
 
@@ -97,7 +100,7 @@ public sealed class OtterFlatTrussCommand : Command
         }
 
         // Step 3: bracing pattern.
-        step = SelectTrussType(ref _type);
+        step = SelectEnum("Truss type", ref _type);
         if (step != Result.Success) return step;
 
         // Step 4: how many panels. Straight after the type, because the two of
@@ -109,35 +112,8 @@ public sealed class OtterFlatTrussCommand : Command
         if (step != Result.Success) return step;
         _divisions = divisions;
 
-        // Step 5: mirror the bracing.
-        bool flip = _flip;
-        step = RhinoGet.GetBool("Flip the bracing", true, "No", "Yes", ref flip);
-        if (step != Result.Success) return step;
-        _flip = flip;
-
-        // Step 6: end posts.
-        bool endPosts = _endPosts;
-        step = RhinoGet.GetBool("Generate end posts", true, "No", "Yes", ref endPosts);
-        if (step != Result.Success) return step;
-        _endPosts = endPosts;
-
-        // Step 7: additional snap points, and how far each one reaches.
-        step = SelectSnapPoints(out Point3d[] snapPoints);
-        if (step != Result.Success) return step;
-
-        // Asked straight after the points, because on its own it means nothing:
-        // it is the radius of the sphere drawn around each of them.
-        if (snapPoints.Length > 0)
-        {
-            double snapDistance = _snapDistance;
-            step = RhinoGet.GetNumber(
-                "Snap distance — how near a node has to come to a snap point (0 for no limit)",
-                true, ref snapDistance, 0.0, 1e9);
-            if (step != Result.Success) return step;
-            _snapDistance = snapDistance;
-        }
-
-        // Step 8: panel spacing, for when you would rather set a length than a count.
+        // Step 5: the same question by length rather than count, asked here
+        // because it is the one the division falls back on.
         double spacing = _spacing;
         step = RhinoGet.GetNumber(
             "Panel spacing on plan (0 to leave it to the divisions)",
@@ -145,7 +121,33 @@ public sealed class OtterFlatTrussCommand : Command
         if (step != Result.Success) return step;
         _spacing = spacing;
 
-        // Step 9: preview, adjust, accept.
+        // Step 6: additional snap points. The picker already filters to points,
+        // and the generator discounts any that are not on a chord.
+        step = SelectSnapPoints(out Point3d[] snapPoints);
+        if (step != Result.Success) return step;
+
+        // Step 7: what the division owes the snap points. Only worth asking
+        // when there is a division for them to argue with - with the panel
+        // count left to the geometry every point is a node already.
+        if (_divisions > 0 || _spacing > 0.0)
+        {
+            step = SelectEnum("Snap strictness", ref _strictness);
+            if (step != Result.Success) return step;
+        }
+
+        // Step 8: mirror the bracing.
+        bool flip = _flip;
+        step = RhinoGet.GetBool("Flip the bracing", true, "No", "Yes", ref flip);
+        if (step != Result.Success) return step;
+        _flip = flip;
+
+        // Step 9: end posts.
+        bool endPosts = _endPosts;
+        step = RhinoGet.GetBool("Generate end posts", true, "No", "Yes", ref endPosts);
+        if (step != Result.Success) return step;
+        _endPosts = endPosts;
+
+        // Step 10: preview, adjust, accept.
         var pairs = tops.Zip(bottoms, (top, bottom) => (Top: top, Bottom: bottom)).ToArray();
 
         return PreviewAndCommit(doc, pairs, snapPoints);
@@ -179,23 +181,31 @@ public sealed class OtterFlatTrussCommand : Command
         return Result.Success;
     }
 
-    /// <summary>Offers the truss types as clickable command-line options.</summary>
-    private static Result SelectTrussType(ref TrussType type)
+    /// <summary>
+    /// Offers an enum's members as clickable command-line options.
+    /// <para>
+    /// Generic because the command now asks two of these, and a second
+    /// hand-rolled copy is how the two come to disagree about how a choice is
+    /// spelled. The readable names come from Core, so the Grasshopper
+    /// right-click menu reads identically.
+    /// </para>
+    /// </summary>
+    private static Result SelectEnum<T>(string label, ref T value) where T : struct, Enum
     {
-        var values = Enum.GetValues<TrussType>();
+        var values = Enum.GetValues<T>();
 
         using var getter = new GetOption();
 
         // The prompt reads the name the way Grasshopper's menu does; the options
         // themselves keep the bare enum name, because a command-line option
         // cannot contain a space.
-        getter.SetCommandPrompt($"Truss type <{Naming.Humanise(type)}>");
+        getter.SetCommandPrompt($"{label} <{Naming.Humanise(value)}>");
 
         var indices = new int[values.Length];
         for (int i = 0; i < values.Length; i++)
             indices[i] = getter.AddOption(values[i].ToString());
 
-        getter.AcceptNothing(true);   // Enter keeps the remembered type
+        getter.AcceptNothing(true);   // Enter keeps the remembered value
 
         GetResult result = getter.Get();
 
@@ -209,7 +219,7 @@ public sealed class OtterFlatTrussCommand : Command
         for (int i = 0; i < indices.Length; i++)
         {
             if (indices[i] != chosen) continue;
-            type = values[i];
+            value = values[i];
             break;
         }
 
@@ -274,9 +284,9 @@ public sealed class OtterFlatTrussCommand : Command
                             Flip = _flip,
                             GenerateEndPosts = _endPosts,
                             Divisions = _divisions,
+                            Spacing = _spacing,
                             AdditionalSnapPoints = snapPoints,
-                            SnapSpacing = _spacing,
-                            SnapDistance = _snapDistance,
+                            Strictness = _strictness,
                             SnapTolerance = doc.ModelAbsoluteTolerance,
                         }))
                         .ToList();
@@ -299,7 +309,7 @@ public sealed class OtterFlatTrussCommand : Command
                 int changeFlip = getter.AddOption("Flip");
                 int changeDivisions = getter.AddOption("Divisions");
                 int changeSpacing = getter.AddOption("Spacing");
-                int changeSnapDistance = snapPoints.Length > 0 ? getter.AddOption("SnapDistance") : -1;
+                int changeStrictness = getter.AddOption("Strictness");
                 int changeEnds = getter.AddOption("EndPosts");
                 getter.AcceptNothing(true);   // Enter accepts
 
@@ -318,7 +328,11 @@ public sealed class OtterFlatTrussCommand : Command
 
                 if (chosen == changeType)
                 {
-                    SelectTrussType(ref _type);
+                    SelectEnum("Truss type", ref _type);
+                }
+                else if (chosen == changeStrictness)
+                {
+                    SelectEnum("Snap strictness", ref _strictness);
                 }
                 else if (chosen == changeFlip)
                 {
@@ -335,13 +349,6 @@ public sealed class OtterFlatTrussCommand : Command
                     double spacing = _spacing;
                     if (RhinoGet.GetNumber("Panel spacing", true, ref spacing, 0.0, 1e9) == Result.Success)
                         _spacing = spacing;
-                }
-                else if (chosen == changeSnapDistance)
-                {
-                    double snapDistance = _snapDistance;
-                    if (RhinoGet.GetNumber("Snap distance (0 for no limit)", true, ref snapDistance, 0.0, 1e9)
-                        == Result.Success)
-                        _snapDistance = snapDistance;
                 }
                 else if (chosen == changeEnds)
                 {
@@ -510,17 +517,28 @@ public sealed class OtterFlatTrussCommand : Command
             members += lines.Count;
         }
 
-        var nodes = trusses.SelectMany(t => t.DistinctNodes).ToList();
-        int nodeLayer = SubLayer(doc, NodeLayer, rootId, NodeColour, root);
+        int nodes = 0;
 
-        foreach (Point3d node in nodes)
-            doc.Objects.AddPoint(node, Attributes(NodeLayer, nodeLayer));
+        foreach (var (layerName, points) in new[]
+        {
+            (TopNodeLayer, trusses.SelectMany(t => t.TopNodes)),
+            (BottomNodeLayer, trusses.SelectMany(t => t.BottomNodes)),
+        })
+        {
+            int layer = SubLayer(doc, layerName, rootId, NodeColour, root);
+
+            foreach (Point3d node in points)
+            {
+                doc.Objects.AddPoint(node, Attributes(layerName, layer));
+                nodes++;
+            }
+        }
 
         doc.Views.Redraw();
 
         RhinoApp.WriteLine(
             $"OtterFlatTruss: added {trusses.Count} {(trusses.Count == 1 ? "truss" : "trusses")} "
-            + $"to {name} — {members} members and {nodes.Count} nodes, split by section. "
+            + $"to {name} — {members} members and {nodes} nodes, split by section. "
             + "The chord curves you picked were left as they are.");
 
         return Result.Success;

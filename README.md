@@ -105,8 +105,8 @@ decision, and tuning them apart from each other is what the component is for.
 
 Rhino bakes **the whole run** onto one layer tree: a root layer called
 `OtterFlatTruss1` — `OtterFlatTruss2` for the next run — with a sub-layer per section
-group beneath it: *Top chord*, *Bottom chord*, *Vertical*, *Diagonal*, *End post*
-and *Node*. Trusses raised together share those layers, so four trusses of six
+group beneath it: *Top chord*, *Bottom chord*, *Vertical*, *Diagonal*, *End post*,
+*Top node* and *Bottom node*. Trusses raised together share those layers, so four trusses of six
 panels put all twenty-four of their top chord members on one *Top chord* layer,
 and a section is assigned to the bay in one action rather than four. Nothing is
 grouped: the layer tree already says what every member is and which run it came
@@ -116,10 +116,17 @@ A role with nothing in it gets no layer, so a Vierendeel run has no *Diagonal*.
 The chord members are generated copies split at every node, which is what a
 section wants; the curves you drew and picked are left untouched underneath them.
 
-The Grasshopper component outputs the same six groups as ports — **T**, **B**,
-**V**, **D**, **E**, **N** — in the same order and under the same names, so a
-section applied to a layer in Rhino and a section applied to a port on the canvas
-are applied to the same thing.
+The Grasshopper component outputs the same seven groups as ports — **T**, **B**,
+**V**, **D**, **E**, **TN**, **BN** — in the same order and under the same names,
+so a section applied to a layer in Rhino and a section applied to a port on the
+canvas are applied to the same thing.
+
+The nodes come out per chord rather than as one list, because the index is the
+useful thing about them: *Top node* **i** and *Bottom node* **i** are the pair at
+one station, the two ends of the vertical there. Zip the two lists and you have
+the truss as a ladder; merge them and a downstream definition has to rediscover
+that pairing by comparing coordinates. Where the chords meet, the pair is one
+point appearing on both layers.
 
 `Flip` mirrors every diagonal within its own panel — Pratt becomes Howe, and the
 Warren zigzag starts the other way up. Vierendeel has no diagonals to mirror and

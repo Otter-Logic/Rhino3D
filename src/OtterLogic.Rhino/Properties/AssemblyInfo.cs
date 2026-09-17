@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("OtterLogic")]
 [assembly: AssemblyDescription("Form finding, fabrication and machine learning playground for Rhino 8.")]
-[assembly: AssemblyCompany("OtterLogic")]
+[assembly: AssemblyCompany("Marvin Suen")]
 [assembly: AssemblyProduct("OtterLogic")]
 [assembly: AssemblyVersion("0.1.0.0")]
 [assembly: AssemblyFileVersion("0.1.0.0")]
@@ -20,5 +20,5 @@ using System.Runtime.InteropServices;
 [assembly: Guid("a8c6eee6-f04f-4af6-9613-a7d425fd73b7")]
 
 // Shown in Rhino's plug-in manager.
-[assembly: Rhino.PlugIns.PlugInDescription(Rhino.PlugIns.DescriptionType.Organization, "OtterLogic")]
+[assembly: Rhino.PlugIns.PlugInDescription(Rhino.PlugIns.DescriptionType.Organization, "Marvin Suen")]
 [assembly: Rhino.PlugIns.PlugInDescription(Rhino.PlugIns.DescriptionType.WebSite, "https://github.com/Otter-Logic/Rhino3D")]
