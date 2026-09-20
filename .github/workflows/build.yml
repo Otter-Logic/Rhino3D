@@ -61,7 +61,8 @@ jobs:
           token: ${{ secrets.OTTER_CI_TOKEN }}
 
       # The machine learning stack, bottom up: the shared base, then the
-      # paradigm repo holding the algorithms, then the toolkit with the opinion.
+      # paradigm repo holding the algorithms, then the toolkits with the
+      # opinions - StructuralDesign and Fabrication both sit on it.
       - uses: actions/checkout@v4
         with:
           repository: Otter-Logic/MachineLearning
@@ -78,6 +79,12 @@ jobs:
         with:
           repository: Otter-Logic/StructuralDesign
           path: StructuralDesign
+          token: ${{ secrets.OTTER_CI_TOKEN }}
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Otter-Logic/Fabrication
+          path: Fabrication
           token: ${{ secrets.OTTER_CI_TOKEN }}
 
       - uses: actions/setup-dotnet@v4

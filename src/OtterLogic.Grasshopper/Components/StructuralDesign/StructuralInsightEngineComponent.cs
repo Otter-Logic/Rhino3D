@@ -33,9 +33,6 @@ public sealed class StructuralInsightEngineComponent : GH_Component
     private const int GeometryWeightInput = 8;
     private const int DensityWeightInput = 9;
 
-    /// <summary>Pieces a curved face edge is read as, so a curved panel's boundary is followed rather than cut across.</summary>
-    private const int CurvedEdgePieces = 4;
-
     public StructuralInsightEngineComponent()
         : base("Structural Insight Engine", "Insight",
                "Discover the structural intent hidden in a model's geometry: the natural groups its elements fall "
@@ -190,7 +187,7 @@ public sealed class StructuralInsightEngineComponent : GH_Component
 
         var surfaceItems = new List<IGH_GeometricGoo>();
         da.GetDataList(SurfacesInput, surfaceItems);
-        if (!TryReadSurfaces(surfaceItems, out var boundaries, out var faces))
+        if (!SurfaceInput.TryRead(this, surfaceItems, out var boundaries, out var faces))
             return;
 
         var supportPoints = new List<Point3d>();
@@ -283,99 +280,6 @@ public sealed class StructuralInsightEngineComponent : GH_Component
         da.SetData(15, result.Report());
 
         Message = $"{result.Groups} groups\n{result.Issues.Count} issues";
-    }
-
-    /// <summary>
-    /// Every Brep face and mesh face as an element: its boundary corners for the
-    /// engine, and the face itself to hand back grouped.
-    /// </summary>
-    private bool TryReadSurfaces(List<IGH_GeometricGoo> items, out List<double[,]> boundaries, out List<GeometryBase> faces)
-    {
-        // Locals, because the local function below cannot capture out parameters.
-        var readBoundaries = new List<double[,]>();
-        var readFaces = new List<GeometryBase>();
-        boundaries = readBoundaries;
-        faces = readFaces;
-
-        for (int i = 0; i < items.Count; i++)
-        {
-            switch (items[i])
-            {
-                case GH_Mesh { Value: { } mesh }:
-                    for (int f = 0; f < mesh.Faces.Count; f++)
-                    {
-                        var face = mesh.Faces[f];
-                        var corners = (face.IsQuad ? new[] { face.A, face.B, face.C, face.D } : new[] { face.A, face.B, face.C })
-                            .Select(v => (Point3d)mesh.Vertices[v]).ToList();
-
-                        var single = new Mesh();
-                        foreach (var corner in corners)
-                            single.Vertices.Add(corner);
-                        if (face.IsQuad)
-                            single.Faces.AddFace(0, 1, 2, 3);
-                        else
-                            single.Faces.AddFace(0, 1, 2);
-                        single.Normals.ComputeNormals();
-
-                        boundaries.Add(Rows(corners));
-                        faces.Add(single);
-                    }
-
-                    break;
-
-                case GH_Brep { Value: { } brep }:
-                    AddFaces(brep);
-                    break;
-
-                case GH_Surface { Value: { } surface }:
-                    AddFaces(surface);
-                    break;
-
-                default:
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
-                        $"Surface {i} is {(items[i] is null ? "missing" : items[i].TypeName)}. Surfaces takes Breps, surfaces and meshes.");
-                    return false;
-            }
-        }
-
-        return true;
-
-        void AddFaces(Brep brep)
-        {
-            foreach (var face in brep.Faces)
-            {
-                readBoundaries.Add(Rows(Corners(face)));
-                readFaces.Add(face.DuplicateFace(false));
-            }
-        }
-    }
-
-    /// <summary>
-    /// A face's outer boundary as corner points: the start of every straight edge,
-    /// and a few points along every curved one.
-    /// </summary>
-    private static List<Point3d> Corners(BrepFace face)
-    {
-        var points = new List<Point3d>();
-        var loop = face.OuterLoop.To3dCurve();
-        var segments = loop.DuplicateSegments();
-        if (segments.Length == 0)
-            segments = new[] { loop };
-
-        foreach (var segment in segments)
-        {
-            if (segment.IsLinear() && !segment.IsClosed)
-            {
-                points.Add(segment.PointAtStart);
-                continue;
-            }
-
-            int pieces = segment.IsClosed ? 4 * CurvedEdgePieces : CurvedEdgePieces;
-            var parameters = segment.DivideByCount(pieces, true) ?? Array.Empty<double>();
-            points.AddRange(parameters.Take(parameters.Length - (segment.IsClosed ? 0 : 1)).Select(segment.PointAt));
-        }
-
-        return points;
     }
 
     private static double[,] Rows(IReadOnlyList<Point3d> points)

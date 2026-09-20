@@ -25,6 +25,19 @@ preparation and graphs below that in
   outliers and low agreement. No structural type is hard-coded — frames, shells,
   bridges, stadium bowls and gridshells go through the same engine, and groups
   are described by what was measured, never named.
+- **Grid and Level Inference** — lines in; the levels and structural grid they
+  imply, named, and the elements not quite on them out. Levels, grid directions and
+  gridlines are each where the model's own values gather; only the names are
+  conventions.
+- **Geometry QA** — lines, surfaces and supports in; a first-pass health check
+  before analysis out: near misses, ends resting with no node, separate and weakly
+  attached parts, unjoined crossings, duplicates, overlaps, slivers and
+  misalignment, each with the geometry to look at. Read as strictly as a solver
+  reads it, and judged against the model's own habits rather than a rulebook.
+
+Joint Signature and Connection Typology read joints with the same machinery but
+sit in the **Fabrication** panel, because connection detailing is the fabricator's
+question.
 
 Features and Connectivity from the Insight Engine plug straight into the
 Unsupervised Learning components, so a user can take the grouping further with

@@ -31,18 +31,27 @@ internal static class TrainingData
     /// the wrong things.
     /// </para>
     /// </summary>
-    public static bool TryRead(GH_Structure<GH_Number> tree, out double[,] data, out string? problem)
+    /// <param name="minimumSamples">
+    /// Fewest branches accepted. Two for anything that learns, where a single
+    /// branch is almost always a flat list wired by mistake; one for rows being
+    /// mapped through a transform already fitted — a lone cluster centre is a
+    /// real input there.
+    /// </param>
+    public static bool TryRead(
+        GH_Structure<GH_Number> tree, out double[,] data, out string? problem, int minimumSamples = 2)
     {
         data = new double[0, 0];
         problem = null;
 
         var branches = tree.Branches;
 
-        if (branches.Count < 2)
+        if (branches.Count < minimumSamples)
         {
-            problem = "Wire one branch per sample, each holding that sample's values. "
-                + $"Got {branches.Count} branch(es) — a flat list cannot say where one sample ends "
-                + "and the next begins.";
+            problem = minimumSamples > 1
+                ? "Wire one branch per sample, each holding that sample's values. "
+                    + $"Got {branches.Count} branch(es) — a flat list cannot say where one sample ends "
+                    + "and the next begins."
+                : "Nothing to read: wire one branch per row.";
             return false;
         }
 

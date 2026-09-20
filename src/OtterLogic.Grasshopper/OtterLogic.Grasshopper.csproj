@@ -83,6 +83,21 @@
     </Otherwise>
   </Choose>
 
+  <!-- Fabrication: making the structure rather than analysing it - panelising a
+       surface into what a machine can cast, and the panel types that repeat. -->
+  <Choose>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\Fabrication\src\OtterLogic.Fabrication\OtterLogic.Fabrication.csproj')">
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\Fabrication\src\OtterLogic.Fabrication\OtterLogic.Fabrication.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="OtterLogic.Fabrication" Version="[$(Version)]" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
   <!-- Structural Design: every multipurpose structural tool - the 6DOF
        Behaviour Classifier and the Structural Insight Engine. The clustering
        they run on lives one layer down in Unsupervised. -->
