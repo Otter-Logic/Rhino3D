@@ -22,6 +22,38 @@ internal static class Trees
         return tree;
     }
 
+    /// <summary>One branch per row of a rectangular array of indices.</summary>
+    public static DataTree<int> FromRows(int[,] rows)
+    {
+        var tree = new DataTree<int>();
+        int width = rows.GetLength(1);
+
+        for (int i = 0; i < rows.GetLength(0); i++)
+        {
+            var path = new GH_Path(i);
+            for (int j = 0; j < width; j++)
+                tree.Add(rows[i, j], path);
+        }
+
+        return tree;
+    }
+
+    /// <summary>One branch per row of a rectangular array of text.</summary>
+    public static DataTree<string> FromRows(string[,] rows)
+    {
+        var tree = new DataTree<string>();
+        int width = rows.GetLength(1);
+
+        for (int i = 0; i < rows.GetLength(0); i++)
+        {
+            var path = new GH_Path(i);
+            for (int j = 0; j < width; j++)
+                tree.Add(rows[i, j], path);
+        }
+
+        return tree;
+    }
+
     /// <summary>One branch per bucket.</summary>
     public static DataTree<int> FromBuckets(int[][] buckets)
     {

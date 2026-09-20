@@ -61,7 +61,7 @@ jobs:
           token: ${{ secrets.OTTER_CI_TOKEN }}
 
       # The machine learning stack, bottom up: the shared base, then the
-      # paradigm repo holding the algorithms, then the toolkits with the
+      # paradigm repos holding the algorithms, then the toolkits with the
       # opinions - StructuralDesign and Fabrication both sit on it.
       - uses: actions/checkout@v4
         with:
@@ -73,6 +73,12 @@ jobs:
         with:
           repository: Otter-Logic/Unsupervised
           path: Unsupervised
+          token: ${{ secrets.OTTER_CI_TOKEN }}
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Otter-Logic/Supervised
+          path: Supervised
           token: ${{ secrets.OTTER_CI_TOKEN }}
 
       - uses: actions/checkout@v4

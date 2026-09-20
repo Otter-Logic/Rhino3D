@@ -164,9 +164,13 @@ mirroring the repos:
 - **Unsupervised Learning** — every raw unsupervised method: k-means, Gaussian
   mixture, HDBSCAN, spectral, hierarchical and message-passing clustering, the
   graph builders they run on, and label refinement.
-- **Machine Learning** — reserved for the steps every paradigm shares: dataset
-  capture, feature preparation, inference. Empty until those have components.
-- **Supervised Learning** and the rest arrive with their paradigm repos.
+- **Supervised Learning** — the raw supervised methods fitted at solve time:
+  nearest-neighbour classification and regression, ridge and logistic regression,
+  and the two Evaluate components that score a prediction from anywhere.
+- **Machine Learning** — the steps every paradigm shares: dataset capture (Write
+  Dataset, Read Dataset, Split By Group), feature preparation (Shape Signature),
+  and inference when it arrives.
+- **Reinforcement Learning** and **Deep Learning** arrive with their paradigm repos.
 
 Add sections there rather than typing category strings into components: the
 Category string is literally what names the tab, so one typo silently creates a

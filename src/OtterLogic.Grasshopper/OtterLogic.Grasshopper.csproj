@@ -52,6 +52,21 @@
     </Otherwise>
   </Choose>
 
+  <!-- Supervised: where the classification and regression components' algorithms
+       live. A sibling checkout wins; the published package is the fallback. -->
+  <Choose>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\Supervised\src\OtterLogic.Supervised\OtterLogic.Supervised.csproj')">
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\Supervised\src\OtterLogic.Supervised\OtterLogic.Supervised.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="OtterLogic.Supervised" Version="[$(Version)]" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
   <!-- A sibling checkout of MachineLearning wins; the published package is the
        fallback. It is a layer rather than a domain - it sits above Core and
        below the toolkits, and a toolkit may reference it. -->

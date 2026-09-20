@@ -62,4 +62,5 @@ public static class Categories
     public const string Fabrication = OtterLogic.Core.Sections.Fabrication;
     public const string MachineLearning = OtterLogic.Core.Sections.MachineLearning;
     public const string UnsupervisedLearning = OtterLogic.Core.Sections.UnsupervisedLearning;
+    public const string SupervisedLearning = OtterLogic.Core.Sections.SupervisedLearning;
 }
