@@ -54,14 +54,15 @@ public sealed class FlatTrussComponent : GH_Component
             + "list as a menu.", GH_ParamAccess.item, (int)TrussType.Warren);
 
         pManager.AddIntegerParameter("Divisions", "D",
-            "Number of panels, set out evenly by plan distance. This is the primary control: it "
-            + "sets how many verticals and diagonals there are, and snap points then move those "
+            "Number of panels, set out evenly along the chords — or on plan, under On Plan. This "
+            + "is the primary control: it sets how many verticals and diagonals there are, and snap points then move those "
             + "members rather than adding to them. Zero hands control to the geometry, where "
             + "every detected point becomes a node in its own right.",
             GH_ParamAccess.item, 0);
 
         pManager.AddNumberParameter("Spacing", "S",
-            "Target panel width on plan, in model units — the secondary way to say Divisions, "
+            "Target panel width, in model units, measured along the chords — or on plan, under "
+            + "On Plan. The secondary way to say Divisions, "
             + "for when you care about panel length rather than count. The span is divided by "
             + "this and rounded to whole panels. Divisions overrides it whenever both are set, "
             + "and zero from both leaves the panel count to the geometry.",
@@ -88,6 +89,18 @@ public sealed class FlatTrussComponent : GH_Component
         pManager.AddBooleanParameter("Flip", "F",
             "Mirror every diagonal within its own panel. Pratt becomes Howe, and the Warren "
             + "zigzag starts the other way up. No effect on Vierendeel or cross-braced.",
+            GH_ParamAccess.item, false);
+
+        // Appended rather than placed beside Divisions and Spacing, where it
+        // reads best: Grasshopper restores a saved component's inputs by
+        // position, so a new one anywhere but the end rewires every definition
+        // that already uses this.
+        pManager.AddBooleanParameter("On Plan", "OP",
+            "Measure Divisions and Spacing on plan — the chords seen from above — instead of "
+            + "along the chords. Turn it on for a roof truss, where a pitched top chord over a "
+            + "level bottom one would otherwise leave every vertical leaning. Leave it off for "
+            + "a truss standing on end or running through space, where plan distance means "
+            + "nothing.",
             GH_ParamAccess.item, false);
 
         // Right-click either enum input for a readable menu instead of raw
@@ -148,6 +161,7 @@ public sealed class FlatTrussComponent : GH_Component
         int strictness = (int)SnapStrictness.Relaxed;
         bool endPosts = true;
         bool flip = false;
+        bool onPlan = false;
 
         if (!da.GetData(0, ref top)) return;
         if (!da.GetData(1, ref bottom)) return;
@@ -158,6 +172,7 @@ public sealed class FlatTrussComponent : GH_Component
         if (!da.GetData(6, ref strictness)) return;
         if (!da.GetData(7, ref endPosts)) return;
         if (!da.GetData(8, ref flip)) return;
+        if (!da.GetData(9, ref onPlan)) return;
 
         if (top is null || !top.IsValid || bottom is null || !bottom.IsValid)
         {
@@ -176,6 +191,7 @@ public sealed class FlatTrussComponent : GH_Component
             Flip = flip,
             Divisions = divisions,
             Spacing = spacing,
+            MeasureOnPlan = onPlan,
             AdditionalSnapPoints = snapPoints.Select(p => p.Value).ToArray(),
             Strictness = (SnapStrictness)strictness,
             SnapTolerance = RhinoDoc.ActiveDoc?.ModelAbsoluteTolerance ?? 0.01,
@@ -187,9 +203,9 @@ public sealed class FlatTrussComponent : GH_Component
 
             // The truss decides what is worth saying; the component only
             // decides how loudly to say it. The Rhino command reads the same list.
-            foreach (TrussNote note in truss.Notes)
+            foreach (FormNote note in truss.Notes)
                 AddRuntimeMessage(
-                    note.Level == TrussNoteLevel.Warning
+                    note.Level == FormNoteLevel.Warning
                         ? GH_RuntimeMessageLevel.Warning
                         : GH_RuntimeMessageLevel.Remark,
                     note.Message);

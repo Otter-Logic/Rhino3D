@@ -36,6 +36,7 @@ public sealed class OtterFlatTrussCommand : Command
     private static bool _endPosts = true;
     private static int _divisions;
     private static double _spacing;
+    private static bool _onPlan;
     private static SnapStrictness _strictness = SnapStrictness.Relaxed;
 
     /// <summary>Root layer name, with the run number appended: OtterFlatTruss1, OtterFlatTruss2, ...</summary>
@@ -72,16 +73,18 @@ public sealed class OtterFlatTrussCommand : Command
 
     public static OtterFlatTrussCommand? Instance { get; private set; }
 
-    public override string EnglishName => "OtterFlatTruss";
+    private const string EnglishNameText = "OtterFlatTruss";
+
+    public override string EnglishName => EnglishNameText;
 
     protected override Result RunCommand(RhinoDoc doc, RunMode mode)
     {
         // Step 1: the top chords, in the order the trusses will be built.
-        Result step = SelectCurves(doc, "Select the top chords, then press Enter", out Curve[] tops);
+        Result step = Pick.Curves(doc, "Select the top chords, then press Enter", out Curve[] tops);
         if (step != Result.Success) return step;
 
         // Step 2: the bottom chords, picked in that same order.
-        step = SelectCurves(
+        step = Pick.Curves(
             doc, "Select the bottom chords in the same order, then press Enter", out Curve[] bottoms);
         if (step != Result.Success) return step;
 
@@ -100,7 +103,7 @@ public sealed class OtterFlatTrussCommand : Command
         }
 
         // Step 3: bracing pattern.
-        step = SelectEnum("Truss type", ref _type);
+        step = Pick.Enum("Truss type", ref _type);
         if (step != Result.Success) return step;
 
         // Step 4: how many panels. Straight after the type, because the two of
@@ -116,14 +119,26 @@ public sealed class OtterFlatTrussCommand : Command
         // because it is the one the division falls back on.
         double spacing = _spacing;
         step = RhinoGet.GetNumber(
-            "Panel spacing on plan (0 to leave it to the divisions)",
+            "Panel spacing (0 to leave it to the divisions)",
             true, ref spacing, 0.0, 1e9);
         if (step != Result.Success) return step;
         _spacing = spacing;
 
+        // What those two are measured along. Only asked when one of them is
+        // set: with the nodes taken from the chords there is nothing to measure.
+        if (_divisions > 0 || _spacing > 0.0)
+        {
+            bool onPlan = _onPlan;
+            step = RhinoGet.GetBool(
+                "Measure the panels along the chords, or on plan as for a roof truss",
+                true, "AlongChords", "OnPlan", ref onPlan);
+            if (step != Result.Success) return step;
+            _onPlan = onPlan;
+        }
+
         // Step 6: additional snap points. The picker already filters to points,
         // and the generator discounts any that are not on a chord.
-        step = SelectSnapPoints(out Point3d[] snapPoints);
+        step = Pick.SnapPoints(out Point3d[] snapPoints);
         if (step != Result.Success) return step;
 
         // Step 7: what the division owes the snap points. Only worth asking
@@ -131,7 +146,7 @@ public sealed class OtterFlatTrussCommand : Command
         // count left to the geometry every point is a node already.
         if (_divisions > 0 || _spacing > 0.0)
         {
-            step = SelectEnum("Snap strictness", ref _strictness);
+            step = Pick.Enum("Snap strictness", ref _strictness);
             if (step != Result.Success) return step;
         }
 
@@ -151,107 +166,6 @@ public sealed class OtterFlatTrussCommand : Command
         var pairs = tops.Zip(bottoms, (top, bottom) => (Top: top, Bottom: bottom)).ToArray();
 
         return PreviewAndCommit(doc, pairs, snapPoints);
-    }
-
-    private static Result SelectCurves(RhinoDoc doc, string prompt, out Curve[] curves)
-    {
-        curves = Array.Empty<Curve>();
-
-        // GetObject honours the current selection by default, so without this the
-        // second call would silently return the curves just picked instead of
-        // prompting for more. Clearing the selection as well keeps the
-        // walkthrough readable: exactly one set is highlighted at a time.
-        doc.Objects.UnselectAll();
-        doc.Views.Redraw();
-
-        using var picker = new GetObject();
-        picker.SetCommandPrompt(prompt);
-        picker.GeometryFilter = ObjectType.Curve;
-        picker.SubObjectSelect = false;
-        picker.EnablePreSelect(false, true);
-        picker.DeselectAllBeforePostSelect = true;
-
-        if (picker.GetMultiple(1, 0) != GetResult.Object)
-            return picker.CommandResult();
-
-        // OfType rather than a cast: the geometry filter already guarantees
-        // curves, so this only sweeps up anything whose geometry failed to load.
-        curves = picker.Objects().Select(o => o.Curve()).OfType<Curve>().ToArray();
-
-        return Result.Success;
-    }
-
-    /// <summary>
-    /// Offers an enum's members as clickable command-line options.
-    /// <para>
-    /// Generic because the command now asks two of these, and a second
-    /// hand-rolled copy is how the two come to disagree about how a choice is
-    /// spelled. The readable names come from Core, so the Grasshopper
-    /// right-click menu reads identically.
-    /// </para>
-    /// </summary>
-    private static Result SelectEnum<T>(string label, ref T value) where T : struct, Enum
-    {
-        var values = Enum.GetValues<T>();
-
-        using var getter = new GetOption();
-
-        // The prompt reads the name the way Grasshopper's menu does; the options
-        // themselves keep the bare enum name, because a command-line option
-        // cannot contain a space.
-        getter.SetCommandPrompt($"{label} <{Naming.Humanise(value)}>");
-
-        var indices = new int[values.Length];
-        for (int i = 0; i < values.Length; i++)
-            indices[i] = getter.AddOption(values[i].ToString());
-
-        getter.AcceptNothing(true);   // Enter keeps the remembered value
-
-        GetResult result = getter.Get();
-
-        if (result == GetResult.Nothing)
-            return Result.Success;
-
-        if (result != GetResult.Option)
-            return getter.CommandResult();
-
-        int chosen = getter.Option().Index;
-        for (int i = 0; i < indices.Length; i++)
-        {
-            if (indices[i] != chosen) continue;
-            value = values[i];
-            break;
-        }
-
-        return Result.Success;
-    }
-
-    private static Result SelectSnapPoints(out Point3d[] points)
-    {
-        points = Array.Empty<Point3d>();
-
-        using var picker = new GetObject();
-        picker.SetCommandPrompt("Select additional snap points, or press Enter for none");
-        picker.GeometryFilter = ObjectType.Point;
-        picker.SubObjectSelect = false;
-        picker.AcceptNothing(true);
-        picker.EnablePreSelect(false, true);
-
-        GetResult result = picker.GetMultiple(0, 0);
-
-        if (result == GetResult.Nothing)
-            return Result.Success;
-
-        if (result != GetResult.Object)
-            return picker.CommandResult();
-
-        points = picker.Objects()
-            .Select(o => o.Point()?.Location)
-            .Where(p => p.HasValue)
-            .Select(p => p!.Value)
-            .ToArray();
-
-        return Result.Success;
     }
 
     /// <summary>
@@ -285,6 +199,7 @@ public sealed class OtterFlatTrussCommand : Command
                             GenerateEndPosts = _endPosts,
                             Divisions = _divisions,
                             Spacing = _spacing,
+                            MeasureOnPlan = _onPlan,
                             AdditionalSnapPoints = snapPoints,
                             Strictness = _strictness,
                             SnapTolerance = doc.ModelAbsoluteTolerance,
@@ -309,6 +224,7 @@ public sealed class OtterFlatTrussCommand : Command
                 int changeFlip = getter.AddOption("Flip");
                 int changeDivisions = getter.AddOption("Divisions");
                 int changeSpacing = getter.AddOption("Spacing");
+                int changeOnPlan = getter.AddOption("OnPlan", _onPlan ? "Yes" : "No");
                 int changeStrictness = getter.AddOption("Strictness");
                 int changeEnds = getter.AddOption("EndPosts");
                 getter.AcceptNothing(true);   // Enter accepts
@@ -328,11 +244,11 @@ public sealed class OtterFlatTrussCommand : Command
 
                 if (chosen == changeType)
                 {
-                    SelectEnum("Truss type", ref _type);
+                    Pick.Enum("Truss type", ref _type);
                 }
                 else if (chosen == changeStrictness)
                 {
-                    SelectEnum("Snap strictness", ref _strictness);
+                    Pick.Enum("Snap strictness", ref _strictness);
                 }
                 else if (chosen == changeFlip)
                 {
@@ -349,6 +265,10 @@ public sealed class OtterFlatTrussCommand : Command
                     double spacing = _spacing;
                     if (RhinoGet.GetNumber("Panel spacing", true, ref spacing, 0.0, 1e9) == Result.Success)
                         _spacing = spacing;
+                }
+                else if (chosen == changeOnPlan)
+                {
+                    _onPlan = !_onPlan;
                 }
                 else if (chosen == changeEnds)
                 {
@@ -381,7 +301,7 @@ public sealed class OtterFlatTrussCommand : Command
     private static void ReportNotes(IReadOnlyList<FlatTruss> trusses)
     {
         for (int i = 0; i < trusses.Count; i++)
-            foreach (TrussNote note in trusses[i].Notes)
+            foreach (FormNote note in trusses[i].Notes)
                 RhinoApp.WriteLine(
                     trusses.Count == 1
                         ? $"OtterFlatTruss: {note.Message}"
@@ -404,58 +324,6 @@ public sealed class OtterFlatTrussCommand : Command
         conduit.Points = trusses.SelectMany(t => t.DistinctNodes).ToArray();
         conduit.PointColour = NodeColour;
     }
-
-    /// <summary>
-    /// The name for this run's layer: OtterFlatTruss1 the first time, then
-    /// OtterFlatTruss2, and so on.
-    /// <para>
-    /// One name per run, not per truss. Numbering follows the highest number
-    /// already in the document rather than a count, so deleting OtterFlatTruss2 does
-    /// not make the next run reuse that name and merge into what is left of it.
-    /// </para>
-    /// </summary>
-    private static string NextTrussLayerName(RhinoDoc doc)
-    {
-        int highest = 0;
-
-        foreach (Layer layer in doc.Layers)
-        {
-            // Root layers only: a sub-layer called OtterFlatTruss3 inside someone
-            // else's tree is their business, not a run of this command.
-            if (layer.IsDeleted || layer.ParentLayerId != Guid.Empty) continue;
-            if (!layer.Name.StartsWith(LayerPrefix, StringComparison.OrdinalIgnoreCase)) continue;
-
-            if (int.TryParse(layer.Name[LayerPrefix.Length..], out int number))
-                highest = Math.Max(highest, number);
-        }
-
-        return $"{LayerPrefix}{highest + 1}";
-    }
-
-    /// <summary>Adds one layer, under <paramref name="parent"/> when given. -1 if it could not be created.</summary>
-    private static int AddLayer(RhinoDoc doc, string name, Guid parent, Color colour)
-        => doc.Layers.Add(new Layer { Name = name, Color = colour, ParentLayerId = parent });
-
-    /// <summary>
-    /// A sub-layer of the run's layer, falling back to the run's layer itself.
-    /// <para>
-    /// The fallback should never fire — the parent was created moments ago, so
-    /// every name under it is free — but the alternative to checking is baking
-    /// with <c>LayerIndex = -1</c>, which quietly puts geometry on a layer
-    /// nobody chose. Landing one level up is findable; landing anywhere is not.
-    /// </para>
-    /// </summary>
-    private static int SubLayer(RhinoDoc doc, string name, Guid parent, Color colour, int fallback)
-    {
-        int index = AddLayer(doc, name, parent, colour);
-        if (index >= 0) return index;
-
-        RhinoApp.WriteLine($"OtterFlatTruss: could not create the {name} sub-layer, so those objects went one level up.");
-        return fallback;
-    }
-
-    private static ObjectAttributes Attributes(string name, int layerIndex)
-        => new() { Name = name, LayerIndex = layerIndex };
 
     /// <summary>
     /// Adds the run — every truss, chords included — to one layer tree.
@@ -494,9 +362,9 @@ public sealed class OtterFlatTrussCommand : Command
             return Result.Nothing;
         }
 
-        string name = NextTrussLayerName(doc);
+        string name = RunLayers.NextName(doc, LayerPrefix);
 
-        int root = AddLayer(doc, name, Guid.Empty, RootColour);
+        int root = RunLayers.Add(doc, name, Guid.Empty, RootColour);
         if (root < 0)
         {
             RhinoApp.WriteLine($"OtterFlatTruss: could not create the layer {name}, so nothing was added.");
@@ -509,10 +377,10 @@ public sealed class OtterFlatTrussCommand : Command
 
         foreach (var (layerName, colour, lines) in byRole)
         {
-            int layer = SubLayer(doc, layerName, rootId, colour, root);
+            int layer = RunLayers.Sub(doc, EnglishNameText, layerName, rootId, colour, root);
 
             foreach (Line line in lines)
-                doc.Objects.AddLine(line, Attributes(layerName, layer));
+                doc.Objects.AddLine(line, RunLayers.Attributes(layerName, layer));
 
             members += lines.Count;
         }
@@ -525,11 +393,11 @@ public sealed class OtterFlatTrussCommand : Command
             (BottomNodeLayer, trusses.SelectMany(t => t.BottomNodes)),
         })
         {
-            int layer = SubLayer(doc, layerName, rootId, NodeColour, root);
+            int layer = RunLayers.Sub(doc, EnglishNameText, layerName, rootId, NodeColour, root);
 
             foreach (Point3d node in points)
             {
-                doc.Objects.AddPoint(node, Attributes(layerName, layer));
+                doc.Objects.AddPoint(node, RunLayers.Attributes(layerName, layer));
                 nodes++;
             }
         }

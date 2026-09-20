@@ -43,6 +43,60 @@
       </menu_text>
       <script>! _OtterFlatTruss</script>
     </macro_item>
+    <macro_item guid="5fb6ec17-107a-4848-a0e0-c9e47ef78983" bitmap_id="ca9feb5c-ac6d-4e49-bd2d-6feddef591d8">
+      <text>
+        <locale_1033>Box Truss</locale_1033>
+      </text>
+      <tooltip>
+        <locale_1033>Box Truss: a triangular or box truss on three or four chords you drew</locale_1033>
+      </tooltip>
+      <help_text>
+        <locale_1033>Generate a 3D truss on one or two top chords and one or two bottom chords.</locale_1033>
+      </help_text>
+      <button_text>
+        <locale_1033>Box Truss</locale_1033>
+      </button_text>
+      <menu_text>
+        <locale_1033>Box Truss</locale_1033>
+      </menu_text>
+      <script>! _OtterBoxTruss</script>
+    </macro_item>
+    <macro_item guid="74f29ce7-a053-445c-ba3c-56c07480b5a2" bitmap_id="802df9c2-db82-4110-afb2-9feddf691a63">
+      <text>
+        <locale_1033>Beam Infill</locale_1033>
+      </text>
+      <tooltip>
+        <locale_1033>Beam Infill: secondary members in every panel between the beams you select</locale_1033>
+      </tooltip>
+      <help_text>
+        <locale_1033>Fill the panels a floor's primary beams enclose with evenly spaced secondary members.</locale_1033>
+      </help_text>
+      <button_text>
+        <locale_1033>Beam Infill</locale_1033>
+      </button_text>
+      <menu_text>
+        <locale_1033>Beam Infill</locale_1033>
+      </menu_text>
+      <script>! _OtterBeamInfill</script>
+    </macro_item>
+    <macro_item guid="893a2970-8a8e-49ef-ba57-c5c842aea6ac" bitmap_id="0cc53375-7cc6-4962-b887-962416f8f26c">
+      <text>
+        <locale_1033>Surface Grid</locale_1033>
+      </text>
+      <tooltip>
+        <locale_1033>Surface Grid: a quad, triangulated or diagrid layout over a surface, or between the curves round an area</locale_1033>
+      </tooltip>
+      <help_text>
+        <locale_1033>Lay straight members over a surface as a quad grid, a triangulated grid or a diagrid.</locale_1033>
+      </help_text>
+      <button_text>
+        <locale_1033>Surface Grid</locale_1033>
+      </button_text>
+      <menu_text>
+        <locale_1033>Surface Grid</locale_1033>
+      </menu_text>
+      <script>! _OtterSurfaceGrid</script>
+    </macro_item>
   </macros>
 
   <!--
@@ -50,22 +104,31 @@
     bitmap_id there indexes Rhino's internal icon library, which a third
     party cannot reference. Custom icons ride here instead: one horizontal
     strip per size, base64 PNG, with each bitmap_item naming the slot it
-    occupies. Index 0 is Flat Truss.
+    occupies. Index 0 is Flat Truss, 1 is Box Truss, 2 is Beam Infill, 3 is Surface Grid.
 
     Regenerate with build/build-rui-icons.ps1 after changing assets/icons.
   -->
   <bitmaps>
     <small_bitmap item_width="16" item_height="16">
       <bitmap_item guid="0b3809d9-6ce0-4f3f-b427-8d596b600b0d" index="0" />
-      <bitmap>iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAElSURBVDhPzdI/SFZhGAXw3yaBQyARuNSiUzXopKSTmEOBa9ouhC6itejorJtL6ObcrtCUQ60WLY4OCikOWopKHHm4XPimtu/A4Z73Oee87/1Ht2AM7/6T6TTYwjlucVe8xO/in9Y8mWTTaTCF1+jFQzzAc8wVn9UsXjLJptNgB6f4UOtx/KyTwx94Wd5HnFWnwSOsVXipCvt1chh9gGX8rWw6HfiCXzjCi9Y8OrN4yXTgSV2n8R7ztR4sBgvlJdPu3GMT37CHQ3xt6TA6s+hdfK9Og2Fs4xMmsIrPmMFs6ZXykkl2qL3BZN1SPxYxgp76YbJBdGbxknmKV+0NNnCFi/oCJ7hpPUL0cXnJXGO9vUFfvZw3eIxRvMVAMTqzeMkkm04X4B8400+NiBx0BgAAAABJRU5ErkJggg==</bitmap>
+      <bitmap_item guid="ca9feb5c-ac6d-4e49-bd2d-6feddef591d8" index="1" />
+      <bitmap_item guid="802df9c2-db82-4110-afb2-9feddf691a63" index="2" />
+      <bitmap_item guid="0cc53375-7cc6-4962-b887-962416f8f26c" index="3" />
+      <bitmap>iVBORw0KGgoAAAANSUhEUgAAAEAAAAAQCAYAAACm53kpAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAO/SURBVFhH7ZdpqJVVFIafREqpQMmpgaxESXAADSorIYhKMElMGpyJLGwkKoWyLKgoCTOiMkJJxUw0U7N5ggYoxSjK6kdF2kylGVlpmTzxfpd9P4904l78oy8szj5r2MPaa9gfHMA+Q4c6ox3RFTgGOLpGR4XqfHW1acEZwPj/Sdo0g37AZcAy4EFgWF0BOAW4sMEaeyN1tanwMLAF+BbYCvwCfLOXsTrqatOC+RH+DewKbQd+Cv1e8NVRV5tGOAg4FpgKPA98mQU3A/8AHwC3Ab0Km+ciq9b4L1JXmworwtsITAYuBj4KfxHwGTAl/A3RVdaCc4GRwGFAF6AzMBC4PDQgPGXqqKtNib7ApZn413j6deBa4DhgFvA+sATYBrwNdIvtS8BrwKFNkrraVFgLvABcDcwEZgB3AgdHfjNwKzAduBF4OTYtcFM/Azfl//B405uX9ObpkTmJN6qN6ATcFy8bLS8C04DjIzf3z0skuMYO4BPgU+CE6GjzZiKnGVJXmwo6Y2miz7m/S55XODzreSmOn6g5kO7xmIe9IQf2hrx5yfGH8d4f0dVGGMqbElbegNDzZwJzgS+AnbFfGO9PzCY6Rn8V8BXwSJOkrjYVVgPrMr/1xjrxTC7hSODppKR8130vvD1gaOnBr4FBBd+xPGXqlPAQhv2z2YQTv5Ma4qFvTy0YEn3lOvSOYo5XEsLNQl1tKiwHfgNGF7wRwKtJw7EF/6xEaqsa0Du/5yd8r8p/K7gkvF1l6pQ24m7gHuC0RIJOOgk4JHrzUjuE+ajOOYV9ezjAtPRwFU6No9fX6tXJSZGnCt6/LeHdhKe5/FYxlhzLc2zueNNlGzk7m+gPvJF2d0FkE4rUsAc/APwI9Cjs25oCRpVhbau9CBiVGmHkWmeMQDuAfPdpiq8s7BkKLAAeixetpE56CTAu41siU0fdKqSF9cC2ZGG8N4XG3yuyYR2yONXfzRtJJdpaBB0/mYjzcLbcPoXcbmNRl39ECmarIugNGqq+mq5P+DiZRUMHOJanTB3bWhnCVvpHU+zGZEEPaV7K89cougYY3OBV2NY2qPNtaxZXU/GuoqOJK4HZ4XspRkSrNng/8Gc2qgd/AP4qUsDx95GpYyubU06QB0iV/xYZve0i1wEnFhW/Edr6EDKf5blXDzgJ+Bx4HHgoBVy+Dvq40UPIsLC42a975rlqzvi4kRzLU6aOutrU51iTqlvddLNoz6ewvz57ff76YjXtHFf8hk/h9oKpIu1rVB9D9Q+f6mOozt/jY2i/xW4fm0hormz5KgAAAABJRU5ErkJggg==</bitmap>
     </small_bitmap>
     <normal_bitmap item_width="24" item_height="24">
       <bitmap_item guid="0b3809d9-6ce0-4f3f-b427-8d596b600b0d" index="0" />
-      <bitmap>iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACzSURBVEhL7ZLNCcJAEEbf2RKswIOl+FOD2IPagGARYiWiHr0LVqIHT8rIHJadCQxMCDnkwccOXx6b7BIY6BPflmOohWy65wVcgXn9AFgCN3WinqE83r7oD87xI55hDGyBjwozYKGzdBt1ol4jO5XPwEVn2bAm6hnk7SI/NTJ7XxT1XO7ARCNzE1HvzxGYAiNdT8nOUP4BbcSwBh7AW9dVsuse7x4znaG+w2wM3j1muoGe8AMo9K09M00YPwAAAABJRU5ErkJggg==</bitmap>
+      <bitmap_item guid="ca9feb5c-ac6d-4e49-bd2d-6feddef591d8" index="1" />
+      <bitmap_item guid="802df9c2-db82-4110-afb2-9feddf691a63" index="2" />
+      <bitmap_item guid="0cc53375-7cc6-4962-b887-962416f8f26c" index="3" />
+      <bitmap>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</bitmap>
     </normal_bitmap>
     <large_bitmap item_width="32" item_height="32">
       <bitmap_item guid="0b3809d9-6ce0-4f3f-b427-8d596b600b0d" index="0" />
-      <bitmap>iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAANBSURBVFhH7ZZLqJZVFIYfJFDKC+RtIoIWXkgTQRuYgRoWiFpIqOVdJ4KmIok58550G9REIhOlgRYINjCjSc2STClMLU1JDCkFhShNJeWBd8fm+3/jNDk5OC9szj5rvetd37e/tdb+oQtduI/wJPBBJ62JzeTiZeBOJ601zeRiJvAt8B1wEvgRONNm/QB8H578EqNNX5PvUkvNEvNcM7noA4wAhgPDstxrK6v4/Fv7yv//FlP7zNWCccBGYCXweNNZoQcwBVgLbM9yPxno3iRXGBPtTcD4plOUGvgbOAysAIZUfsWfAF4Djrf5rsfik1M/yNBofRZtuasr/z+YBVwArob0C7AZGAh0y1N/BPwF3AR+Bc5nudemb3+4xhi7JVpqqm2OF5rJxcPAswn4KQGngbnAyBzdn7F/ASwHJmS516ZPjlxjXoyGdjXVNoe57olBwPpU74289VbgSI7wy7xB7yrGvTZ9cr5KzMc5FbVejXaHMBh4P2Iery2k0OUUUs9mAPBQvrUcucb8lrffFc3/BCv7d+AocAC4mH5uO8UCp6kcucZ8HY1XmsSOYHYqd0na0gpX9NEmscIj4exIzOJozGkS28Eh4TQs36lvvusiYEHEnq74jwELs9wXyPGhjdGnRr/41H4+BdoCq93jfjdVrYjVbPHZRgczw5eljz8EzqW63Wsrvk8SYzGqsTSaan8DvNRMLjyma43hcju9azH5LWufhXYly33tk2uMsWrUPnPYni3wE7wJnKrIJ4DXgVXAnnRESf55WmtD9uUh5Mg15o1oFD21zWGuthiQOe8RzQMmAf2BB1JgM4D5KdCxwINpP/fa9Mlx/BpjrBpFT21ztIVkkzRh1XtROVZreCl5wVjt7mvINaZdx2gzVwumAXtT7YqOzlNbYI7Zt4BngFG5cOztT4FD2WvTNxV4OzHGqlH01NY2vZlc2DJ/AJeAs1lWsrZbKZ6fY7f6y8QrE1KbPjlyjTFWjaKntjYfpAVeKg6NuqKv5y13p0XrajbRvtx+7mufE9AYr3U1il1tc5irBb2Ap1LZO7PWZfT6a8YhtQ14D3gnve3Rutxr0+cPFAvRGGPVKHpqm6PdXdKFLvw/uAsI2jUXjI3D/wAAAABJRU5ErkJggg==</bitmap>
+      <bitmap_item guid="ca9feb5c-ac6d-4e49-bd2d-6feddef591d8" index="1" />
+      <bitmap_item guid="802df9c2-db82-4110-afb2-9feddf691a63" index="2" />
+      <bitmap_item guid="0cc53375-7cc6-4962-b887-962416f8f26c" index="3" />
+      <bitmap>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</bitmap>
     </large_bitmap>
   </bitmaps>
 
@@ -78,7 +141,7 @@
       <text>
         <locale_1033>OtterLogic Toolbar Group</locale_1033>
       </text>
-      <tool_bar_group_item guid="cb09938f-eb86-48db-9d2b-2166837dcc16" major_version="2" minor_version="0">
+      <tool_bar_group_item guid="cb09938f-eb86-48db-9d2b-2166837dcc16" major_version="3" minor_version="0">
         <text>
           <locale_1033>OtterLogic</locale_1033>
         </text>
@@ -104,6 +167,24 @@
           <locale_1033>Flat Truss</locale_1033>
         </text>
         <left_macro_id>4e53c0fe-9ee5-4a87-ad0c-4e397620ee93</left_macro_id>
+      </tool_bar_item>
+      <tool_bar_item guid="7e2e4c37-4428-457e-a280-de608574bb28">
+        <text>
+          <locale_1033>Box Truss</locale_1033>
+        </text>
+        <left_macro_id>5fb6ec17-107a-4848-a0e0-c9e47ef78983</left_macro_id>
+      </tool_bar_item>
+      <tool_bar_item guid="eb96e8ff-8611-4f00-a37d-859a78537c7a">
+        <text>
+          <locale_1033>Beam Infill</locale_1033>
+        </text>
+        <left_macro_id>74f29ce7-a053-445c-ba3c-56c07480b5a2</left_macro_id>
+      </tool_bar_item>
+      <tool_bar_item guid="b8cd102b-b132-490f-bc1f-d92023ffb955">
+        <text>
+          <locale_1033>Surface Grid</locale_1033>
+        </text>
+        <left_macro_id>893a2970-8a8e-49ef-ba57-c5c842aea6ac</left_macro_id>
       </tool_bar_item>
     </tool_bar>
   </tool_bars>

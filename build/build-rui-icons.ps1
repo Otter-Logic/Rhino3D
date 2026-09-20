@@ -27,6 +27,9 @@ $rui      = Join-Path $repoRoot 'src\OtterLogic.Rhino\UI\OtterLogic.rui'
 # bitmap_id on its macro.
 $slots = @(
     @{ Name = 'flattruss'; Guid = '0b3809d9-6ce0-4f3f-b427-8d596b600b0d' }
+    @{ Name = 'boxtruss'; Guid = 'ca9feb5c-ac6d-4e49-bd2d-6feddef591d8' }
+    @{ Name = 'beaminfill'; Guid = '802df9c2-db82-4110-afb2-9feddf691a63' }
+    @{ Name = 'surfacegrid'; Guid = '0cc53375-7cc6-4962-b887-962416f8f26c' }
 )
 
 foreach ($slot in $slots) {

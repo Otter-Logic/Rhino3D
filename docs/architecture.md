@@ -305,12 +305,24 @@ the display conduits.
 
 ## Truss stations
 
-`FlatTrussGenerator` places nodes at *stations* — positions from 0 to 1 along a
-chord, measured as a fraction of its **plan** length. One list, shared by both
-chords, so top node `i` and bottom node `i` sit at the same plan position and
-every web pattern stays index arithmetic over panel count.
+`StationLayout` — shared by `FlatTrussGenerator` and `BoxTrussGenerator`, and
+lifted out of the first when the second arrived — places nodes at *stations* — positions from 0 to 1 along a
+chord, measured as a fraction of its length. One list, shared by both chords, so
+top node `i` and bottom node `i` sit at the same station and every web pattern
+stays index arithmetic over panel count.
 
-### Why plan distance
+Nothing in the layout knows how many chords there are. A flat truss hands it two
+and a box truss three or four, and a panel point is a cross-section through all
+of them at once; the members then go in face by face through `WebBuilder`, where
+a flat truss is simply the one-face case.
+
+Which length is `FlatTrussOptions.MeasureOnPlan`'s to say. Off, the default, is
+along the chord itself — pure curve geometry, the only measure a truss standing
+on end has and the only honest one for a truss running through space. On is plan
+length, for the roof truss; the rest of this section is about that case, and
+with it off the ruler and the chord are simply the same curve.
+
+### Why plan distance, for a roof truss
 
 A pitched top chord is longer than the level bottom chord beneath it. Divide each
 by its own length and node `i` lands a different distance along each of them, so
@@ -329,7 +341,7 @@ in plan has no plan length to divide, so it measures along itself instead.
 ### How the list gets built
 
 **Divisions drive, snap points steer.** With `Divisions` (or `Spacing`) set, the
-panel count is fixed up front, the chord is laid out evenly on plan, and the
+panel count is fixed up front, the chord is laid out evenly along its ruler, and the
 stations then snap onto nearby targets. Member count is exactly what was asked
 for; snap points move members but never add them.
 
@@ -488,7 +500,7 @@ rather than about hosts, and it belongs below them:
 
 - **The wording of a warning.** "The two chords are not coplanar, so this truss
   is warped" was written out twice, in two files, in two repositories. It is now
-  `FlatTruss.Notes`, a list of `TrussNote` carrying a level the host maps onto
+  `FlatTruss.Notes`, a list of `FormNote` carrying a level the host maps onto
   whatever it has — a Grasshopper bubble, a command-line line. The domain decides
   *what* is worth saying; the adapter decides only how loudly.
 - **The rules an option has to obey.** The component used to re-check divisions,

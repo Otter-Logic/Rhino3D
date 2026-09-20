@@ -134,13 +134,15 @@ cross-bracing already draws both, so neither is affected.
 
 `Divisions` is the primary control, and sits right after the truss type in both
 front-ends because the two of them are the whole shape of the truss. It fixes how
-many verticals and diagonals there are, laying them out evenly **on plan**, after
+many verticals and diagonals there are, laying them out evenly, after
 which each node **snaps** onto a nearby snap point rather than adding to them.
 Reach is half a panel, and no two nodes can claim the same point.
 
-Panels are set out by plan distance, not distance along the chord, so a pitched
-top chord over a level bottom one still gives verticals that stand up rather than
-lean. Whatever does not snap is then **spread evenly between the nodes that did**,
+`On Plan` says what that evenness is measured along. Off, the default, is along
+the chords themselves — pure curve geometry, which is what a truss standing on
+end or running through space needs. Turn it on for a roof truss: panels are then
+set out by plan distance, so a pitched top chord over a level bottom one still
+gives verticals that stand up rather than lean. Whatever does not snap is then **spread evenly between the nodes that did**,
 so a snap point re-divides the truss around it instead of leaving one short panel
 and one long one. Snap points anchor both chords at once — a panel point is where
 the whole truss steps.
@@ -185,6 +187,47 @@ saving the definition and reopening it against the same model. A ticked layer
 that has gone missing is left out of the output and reported as a warning rather
 than forgotten, because deleting a layer is undoable and the tick should come
 back with it.
+
+**Box Truss.** Draw three or four curves: one or two top chords, one or two
+bottom chords.
+
+- Rhino: `OtterBoxTruss` asks what `OtterFlatTruss` asks, in the same order, with
+  one more question for the *lacing* — the bracing between twin chords, which a
+  flat truss does not have. Two and one gives a triangular truss, two and two a
+  box; pick the chords in any order, drawn either way. Flips and end posts are
+  left to the preview, where four faces can be seen rather than imagined.
+  Members land on `OtterBoxTruss1`, a sub-layer per section: the flat truss's
+  five, plus `Strut` and `Lacing`.
+- Grasshopper: *OtterLogic → Structural Form → Box Truss*. Flat Truss's inputs
+  under Flat Truss's names, plus *Lacing* and *Flip Lacing*. Nodes come out as
+  trees with a branch per chord; item *i* of every branch is the same
+  cross-section through the truss.
+
+**Surface Grid.** Draw a surface — a roof, a façade, a cylinder for a tower — or
+just the curves round the outside of an area.
+
+- Rhino: `OtterSurfaceGrid` — pick one surface, *or* two to four curves; choose
+  quad, triangulated or diagrid; give divisions each way; optionally pick points
+  on the edges to run grid lines through. The preview then lets you change the
+  pattern, the divisions or spacing either way, swap the U and V counts, pick the
+  diagonal rule and flip it. Members land on `OtterSurfaceGrid1` under `U member`,
+  `V member`, `Diagonal` and `Edge`.
+- Grasshopper: *OtterLogic → Structural Form → Surface Grid*, with *Grid Pattern*
+  beside it as a dropdown. U and V members come out as trees with a branch per
+  grid line — a whole beam is a branch — and nodes with a branch per row.
+
+**Beam Infill.** Draw, or open, one floor of a stick model.
+
+- Rhino: `OtterBeamInfill` — window-select the primary beams in any order, give a
+  division count per panel (or 0 and a spacing), and it previews secondary
+  members in every four-sided panel the beams enclose, running the long way
+  across each. `Flip` in the preview runs them the short way. Panels it found
+  but would not guess at — triangles, L-shapes — are outlined in orange and left
+  empty; draw a beam across one and run it again. Accept bakes the members and
+  the nodes where they land onto `OtterBeamInfill1`. The beams you picked are
+  left exactly as they are.
+- Grasshopper: *OtterLogic → Structural Form → Beam Infill*. Members come out as a
+  tree with one branch per panel, matching the *Panel* outlines by index.
 
 ## Layout
 
