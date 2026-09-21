@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <polyline points="3.5,18 8,7" fill="none" stroke="#8C8C8C" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="8,7 16,5" fill="none" stroke="#8C8C8C" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="16,5 20.5,12" fill="none" stroke="#8C8C8C" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="12,15 17,20" fill="none" stroke="#8C8C8C" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="17,20 20.5,12" fill="none" stroke="#8C8C8C" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="8,7 12,15" fill="none" stroke="#8C8C8C" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="3.5,18 12,15 20.5,12" fill="none" stroke="#2473C0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="3.5" cy="18" r="2.6" fill="#000000"/>
+  <circle cx="3.5" cy="18" r="1.4" fill="#2473C0"/>
+  <circle cx="8" cy="7" r="2.6" fill="#000000"/>
+  <circle cx="8" cy="7" r="1.4" fill="#FFFFFF"/>
+  <circle cx="12" cy="15" r="2.6" fill="#000000"/>
+  <circle cx="12" cy="15" r="1.4" fill="#2473C0"/>
+  <circle cx="16" cy="5" r="2.6" fill="#000000"/>
+  <circle cx="16" cy="5" r="1.4" fill="#FFFFFF"/>
+  <circle cx="20.5" cy="12" r="2.6" fill="#000000"/>
+  <circle cx="20.5" cy="12" r="1.4" fill="#2473C0"/>
+  <circle cx="17" cy="20" r="2.6" fill="#000000"/>
+  <circle cx="17" cy="20" r="1.4" fill="#FFFFFF"/>
+</svg>

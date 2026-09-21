@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <circle cx="5" cy="17" r="1.15" fill="#8C8C8C"/>
+  <circle cx="7.5" cy="19.5" r="1.15" fill="#8C8C8C"/>
+  <circle cx="8" cy="14" r="1.15" fill="#8C8C8C"/>
+  <circle cx="11" cy="16.5" r="1.15" fill="#8C8C8C"/>
+  <circle cx="10" cy="11" r="1.15" fill="#8C8C8C"/>
+  <circle cx="14" cy="13" r="1.15" fill="#8C8C8C"/>
+  <circle cx="13.5" cy="8" r="1.15" fill="#8C8C8C"/>
+  <circle cx="17" cy="10" r="1.15" fill="#8C8C8C"/>
+  <circle cx="16.5" cy="5.5" r="1.15" fill="#8C8C8C"/>
+  <circle cx="19.5" cy="7" r="1.15" fill="#8C8C8C"/>
+  <polyline points="12,12 9,9" fill="none" stroke="#E8872B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <polygon points="7.2,7.2 10.64,8.01 8.01,10.64" fill="#E8872B"/>
+  <polyline points="4.5,19.5 18.72,5.28" fill="none" stroke="#2473C0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+  <polygon points="21,3 19.98,7.35 16.65,4.02" fill="#2473C0"/>
+</svg>

@@ -24,7 +24,13 @@ preparation and graphs below that in
   support, free ends, single elements holding a large part on, near misses,
   outliers and low agreement. No structural type is hard-coded — frames, shells,
   bridges, stadium bowls and gridshells go through the same engine, and groups
-  are described by what was measured, never named.
+  are described by what was measured, never named. The model is read as physical
+  members before it is grouped, and from the supports up: **Level** is how many
+  hand-overs stand between an element and the ground, **Hierarchy** sorts the
+  groups within the levels in branches {level; group}, and **Member**,
+  **Assembly** and **Flow** are what those were read from. These outputs sit after
+  Report because outputs are wired by position — putting them ahead of it would
+  have moved every saved wire.
 - **Grid and Level Inference** — lines in; the levels and structural grid they
   imply, named, and the elements not quite on them out. Levels, grid directions and
   gridlines are each where the model's own values gather; only the names are

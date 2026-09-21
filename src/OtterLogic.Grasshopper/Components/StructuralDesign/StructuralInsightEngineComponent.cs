@@ -11,8 +11,9 @@ using OtterLogic.StructuralDesign;
 namespace OtterLogic.Grasshopper.Components.StructuralDesign;
 
 /// <summary>
-/// A structure's lines, surfaces and supports in; its natural groups, the features
-/// and graph they came from, and everything worth a look, out.
+/// A structure's lines, surfaces and supports in; its natural groups, the level each
+/// sits at between the supports and the top of the load path, the features and graph
+/// they came from, and everything worth a look, out.
 /// <para>
 /// Adapter only. Everything it reports is decided by
 /// <see cref="StructuralInsightEngine.Analyse"/>; here curves become end points,
@@ -32,21 +33,26 @@ public sealed class StructuralInsightEngineComponent : GH_Component
     private const int ConnectivityWeightInput = 7;
     private const int GeometryWeightInput = 8;
     private const int DensityWeightInput = 9;
+    private const int RoleWeightInput = 10;
 
     public StructuralInsightEngineComponent()
         : base("Structural Insight Engine", "Insight",
                "Discover the structural intent hidden in a model's geometry: the natural groups its elements fall "
                + "into, and the places it is not joined the way it looks meant to be.\n\n"
                + "Lines, surfaces and supports in — nothing about what kind of structure it is. Frames, shells, "
-               + "bridges, stadium bowls, gridshells and parametric forms all go through the same engine: the "
-               + "geometry becomes a graph of which elements meet, every element gets features (size, extent along "
-               + "each axis, connections, distance to a support, centrality, aspect ratio), and three unsupervised "
-               + "views — spectral clustering of the graph, hierarchical clustering of the features, HDBSCAN for "
-               + "outliers — are fused into the groups they agree on.\n\n"
-               + "Nothing is named. Groups tend to be primary and secondary framing, bracing systems, diaphragm and "
-               + "shell zones, stiff and flexible regions, repeated modules and load-path communities — reading "
-               + "which is which is yours, downstream. Features and Connectivity plug straight into the Unsupervised "
-               + "Learning components to take it further.",
+               + "bridges, stadium bowls, gridshells and parametric forms all go through the same engine, which "
+               + "reads the model the way it is read by eye. Lines that carry straight on through their joints "
+               + "become one member. Members triangulated together in a plane become one assembly. Every element's "
+               + "weight is drained to the supports, which gives how much passes along each element and, from the "
+               + "supports up, what rests on what: Level 0 rests on the supports, Level 1 on that, and so on. Then "
+               + "four unsupervised views of the members — spectral clustering of the graph, hierarchical "
+               + "clustering of what each member is like, the same over what each is like and attached to, HDBSCAN "
+               + "for outliers — are fused into the groups they agree on.\n\n"
+               + "Nothing is named, and nothing depends on which way the model faces: gravity is the only direction "
+               + "used. Groups tend to be columns, chords, webs, primary and secondary framing, bracing, shell zones "
+               + "and repeated modules — reading which is which is yours, downstream. Hierarchy sorts the groups "
+               + "within the levels, the way a member schedule is laid out. Features and Connectivity plug straight "
+               + "into the Unsupervised Learning components to take it further.",
                Categories.Root, Categories.StructuralDesign)
     {
     }
@@ -102,7 +108,12 @@ public sealed class StructuralInsightEngineComponent : GH_Component
             "Vote of the density view — dense groups, and outliers outside them. Zero skips it and its outlier flags.",
             GH_ParamAccess.item, 1.0);
 
-        for (int i = LinesInput; i <= DensityWeightInput; i++)
+        pManager.AddNumberParameter("Role Weight", "Wr",
+            "Vote of the role view — members alike in themselves and in what they are attached to, so members playing "
+            + "the same part group wherever they are. Zero skips it.",
+            GH_ParamAccess.item, 1.0);
+
+        for (int i = LinesInput; i <= RoleWeightInput; i++)
             pManager[i].Optional = true;
     }
 
@@ -162,6 +173,36 @@ public sealed class StructuralInsightEngineComponent : GH_Component
         pManager.AddTextParameter("Report", "!",
             "How the model was read, how the views voted, what each group is like, and what is worth a look.",
             GH_ParamAccess.item);
+
+        // Added after Report, not before it: outputs are wired by position, so anything
+        // put in ahead of an existing one would move every saved wire after it.
+        pManager.AddIntegerParameter("Level", "Lv",
+            "Per element, how many hand-overs stand between it and the ground: 0 rests on the supports, 1 rests on "
+            + "something that does, and so on up. Members triangulated together share a level, and so do members "
+            + "that lean on each other. -1 without supports, or with no route to one.",
+            GH_ParamAccess.list);
+
+        pManager.AddIntegerParameter("Hierarchy", "H",
+            "Element indices in branches {level; group}: each level's elements sorted into their natural groups, "
+            + "the way a member schedule is laid out — lines first, then faces.",
+            GH_ParamAccess.tree);
+
+        pManager.AddIntegerParameter("Member", "M",
+            "Per element, the physical member it is a piece of: lines that carry straight on through their joints "
+            + "are one member, however many pieces they were drawn in.",
+            GH_ParamAccess.list);
+
+        pManager.AddIntegerParameter("Assembly", "As",
+            "Per element, the assembly it is part of: members triangulated together in one plane — a truss, a braced "
+            + "bay — are one assembly, and any other member is an assembly by itself.",
+            GH_ParamAccess.list);
+
+        pManager.AddNumberParameter("Flow", "Fw",
+            "Per element, the share of the whole model's weight passing along it on its way to the supports, 0 to 1.",
+            GH_ParamAccess.list);
+
+        pManager.AddIntegerParameter("Role Groups", "RG",
+            "The role view's own group per element, or -1 where it did not run.", GH_ParamAccess.list);
     }
 
     protected override void SolveInstance(IGH_DataAccess da)
@@ -194,13 +235,14 @@ public sealed class StructuralInsightEngineComponent : GH_Component
         da.GetDataList(SupportsInput, supportPoints);
 
         int groups = 0, maximumGroups = 10, minimumGroupSize = 1;
-        double connectivityWeight = 1.0, geometryWeight = 1.0, densityWeight = 1.0;
+        double connectivityWeight = 1.0, geometryWeight = 1.0, densityWeight = 1.0, roleWeight = 1.0;
         da.GetData(GroupsInput, ref groups);
         da.GetData(MaximumGroupsInput, ref maximumGroups);
         da.GetData(MinimumGroupSizeInput, ref minimumGroupSize);
         da.GetData(ConnectivityWeightInput, ref connectivityWeight);
         da.GetData(GeometryWeightInput, ref geometryWeight);
         da.GetData(DensityWeightInput, ref densityWeight);
+        da.GetData(RoleWeightInput, ref roleWeight);
 
         if (curves.Count + boundaries.Count == 0)
         {
@@ -225,6 +267,7 @@ public sealed class StructuralInsightEngineComponent : GH_Component
                     ConnectivityWeight = connectivityWeight,
                     GeometryWeight = geometryWeight,
                     DensityWeight = densityWeight,
+                    RoleWeight = roleWeight,
                 });
         }
         catch (ArgumentException ex)
@@ -279,7 +322,20 @@ public sealed class StructuralInsightEngineComponent : GH_Component
             string.Join(", ", flagNames.Where(f => flags.HasFlag(f)).Select(f => Naming.Humanise(f)))));
         da.SetData(15, result.Report());
 
-        Message = $"{result.Groups} groups\n{result.Issues.Count} issues";
+        var hierarchy = new DataTree<int>();
+        foreach (var (level, group, elements) in result.Hierarchy())
+            hierarchy.AddRange(elements, new GH_Path(level, group));
+
+        da.SetDataList(16, result.Level);
+        da.SetDataTree(17, hierarchy);
+        da.SetDataList(18, result.Member);
+        da.SetDataList(19, result.Assembly);
+        da.SetDataList(20, result.Flow);
+        da.SetDataList(21, result.RoleLabels);
+
+        Message = result.Levels >= 0
+            ? $"{result.Groups} groups\n{result.Levels + 1} levels\n{result.Issues.Count} issues"
+            : $"{result.Groups} groups\n{result.Issues.Count} issues";
     }
 
     private static double[,] Rows(IReadOnlyList<Point3d> points)

@@ -268,6 +268,13 @@ Masters live once in `assets/icons` as PNGs, and every surface scales from them:
 | Rhino toolbar | base64 strips inside the `.rui` |
 | Package Manager listing | a loose copy in the package, named by `manifest.yml` |
 
+Most of those PNGs are placeholders drawn by `build/build-icons.py`, which
+defines each icon once as vector shapes and writes both the PNG and an SVG
+master under `assets/icons/svg`. Hand-drawn artwork is not in its list and is
+never overwritten, so retiring a placeholder is two steps: drop the finished PNG
+over it and delete its function from the script, or the next run draws the
+placeholder back.
+
 `EmbeddedIcons` lives in the Grasshopper project, which is now its only
 consumer — the Rhino side needs no icons at runtime because the toolbar carries
 its own inside the `.rui`. It is not in Core because Core and the domains are

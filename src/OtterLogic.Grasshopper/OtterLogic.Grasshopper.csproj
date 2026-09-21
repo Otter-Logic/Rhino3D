@@ -157,6 +157,51 @@
     <EmbeddedResource Include="..\..\assets\icons\gridpattern.png" LogicalName="OtterLogic.Icons.gridpattern.png" />
     <EmbeddedResource Include="..\..\assets\icons\TrussType.png" LogicalName="OtterLogic.Icons.trusstype.png" />
     <EmbeddedResource Include="..\..\assets\icons\layerpicker.png" LogicalName="OtterLogic.Icons.layerpicker.png" />
+    <!-- Placeholders drawn by build/build-icons.py; replace the PNG to replace the icon. -->
+    <EmbeddedResource Include="..\..\assets\icons\betweenness.png" LogicalName="OtterLogic.Icons.betweenness.png" />
+    <EmbeddedResource Include="..\..\assets\icons\branchpicker.png" LogicalName="OtterLogic.Icons.branchpicker.png" />
+    <EmbeddedResource Include="..\..\assets\icons\clusteragreement.png" LogicalName="OtterLogic.Icons.clusteragreement.png" />
+    <EmbeddedResource Include="..\..\assets\icons\clusteringmodel.png" LogicalName="OtterLogic.Icons.clusteringmodel.png" />
+    <EmbeddedResource Include="..\..\assets\icons\clusterquality.png" LogicalName="OtterLogic.Icons.clusterquality.png" />
+    <EmbeddedResource Include="..\..\assets\icons\clusterselector.png" LogicalName="OtterLogic.Icons.clusterselector.png" />
+    <EmbeddedResource Include="..\..\assets\icons\connectiontypology.png" LogicalName="OtterLogic.Icons.connectiontypology.png" />
+    <EmbeddedResource Include="..\..\assets\icons\consensusclustering.png" LogicalName="OtterLogic.Icons.consensusclustering.png" />
+    <EmbeddedResource Include="..\..\assets\icons\covariancetype.png" LogicalName="OtterLogic.Icons.covariancetype.png" />
+    <EmbeddedResource Include="..\..\assets\icons\cutvertices.png" LogicalName="OtterLogic.Icons.cutvertices.png" />
+    <EmbeddedResource Include="..\..\assets\icons\datamap.png" LogicalName="OtterLogic.Icons.datamap.png" />
+    <EmbeddedResource Include="..\..\assets\icons\evaluateclassification.png" LogicalName="OtterLogic.Icons.evaluateclassification.png" />
+    <EmbeddedResource Include="..\..\assets\icons\evaluateregression.png" LogicalName="OtterLogic.Icons.evaluateregression.png" />
+    <EmbeddedResource Include="..\..\assets\icons\gaussianaffinity.png" LogicalName="OtterLogic.Icons.gaussianaffinity.png" />
+    <EmbeddedResource Include="..\..\assets\icons\gaussianmixture.png" LogicalName="OtterLogic.Icons.gaussianmixture.png" />
+    <EmbeddedResource Include="..\..\assets\icons\geometryqa.png" LogicalName="OtterLogic.Icons.geometryqa.png" />
+    <EmbeddedResource Include="..\..\assets\icons\gridlevelinference.png" LogicalName="OtterLogic.Icons.gridlevelinference.png" />
+    <EmbeddedResource Include="..\..\assets\icons\groupsignature.png" LogicalName="OtterLogic.Icons.groupsignature.png" />
+    <EmbeddedResource Include="..\..\assets\icons\hdbscan.png" LogicalName="OtterLogic.Icons.hdbscan.png" />
+    <EmbeddedResource Include="..\..\assets\icons\hierarchicalclustering.png" LogicalName="OtterLogic.Icons.hierarchicalclustering.png" />
+    <EmbeddedResource Include="..\..\assets\icons\jointsignature.png" LogicalName="OtterLogic.Icons.jointsignature.png" />
+    <EmbeddedResource Include="..\..\assets\icons\kmeans.png" LogicalName="OtterLogic.Icons.kmeans.png" />
+    <EmbeddedResource Include="..\..\assets\icons\knnclassifier.png" LogicalName="OtterLogic.Icons.knnclassifier.png" />
+    <EmbeddedResource Include="..\..\assets\icons\knnregressor.png" LogicalName="OtterLogic.Icons.knnregressor.png" />
+    <EmbeddedResource Include="..\..\assets\icons\linkage.png" LogicalName="OtterLogic.Icons.linkage.png" />
+    <EmbeddedResource Include="..\..\assets\icons\logistic.png" LogicalName="OtterLogic.Icons.logistic.png" />
+    <EmbeddedResource Include="..\..\assets\icons\messagepassing.png" LogicalName="OtterLogic.Icons.messagepassing.png" />
+    <EmbeddedResource Include="..\..\assets\icons\multiviewclustering.png" LogicalName="OtterLogic.Icons.multiviewclustering.png" />
+    <EmbeddedResource Include="..\..\assets\icons\neighbourgraph.png" LogicalName="OtterLogic.Icons.neighbourgraph.png" />
+    <EmbeddedResource Include="..\..\assets\icons\neighbourweighting.png" LogicalName="OtterLogic.Icons.neighbourweighting.png" />
+    <EmbeddedResource Include="..\..\assets\icons\paneltypology.png" LogicalName="OtterLogic.Icons.paneltypology.png" />
+    <EmbeddedResource Include="..\..\assets\icons\preparefeatures.png" LogicalName="OtterLogic.Icons.preparefeatures.png" />
+    <EmbeddedResource Include="..\..\assets\icons\principalcomponents.png" LogicalName="OtterLogic.Icons.principalcomponents.png" />
+    <EmbeddedResource Include="..\..\assets\icons\readdataset.png" LogicalName="OtterLogic.Icons.readdataset.png" />
+    <EmbeddedResource Include="..\..\assets\icons\refinelabels.png" LogicalName="OtterLogic.Icons.refinelabels.png" />
+    <EmbeddedResource Include="..\..\assets\icons\ridge.png" LogicalName="OtterLogic.Icons.ridge.png" />
+    <EmbeddedResource Include="..\..\assets\icons\shapesignature.png" LogicalName="OtterLogic.Icons.shapesignature.png" />
+    <EmbeddedResource Include="..\..\assets\icons\shortestpaths.png" LogicalName="OtterLogic.Icons.shortestpaths.png" />
+    <EmbeddedResource Include="..\..\assets\icons\sixdofclassifier.png" LogicalName="OtterLogic.Icons.sixdofclassifier.png" />
+    <EmbeddedResource Include="..\..\assets\icons\spectralclustering.png" LogicalName="OtterLogic.Icons.spectralclustering.png" />
+    <EmbeddedResource Include="..\..\assets\icons\splitbygroup.png" LogicalName="OtterLogic.Icons.splitbygroup.png" />
+    <EmbeddedResource Include="..\..\assets\icons\structuralinsight.png" LogicalName="OtterLogic.Icons.structuralinsight.png" />
+    <EmbeddedResource Include="..\..\assets\icons\unplacedpolicy.png" LogicalName="OtterLogic.Icons.unplacedpolicy.png" />
+    <EmbeddedResource Include="..\..\assets\icons\writedataset.png" LogicalName="OtterLogic.Icons.writedataset.png" />
   </ItemGroup>
 
 </Project>
