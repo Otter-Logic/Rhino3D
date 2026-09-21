@@ -18,6 +18,7 @@ name is no help.
 |---|---|---|
 | `Rhino3D` | both adaptors, `build/`, `assets/`, `docs/` | the `.yak` |
 | `Core` | `src/OtterLogic.Core` | NuGet package `OtterLogic.Core` |
+| `Graphs` | the graph contract and the training-free algorithms over it — shortest paths, centrality, cut vertices, flow; references nothing | NuGet package `OtterLogic.Graphs` |
 | `MachineLearning` | the shared ML base, `python/`, `models/` | NuGet package `OtterLogic.MachineLearning` |
 | `Unsupervised` | clustering and model selection, its own `python/` fixtures | NuGet package `OtterLogic.Unsupervised` |
 | `Supervised` | the baselines fitted at solve time — nearest neighbours, ridge, logistic — and the evaluation reports, its own `python/` fixtures | NuGet package `OtterLogic.Supervised` |
@@ -45,8 +46,8 @@ repo called `.github`, which costs nothing.
 
 Later domains (`Fabrication`, `FormFinding`) become siblings of `StructuralForm`
 and `StructuralDesign` on the same pattern. The machine learning repos are not
-siblings of those — they are layers beneath them. `MachineLearning` pins Core the
-way a toolkit does; each paradigm repo pins `MachineLearning` and nothing else at
+siblings of those — they are layers beneath them. `MachineLearning` pins Core and
+Graphs the way a toolkit does; each paradigm repo pins `MachineLearning` and nothing else at
 its own level.
 
 Repos are created for a new **paradigm** or a new **engineering domain**, never

@@ -9,8 +9,8 @@ in Core — not that the two should be coupled.
 There is one sanctioned exception, the machine learning stack, described below.
 
 ```
-                    OtterLogic.Core
-              small, stable, slow-moving
+          OtterLogic.Core      OtterLogic.Graphs
+   small, stable, slow-moving - neither references the other
                           ↑
               OtterLogic.MachineLearning
      shared ML base - features, decomposition, datasets, ONNX

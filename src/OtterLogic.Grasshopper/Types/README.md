@@ -19,6 +19,14 @@ public sealed class GH_Truss : GH_Goo<FlatTruss>
 }
 ```
 
+`GH_Graph` is the first real one: a `WeightedGraph` from the Graphs repo plus,
+optionally, where its nodes are. The positions sit beside the graph in
+`PlacedGraph` rather than inside it, because Graphs references nothing and knows
+nothing of geometry — carrying them is what lets a component answer with a
+polyline instead of a list of indices. It implements `IGH_PreviewData`, so a
+placed graph draws itself in the viewport. Its parameter is
+`Parameters/Graphs/GraphParameter`.
+
 Rule of thumb: only wrap what a *user* would plug into another component. Plain
 values (numbers, meshes, points) already have Grasshopper types — don't reinvent
 them.

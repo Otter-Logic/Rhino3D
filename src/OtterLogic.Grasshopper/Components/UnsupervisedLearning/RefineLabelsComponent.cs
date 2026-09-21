@@ -10,7 +10,7 @@ namespace OtterLogic.Grasshopper.Components.UnsupervisedLearning;
 /// Label propagation in its raw form: an existing labelling, passed over a
 /// graph.
 /// <para>
-/// Adapter only. The algorithm belongs to <see cref="MessagePassing.Refine(double[,], OtterLogic.MachineLearning.Graphs.WeightedGraph, PropagationOptions?)"/>.
+/// Adapter only. The algorithm belongs to <see cref="MessagePassing.Refine(double[,], OtterLogic.Graphs.WeightedGraph, PropagationOptions?)"/>.
 /// </para>
 /// </summary>
 public sealed class RefineLabelsComponent : GH_Component

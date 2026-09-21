@@ -237,6 +237,7 @@ src/OtterLogic.Document/        domain, separate repo (Document_Tool) — readin
 src/OtterLogic.StructuralForm/  domain: trusses, frames, discrete layouts
 src/OtterLogic.FormFinding/     domain, planned — relaxation and equilibrium
 src/OtterLogic.Fabrication/     domain, planned — unrolling, nesting, toolpaths
+src/OtterLogic.Graphs/          foundation, separate repo — the graph contract, routes, centrality, flow
 src/OtterLogic.MachineLearning/ layer, separate repo — clustering, inference, datasets
 src/OtterLogic.Clustering/      toolkit, separate repo (Clustering_Tool) — picks the clustering model
 src/OtterLogic.Rhino/           adaptor: .rhp — commands, conduits, the Eto panel

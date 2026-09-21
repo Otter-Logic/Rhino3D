@@ -2,7 +2,8 @@ using System.Drawing;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
-using OtterLogic.MachineLearning.Graphs;
+using OtterLogic.Graphs;
+using OtterLogic.MachineLearning.Distances;
 
 namespace OtterLogic.Grasshopper.Components.UnsupervisedLearning;
 
@@ -10,7 +11,7 @@ namespace OtterLogic.Grasshopper.Components.UnsupervisedLearning;
 /// The nearest-neighbour graph of a set of samples, in the Connectivity and
 /// Weights shape every graph component takes.
 /// <para>
-/// Adapter only. The graph belongs to <see cref="WeightedGraph.NearestNeighbours"/>.
+/// Adapter only. The graph belongs to <see cref="NeighbourGraph.Of"/>.
 /// </para>
 /// </summary>
 public sealed class NeighbourGraphComponent : GH_Component
@@ -87,7 +88,7 @@ public sealed class NeighbourGraphComponent : GH_Component
 
         try
         {
-            var graph = WeightedGraph.NearestNeighbours(data, neighbours);
+            var graph = NeighbourGraph.Of(data, neighbours);
             graph.ConnectedComponents(out int components);
             var (connectivity, weights) = GraphData.ToTrees(graph);
 

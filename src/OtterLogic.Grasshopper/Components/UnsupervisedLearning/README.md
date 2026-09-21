@@ -3,13 +3,26 @@
 The raw unsupervised methods, for somebody assembling their own pipeline. Every
 setting exposed, no opinion about the data. Adaptors only — the algorithms live
 in the [Unsupervised](https://github.com/Otter-Logic/Unsupervised) repo,
-`OtterLogic.Unsupervised`, and the graph type and feature preparation they share
-with every other paradigm one layer below that in
-[MachineLearning](https://github.com/Otter-Logic/MachineLearning).
+`OtterLogic.Unsupervised`, the feature preparation they share with every other
+paradigm one layer below that in
+[MachineLearning](https://github.com/Otter-Logic/MachineLearning), and the graph
+type below that again in [Graphs](https://github.com/Otter-Logic/Graphs).
+
+What *builds* a graph from samples is here — measuring how alike two samples are
+is a learning question. What *reads* a graph once it exists — routes, flow, cut
+vertices, betweenness — is under the **Graphs** panel, where somebody who is not
+doing machine learning will look for it. Shortest Paths (now Dijkstra Shortest
+Path), Betweenness and Cut Vertices moved there from this panel under the
+`ComponentGuid`s they always had.
+
+Those components take a single **Graph** wire rather than trees. The components
+here keep Connectivity trees, because a tree lines up branch for branch with
+Training Inputs; **Graph From Connectivity** and **Deconstruct Graph** in the
+Graphs panel convert between the two.
 
 | Tier (`GH_Exposure`) | Component | Library call |
 |---|---|---|
-| `secondary` — graphs | **Neighbour Graph** | `WeightedGraph.NearestNeighbours` |
+| `secondary` — graphs | **Neighbour Graph** | `NeighbourGraph.Of` |
 | | **Gaussian Affinity** | `Affinity.Gaussian` |
 | `tertiary` — methods | **K-Means Clustering** | `KMeans.Fit` |
 | | **Gaussian Mixture** | `GaussianMixture.Fit` |

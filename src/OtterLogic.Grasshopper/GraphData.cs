@@ -1,7 +1,7 @@
 using Grasshopper;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
-using OtterLogic.MachineLearning.Graphs;
+using OtterLogic.Graphs;
 
 namespace OtterLogic.Grasshopper;
 
@@ -21,11 +21,11 @@ internal static class GraphData
 {
     /// <summary>The wording every component uses for the Connectivity input, so they cannot drift.</summary>
     public const string ConnectivityDescription =
-        "One branch per sample, listing the indices of the samples it is connected to — the shape "
+        "One branch per node, listing the indices of the nodes it is connected to — the shape "
         + "Proximity 3D puts out on its Links output, or Neighbour Graph on its Connectivity.\n\n"
-        + "Branch position is the sample index, so there must be exactly one branch per sample, in "
-        + "the same order as Training Inputs. An empty branch is a sample connected to nothing. "
-        + "Listing an edge from both ends is fine; it counts once.";
+        + "Branch position is the node index, so there must be exactly one branch per node — and "
+        + "where the nodes are samples, in the same order as Training Inputs. An empty branch is a "
+        + "node connected to nothing. Listing an edge from both ends is fine; it counts once.";
 
     /// <summary>The wording every component uses for the optional Weights input.</summary>
     public const string WeightsDescription =
@@ -53,6 +53,48 @@ internal static class GraphData
         out string? problem)
     {
         graph = null;
+        if (!TryReadPairs(connectivity, weights, nodeCount, allowNegative: false, out var edges, out problem))
+            return false;
+
+        graph = WeightedGraph.FromEdges(nodeCount, edges);
+        return true;
+    }
+
+    /// <summary>
+    /// Reads the same trees as arcs: branch i lists the heads of the arcs leaving
+    /// node i, so listing j under i says nothing about i under j.
+    /// <para>
+    /// Separate from <see cref="TryRead"/> because a <see cref="WeightedGraph"/>
+    /// folds an edge listed from both ends into one, and here the two directions
+    /// are two arcs. A head listed twice in one branch with two weights keeps the
+    /// smaller: on this wire a weight is most often a cost, and the cheaper of two
+    /// ways from a to b is the one any route would take.
+    /// </para>
+    /// </summary>
+    public static bool TryReadDirected(
+        GH_Structure<GH_Integer> connectivity,
+        GH_Structure<GH_Number>? weights,
+        int nodeCount,
+        out DirectedGraph? graph,
+        out string? problem)
+    {
+        graph = null;
+        if (!TryReadPairs(connectivity, weights, nodeCount, allowNegative: true, out var arcs, out problem))
+            return false;
+
+        graph = DirectedGraph.FromArcs(nodeCount, arcs, DuplicateArcs.KeepSmallest);
+        return true;
+    }
+
+    private static bool TryReadPairs(
+        GH_Structure<GH_Integer> connectivity,
+        GH_Structure<GH_Number>? weights,
+        int nodeCount,
+        bool allowNegative,
+        out List<(int, int, double)> edges,
+        out string? problem)
+    {
+        edges = new List<(int, int, double)>();
         problem = null;
 
         var branches = connectivity.Branches;
@@ -85,7 +127,6 @@ internal static class GraphData
             }
         }
 
-        var edges = new List<(int, int, double)>();
         for (int i = 0; i < branches.Count; i++)
         {
             for (int j = 0; j < branches[i].Count; j++)
@@ -109,10 +150,11 @@ internal static class GraphData
                 {
                     GH_Number? value = weights.Branches[i][j];
                     if (value is null || double.IsNaN(value.Value) || double.IsInfinity(value.Value)
-                        || value.Value < 0.0)
+                        || (!allowNegative && value.Value < 0.0))
                     {
                         problem = $"Branch {i} of Weights holds {value?.Value.ToString() ?? "a null"} "
-                            + $"at position {j}. Weights must be finite and not negative.";
+                            + $"at position {j}. Weights must be finite"
+                            + (allowNegative ? "." : " and not negative.");
                         return false;
                     }
 
@@ -123,8 +165,29 @@ internal static class GraphData
             }
         }
 
-        graph = WeightedGraph.FromEdges(nodeCount, edges);
         return true;
+    }
+
+    /// <summary>
+    /// A directed graph as the same two trees — one branch per node, listing the
+    /// heads of the arcs that leave it, ascending.
+    /// </summary>
+    public static (DataTree<int> Connectivity, DataTree<double> Weights) ToTrees(DirectedGraph graph)
+    {
+        var connectivity = new DataTree<int>();
+        var weights = new DataTree<double>();
+
+        for (int i = 0; i < graph.NodeCount; i++)
+        {
+            var path = new GH_Path(i);
+            connectivity.EnsurePath(path);
+            weights.EnsurePath(path);
+
+            connectivity.AddRange(graph.Successors(i).ToArray(), path);
+            weights.AddRange(graph.ArcWeights(i).ToArray(), path);
+        }
+
+        return (connectivity, weights);
     }
 
     /// <summary>

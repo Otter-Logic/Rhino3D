@@ -338,6 +338,26 @@ def shortestpaths():
     return i
 
 
+def astar():
+    i = Icon()
+    a, b = (4, 18.5), (20, 5.5)
+    # What was looked at: a lobe stretched towards the target, not a disc round the source.
+    i.fill(ellipse(11.5, 12.5, 11.0, 4.6, rot=-39), "#CFE2F6")
+    for x, y in ((9, 18), (8, 11.5), (14.5, 14.5), (13, 7.5), (17.5, 10.5)):
+        i.dot(x, y, 1.0, G)
+    i.stroke([a, (9.5, 13.5), (15, 9.5), b], 2.2, B)
+    i.node(*a, 2.1, B)
+    i.node(*b, 2.1, O)
+    # The star.
+    cx, cy, ro, ri = 5.5, 6.0, 3.6, 1.5
+    star = []
+    for k in range(10):
+        r = ro if k % 2 == 0 else ri
+        t = math.radians(-90 + 36 * k)
+        star.append((cx + r * math.cos(t), cy + r * math.sin(t)))
+    return i.fill(star, O)
+
+
 def betweenness():
     nodes = [(3.5, 5), (3.5, 19), (20.5, 5), (20.5, 19), (12, 12)]
     i = _graph(Icon(), nodes, [(0, 4), (1, 4), (2, 4), (3, 4), (0, 1), (2, 3)])
@@ -353,6 +373,120 @@ def cutvertices():
     i.stroke([(12, 16), (12, 22)], 1.5, O, dash=(1.2, 2.2))
     for k, (x, y) in enumerate(nodes):
         i.node(x, y, 2.6 if k == 3 else 1.8, O if k == 3 else "#FFFFFF")
+    return i
+
+
+def graph():
+    nodes = [(5, 6), (18.5, 4.5), (12, 12), (4.5, 19), (19.5, 18.5)]
+    i = _graph(Icon(), nodes, [(0, 1), (0, 2), (1, 2), (2, 3), (2, 4), (3, 4)], 1.6)
+    for x, y in nodes:
+        i.node(x, y, 2.3, B)
+    return i
+
+
+def _obstacle(i, x0, y0, x1, y1):
+    box = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
+    i.fill(box, "#F3C9A0")
+    return i.stroke(box, 1.3, O, closed=True)
+
+
+def graphfrompoints():
+    i = _obstacle(Icon(), 9, 8.5, 15, 15.5)
+    nodes = [(4, 4.5), (12, 3.5), (20, 5), (3.5, 12.5), (20.5, 12), (5, 20), (12.5, 20.5), (20, 19.5)]
+    _graph(i, nodes, [(0, 1), (1, 2), (0, 3), (2, 4), (3, 5), (4, 7), (5, 6), (6, 7)], 1.3)
+    for x, y in nodes:
+        i.node(x, y, 1.7, B)
+    return i
+
+
+def visibilitygraph():
+    i = _obstacle(Icon(), 8.5, 8, 15.5, 16)
+    a, b = (2.8, 13), (21.2, 11)
+    corners = [(8.5, 8), (15.5, 8), (15.5, 16), (8.5, 16)]
+    for c in (corners[0], corners[3]):
+        i.stroke([a, c], 1.0, G)
+    for c in (corners[1], corners[2]):
+        i.stroke([b, c], 1.0, G)
+    i.stroke([a, corners[0], corners[1], b], 2.2, B)
+    for x, y in corners:
+        i.node(x, y, 1.5, "#FFFFFF")
+    i.node(*a, 2.1, B)
+    return i.node(*b, 2.1, B)
+
+
+def graphfromconnectivity():
+    i = Icon()
+    for y in (5, 12, 19):
+        i.stroke([(2, y), (8, y)], 1.8, G)
+    i.arrow((9.5, 12), (14, 12), 1.6, K, 3.0)
+    nodes = [(17, 4.5), (21, 12), (16.5, 19.5)]
+    _graph(i, nodes, [(0, 1), (1, 2), (0, 2)], 1.4)
+    for x, y in nodes:
+        i.node(x, y, 1.9, B)
+    return i
+
+
+def deconstructgraph():
+    i = Icon()
+    nodes = [(3.5, 5), (8, 12), (3, 19.5)]
+    _graph(i, nodes, [(0, 1), (1, 2), (0, 2)], 1.4)
+    for x, y in nodes:
+        i.node(x, y, 1.9, B)
+    i.arrow((10.5, 12), (15, 12), 1.6, K, 3.0)
+    i.stroke([(17, 5), (22, 8)], 1.8, K)
+    i.stroke([(17, 17), (22, 20)], 1.8, K)
+    i.node(19.5, 12.5, 1.7, O)
+    return i
+
+
+def breadthfirst():
+    i = Icon()
+    i.ring(12, 12, 9.5, 1.0, G, dash=(1.0, 2.2))
+    i.ring(12, 12, 5.2, 1.0, G, dash=(1.0, 2.2))
+    inner = [(12, 6.8), (16.6, 14.4), (7.4, 14.4)]
+    outer = [(12, 2.5), (20.2, 16.8), (3.8, 16.8), (19.8, 6.6), (4.2, 6.6)]
+    for x, y in inner:
+        i.stroke([(12, 12), (x, y)], 1.3, K)
+    for (a, b) in ((inner[0], outer[0]), (inner[1], outer[1]), (inner[2], outer[2]), (inner[0], outer[3]), (inner[0], outer[4])):
+        i.stroke([a, b], 1.3, K)
+    for x, y in outer:
+        i.node(x, y, 1.6, N)
+    for x, y in inner:
+        i.node(x, y, 1.8, B)
+    return i.node(12, 12, 2.3, O)
+
+
+def connectedpieces():
+    nodes = [(4, 5), (11, 4), (7.5, 11), (14, 17), (20.5, 13), (19, 20.5), (4.5, 19.5)]
+    i = _graph(Icon(), nodes, [(0, 1), (1, 2), (0, 2), (3, 4), (4, 5), (3, 5)])
+    for k, (x, y) in enumerate(nodes):
+        i.node(x, y, 2.0, B if k < 3 else O if k < 6 else G)
+    return i
+
+
+def dependencylevels():
+    i = Icon()
+    for y in (5, 12, 19):
+        i.stroke([(2, y), (22, y)], 1.0, G, dash=(1.0, 2.2))
+    top, mid, low = [(12, 5)], [(6.5, 12), (17.5, 12)], [(4, 19), (12, 19), (20, 19)]
+    for a, b in ((top[0], mid[0]), (top[0], mid[1]), (mid[0], low[0]), (mid[0], low[1]), (mid[1], low[1]), (mid[1], low[2])):
+        i.arrow(a, (b[0] + (a[0] - b[0]) * 0.28, b[1] + (a[1] - b[1]) * 0.28), 1.3, K, 2.6)
+    for pts, c in ((top, O), (mid, B), (low, N)):
+        for x, y in pts:
+            i.node(x, y, 2.0, c)
+    return i
+
+
+def potentialflow():
+    nodes = [(3.5, 12), (12, 5), (12, 19), (20.5, 12)]
+    i = Icon()
+    i.stroke([nodes[1], nodes[2]], 1.0, G)
+    for a, b, w in ((0, 1, 3.0), (1, 3, 3.0), (0, 2, 1.6), (2, 3, 1.6)):
+        i.stroke([nodes[a], nodes[b]], w, B)
+    i.node(*nodes[0], 2.3, O)
+    i.node(*nodes[1], 1.9, "#FFFFFF")
+    i.node(*nodes[2], 1.9, "#FFFFFF")
+    i.node(*nodes[3], 2.3, K)
     return i
 
 
@@ -652,7 +786,8 @@ ICONS = {f.__name__: f for f in (
     flattruss, branchpicker,
     readdataset, writedataset, splitbygroup, shapesignature,
     preparefeatures, principalcomponents, neighbourgraph, gaussianaffinity, datamap,
-    shortestpaths, betweenness, cutvertices,
+    graph, graphfrompoints, visibilitygraph, graphfromconnectivity, deconstructgraph,
+    shortestpaths, astar, breadthfirst, betweenness, cutvertices, connectedpieces, dependencylevels, potentialflow,
     kmeans, gaussianmixture, hdbscan, hierarchicalclustering, spectralclustering,
     consensusclustering, multiviewclustering, messagepassing, clusterselector,
     refinelabels, groupsignature, clusterquality, clusteragreement,

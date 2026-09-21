@@ -2,7 +2,7 @@ using System.Drawing;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
-using OtterLogic.MachineLearning.Graphs;
+using OtterLogic.Graphs;
 using OtterLogic.Unsupervised.Clustering;
 
 namespace OtterLogic.Grasshopper.Components.UnsupervisedLearning;
