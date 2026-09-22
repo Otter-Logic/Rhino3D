@@ -782,6 +782,35 @@ def jointsignature():
     return i.node(*c, 2.3, "#FFFFFF")
 
 
+def erectionsequence():
+    """A frame going up: what stands is black, the piece landing is blue, with the
+    hook it comes down on. The dotted line is the ground."""
+    i = Icon()
+    i.stroke([(2, 21), (22, 21)], 1.0, G, dash=(1.0, 2.2))
+    i.stroke([(6, 21), (6, 12)], 1.8, K).stroke([(16, 21), (16, 12)], 1.8, K)
+    i.stroke([(6, 12), (16, 12)], 1.8, K)
+    i.stroke([(6, 12), (6, 7)], 1.8, K).stroke([(16, 12), (16, 7)], 1.8, K)
+    i.stroke([(6, 5), (16, 5)], 2.0, B)
+    i.stroke([(11, 1.5), (11, 3.4)], 1.2, K)
+    i.stroke(arc(11, 4.4, 1.0, 180, 360, 8), 1.2, K)
+    i.arrow((20.5, 5), (20.5, 10.5), 1.3, O, 2.6)
+    return i
+
+
+def dropanimation():
+    """A piece in the air on its way down to the outline waiting for it, with the
+    slider that drives it along the bottom."""
+    i = Icon()
+    i.stroke([(5, 15), (19, 15)], 1.6, G, dash=(1.4, 1.6))
+    i.stroke([(5, 6), (19, 6)], 2.2, B)
+    for x in (9, 15):
+        i.stroke([(x, 8.5), (x, 11.5)], 1.0, G)
+    i.arrow((12, 8), (12, 13), 1.4, K, 2.8)
+    i.stroke([(3, 20.5), (21, 20.5)], 1.2, K)
+    i.node(11, 20.5, 2.0, O)
+    return i
+
+
 ICONS = {f.__name__: f for f in (
     flattruss, branchpicker,
     readdataset, writedataset, splitbygroup, shapesignature,
@@ -795,6 +824,7 @@ ICONS = {f.__name__: f for f in (
     covariancetype, linkage, clusteringmodel, neighbourweighting, unplacedpolicy,
     geometryqa, gridlevelinference, sixdofclassifier, structuralinsight,
     paneltypology, connectiontypology, jointsignature,
+    erectionsequence, dropanimation,
 )}
 
 

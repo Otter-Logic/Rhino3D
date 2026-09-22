@@ -314,8 +314,9 @@ the display conduits.
 
 `StationLayout` — shared by `FlatTrussGenerator` and `BoxTrussGenerator`, and
 lifted out of the first when the second arrived — places nodes at *stations* — positions from 0 to 1 along a
-chord, measured as a fraction of its length. One list, shared by both chords, so
-top node `i` and bottom node `i` sit at the same station and every web pattern
+chord, measured as a fraction of its length. One list **per chord**, paired by
+index, so top node `i` and bottom node `i` are one panel point and every web
+pattern
 stays index arithmetic over panel count.
 
 Nothing in the layout knows how many chords there are. A flat truss hands it two

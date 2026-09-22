@@ -2,7 +2,7 @@ using System.Drawing;
 using Grasshopper;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
-using OtterLogic.StructuralDesign;
+using OtterLogic.Fabrication;
 
 namespace OtterLogic.Grasshopper.Components.Fabrication;
 

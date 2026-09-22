@@ -70,8 +70,7 @@ jobs:
           token: ${{ secrets.OTTER_CI_TOKEN }}
 
       # The machine learning stack, bottom up: the shared base, then the
-      # paradigm repos holding the algorithms, then the toolkits with the
-      # opinions - StructuralDesign and Fabrication both sit on it.
+      # paradigm repos holding the algorithms.
       - uses: actions/checkout@v4
         with:
           repository: Otter-Logic/MachineLearning
@@ -90,10 +89,25 @@ jobs:
           path: Supervised
           token: ${{ secrets.OTTER_CI_TOKEN }}
 
+      # The structural stack sits on the learning stack: the shared engine that
+      # reads a model, then the toolkits with the opinions - StructuralDesign,
+      # Construction and Fabrication all read the model through it.
+      - uses: actions/checkout@v4
+        with:
+          repository: Otter-Logic/StructuralEngine
+          path: StructuralEngine
+          token: ${{ secrets.OTTER_CI_TOKEN }}
+
       - uses: actions/checkout@v4
         with:
           repository: Otter-Logic/StructuralDesign
           path: StructuralDesign
+          token: ${{ secrets.OTTER_CI_TOKEN }}
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Otter-Logic/Construction
+          path: Construction
           token: ${{ secrets.OTTER_CI_TOKEN }}
 
       - uses: actions/checkout@v4

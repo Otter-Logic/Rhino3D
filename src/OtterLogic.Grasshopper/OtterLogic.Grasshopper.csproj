@@ -117,6 +117,32 @@
        Behaviour Classifier and the Structural Insight Engine. The clustering
        they run on lives one layer down in Unsupervised. -->
   <Choose>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\StructuralEngine\src\OtterLogic.StructuralEngine\OtterLogic.StructuralEngine.csproj')">
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\StructuralEngine\src\OtterLogic.StructuralEngine\OtterLogic.StructuralEngine.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="OtterLogic.StructuralEngine" Version="[$(Version)]" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
+  <Choose>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\Construction\src\OtterLogic.Construction\OtterLogic.Construction.csproj')">
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\Construction\src\OtterLogic.Construction\OtterLogic.Construction.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="OtterLogic.Construction" Version="[$(Version)]" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
+  <Choose>
     <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\StructuralDesign\src\OtterLogic.StructuralDesign\OtterLogic.StructuralDesign.csproj')">
       <ItemGroup>
         <ProjectReference Include="..\..\..\StructuralDesign\src\OtterLogic.StructuralDesign\OtterLogic.StructuralDesign.csproj" />
@@ -174,6 +200,8 @@
     <EmbeddedResource Include="..\..\assets\icons\datamap.png" LogicalName="OtterLogic.Icons.datamap.png" />
     <EmbeddedResource Include="..\..\assets\icons\deconstructgraph.png" LogicalName="OtterLogic.Icons.deconstructgraph.png" />
     <EmbeddedResource Include="..\..\assets\icons\dependencylevels.png" LogicalName="OtterLogic.Icons.dependencylevels.png" />
+    <EmbeddedResource Include="..\..\assets\icons\dropanimation.png" LogicalName="OtterLogic.Icons.dropanimation.png" />
+    <EmbeddedResource Include="..\..\assets\icons\erectionsequence.png" LogicalName="OtterLogic.Icons.erectionsequence.png" />
     <EmbeddedResource Include="..\..\assets\icons\evaluateclassification.png" LogicalName="OtterLogic.Icons.evaluateclassification.png" />
     <EmbeddedResource Include="..\..\assets\icons\evaluateregression.png" LogicalName="OtterLogic.Icons.evaluateregression.png" />
     <EmbeddedResource Include="..\..\assets\icons\gaussianaffinity.png" LogicalName="OtterLogic.Icons.gaussianaffinity.png" />

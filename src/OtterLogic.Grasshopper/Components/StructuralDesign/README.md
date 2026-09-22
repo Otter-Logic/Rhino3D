@@ -2,7 +2,10 @@
 
 Multipurpose tools for structural engineering. Adaptors only — the engines live
 in the [StructuralDesign](https://github.com/Otter-Logic/StructuralDesign) repo,
-`OtterLogic.StructuralDesign`; the clustering they run on lives one layer down in
+`OtterLogic.StructuralDesign`; how they read a model — joints, members,
+assemblies, load paths — lives one layer down in
+[StructuralEngine](https://github.com/Otter-Logic/StructuralEngine), shared with
+the Construction and Fabrication tools; the clustering below that in
 [Unsupervised](https://github.com/Otter-Logic/Unsupervised), and the feature
 preparation and graphs below that in
 [MachineLearning](https://github.com/Otter-Logic/MachineLearning).
@@ -41,9 +44,9 @@ preparation and graphs below that in
   misalignment, each with the geometry to look at. Read as strictly as a solver
   reads it, and judged against the model's own habits rather than a rulebook.
 
-Joint Signature and Connection Typology read joints with the same machinery but
-sit in the **Fabrication** panel, because connection detailing is the fabricator's
-question.
+Joint Signature and Connection Typology read joints with the same machinery and
+now live in the Fabrication repo as well as the **Fabrication** panel, because
+connection detailing is the fabricator's question.
 
 Features and Connectivity from the Insight Engine plug straight into the
 Unsupervised Learning components, so a user can take the grouping further with

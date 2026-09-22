@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+using System.Drawing;
 using Grasshopper;
 using Grasshopper.Kernel;
 
@@ -48,20 +48,47 @@ public sealed class OtterLogicPriority : GH_AssemblyPriority
 /// literally what names the ribbon tab, so a typo silently creates a second one.
 /// <para>
 /// The values come from <see cref="OtterLogic.Core.Sections"/>, which the Rhino
-/// toolbar also reads, so the two cannot drift apart.
+/// toolbar also reads, so the two cannot drift apart. The panels are the section
+/// names with a hidden prefix that puts them in <see cref="Sections.Order"/>:
+/// Grasshopper sorts a tab's panels by name and offers a plug-in no other say in
+/// the matter, but its sort (GH_Layout.StringSort, for RH-83156) puts a name
+/// with more leading whitespace first and counts the zero-width space U+200B as
+/// whitespace. That character draws at no width, so a run of them orders the
+/// panels and the labels still centre like Grasshopper's own. Ordinary spaces
+/// sort the same way but are drawn, and pushed every label off centre. Graphs
+/// gets the longest run and sits leftmost. Category and SubCategory are
+/// display-only — a saved definition keys on ComponentGuid — so the prefix
+/// breaks nothing and can change freely.
 /// </para>
 /// </summary>
 public static class Categories
 {
     public const string Root = OtterLogic.Core.Sections.Root;
 
-    public const string Document = OtterLogic.Core.Sections.Document;
-    public const string StructuralForm = OtterLogic.Core.Sections.StructuralForm;
-    public const string StructuralDesign = OtterLogic.Core.Sections.StructuralDesign;
-    public const string FormFinding = OtterLogic.Core.Sections.FormFinding;
-    public const string Fabrication = OtterLogic.Core.Sections.Fabrication;
-    public const string Graphs = OtterLogic.Core.Sections.Graphs;
-    public const string MachineLearning = OtterLogic.Core.Sections.MachineLearning;
-    public const string UnsupervisedLearning = OtterLogic.Core.Sections.UnsupervisedLearning;
-    public const string SupervisedLearning = OtterLogic.Core.Sections.SupervisedLearning;
+    public static readonly string Document = Ranked(OtterLogic.Core.Sections.Document);
+    public static readonly string StructuralForm = Ranked(OtterLogic.Core.Sections.StructuralForm);
+    public static readonly string StructuralDesign = Ranked(OtterLogic.Core.Sections.StructuralDesign);
+    public static readonly string FormFinding = Ranked(OtterLogic.Core.Sections.FormFinding);
+    public static readonly string Fabrication = Ranked(OtterLogic.Core.Sections.Fabrication);
+    public static readonly string Construction = Ranked(OtterLogic.Core.Sections.Construction);
+    public static readonly string Graphs = Ranked(OtterLogic.Core.Sections.Graphs);
+    public static readonly string MachineLearning = Ranked(OtterLogic.Core.Sections.MachineLearning);
+    public static readonly string UnsupervisedLearning = Ranked(OtterLogic.Core.Sections.UnsupervisedLearning);
+    public static readonly string SupervisedLearning = Ranked(OtterLogic.Core.Sections.SupervisedLearning);
+
+    /// <summary>
+    /// The section name behind a run of zero-width spaces long enough to sort it
+    /// into its place: one more than every section after it, so the last needs
+    /// none. A section missing from the order sorts after every ranked one, by
+    /// its own name, rather than throwing — a forgotten entry should cost a panel
+    /// its place, not the plugin its load.
+    /// </summary>
+    private static string Ranked(string section)
+    {
+        int index = Array.IndexOf(OtterLogic.Core.Sections.Order, section);
+        if (index < 0)
+            return section;
+
+        return new string('\u200B', OtterLogic.Core.Sections.Order.Length - index) + section;
+    }
 }

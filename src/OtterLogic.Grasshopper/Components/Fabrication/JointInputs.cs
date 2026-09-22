@@ -4,7 +4,7 @@ using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
 using Rhino;
 using Rhino.Geometry;
-using OtterLogic.StructuralDesign;
+using OtterLogic.Fabrication;
 
 namespace OtterLogic.Grasshopper.Components.Fabrication;
 
