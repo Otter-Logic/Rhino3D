@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <RootNamespace>OtterLogic.Grasshopper</RootNamespace>
@@ -52,21 +52,6 @@
     </Otherwise>
   </Choose>
 
-  <!-- Supervised: where the classification and regression components' algorithms
-       live. A sibling checkout wins; the published package is the fallback. -->
-  <Choose>
-    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\Supervised\src\OtterLogic.Supervised\OtterLogic.Supervised.csproj')">
-      <ItemGroup>
-        <ProjectReference Include="..\..\..\Supervised\src\OtterLogic.Supervised\OtterLogic.Supervised.csproj" />
-      </ItemGroup>
-    </When>
-    <Otherwise>
-      <ItemGroup>
-        <PackageReference Include="OtterLogic.Supervised" Version="[$(Version)]" />
-      </ItemGroup>
-    </Otherwise>
-  </Choose>
-
   <!-- A sibling checkout of MachineLearning wins; the published package is the
        fallback. It is a layer rather than a domain - it sits above Core and
        below the toolkits, and a toolkit may reference it. -->
@@ -79,6 +64,22 @@
     <Otherwise>
       <ItemGroup>
         <PackageReference Include="OtterLogic.MachineLearning" Version="[$(Version)]" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
+  <!-- MachineLearning.Inference: ONNX Runtime, in its own project because it is
+       the one dependency with native binaries. Referenced here so Predict can
+       open a model; the natives are copied up beside the .gha below. -->
+  <Choose>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\MachineLearning\src\OtterLogic.MachineLearning.Inference\OtterLogic.MachineLearning.Inference.csproj')">
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\MachineLearning\src\OtterLogic.MachineLearning.Inference\OtterLogic.MachineLearning.Inference.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="OtterLogic.MachineLearning.Inference" Version="[$(Version)]" />
       </ItemGroup>
     </Otherwise>
   </Choose>
@@ -186,60 +187,60 @@
     <!-- Placeholders drawn by build/build-icons.py; replace the PNG to replace the icon. -->
     <EmbeddedResource Include="..\..\assets\icons\astar.png" LogicalName="OtterLogic.Icons.astar.png" />
     <EmbeddedResource Include="..\..\assets\icons\betweenness.png" LogicalName="OtterLogic.Icons.betweenness.png" />
+    <EmbeddedResource Include="..\..\assets\icons\boostedtrees.png" LogicalName="OtterLogic.Icons.boostedtrees.png" />
     <EmbeddedResource Include="..\..\assets\icons\branchpicker.png" LogicalName="OtterLogic.Icons.branchpicker.png" />
     <EmbeddedResource Include="..\..\assets\icons\breadthfirst.png" LogicalName="OtterLogic.Icons.breadthfirst.png" />
-    <EmbeddedResource Include="..\..\assets\icons\clusteragreement.png" LogicalName="OtterLogic.Icons.clusteragreement.png" />
-    <EmbeddedResource Include="..\..\assets\icons\clusteringmodel.png" LogicalName="OtterLogic.Icons.clusteringmodel.png" />
-    <EmbeddedResource Include="..\..\assets\icons\clusterquality.png" LogicalName="OtterLogic.Icons.clusterquality.png" />
-    <EmbeddedResource Include="..\..\assets\icons\clusterselector.png" LogicalName="OtterLogic.Icons.clusterselector.png" />
+    <EmbeddedResource Include="..\..\assets\icons\clustermethod.png" LogicalName="OtterLogic.Icons.clustermethod.png" />
     <EmbeddedResource Include="..\..\assets\icons\connectedpieces.png" LogicalName="OtterLogic.Icons.connectedpieces.png" />
     <EmbeddedResource Include="..\..\assets\icons\connectiontypology.png" LogicalName="OtterLogic.Icons.connectiontypology.png" />
-    <EmbeddedResource Include="..\..\assets\icons\consensusclustering.png" LogicalName="OtterLogic.Icons.consensusclustering.png" />
     <EmbeddedResource Include="..\..\assets\icons\covariancetype.png" LogicalName="OtterLogic.Icons.covariancetype.png" />
     <EmbeddedResource Include="..\..\assets\icons\cutvertices.png" LogicalName="OtterLogic.Icons.cutvertices.png" />
-    <EmbeddedResource Include="..\..\assets\icons\datamap.png" LogicalName="OtterLogic.Icons.datamap.png" />
     <EmbeddedResource Include="..\..\assets\icons\deconstructgraph.png" LogicalName="OtterLogic.Icons.deconstructgraph.png" />
     <EmbeddedResource Include="..\..\assets\icons\dependencylevels.png" LogicalName="OtterLogic.Icons.dependencylevels.png" />
     <EmbeddedResource Include="..\..\assets\icons\dropanimation.png" LogicalName="OtterLogic.Icons.dropanimation.png" />
     <EmbeddedResource Include="..\..\assets\icons\erectionsequence.png" LogicalName="OtterLogic.Icons.erectionsequence.png" />
-    <EmbeddedResource Include="..\..\assets\icons\evaluateclassification.png" LogicalName="OtterLogic.Icons.evaluateclassification.png" />
-    <EmbeddedResource Include="..\..\assets\icons\evaluateregression.png" LogicalName="OtterLogic.Icons.evaluateregression.png" />
-    <EmbeddedResource Include="..\..\assets\icons\gaussianaffinity.png" LogicalName="OtterLogic.Icons.gaussianaffinity.png" />
     <EmbeddedResource Include="..\..\assets\icons\gaussianmixture.png" LogicalName="OtterLogic.Icons.gaussianmixture.png" />
     <EmbeddedResource Include="..\..\assets\icons\geometryqa.png" LogicalName="OtterLogic.Icons.geometryqa.png" />
     <EmbeddedResource Include="..\..\assets\icons\graph.png" LogicalName="OtterLogic.Icons.graph.png" />
     <EmbeddedResource Include="..\..\assets\icons\graphfromconnectivity.png" LogicalName="OtterLogic.Icons.graphfromconnectivity.png" />
     <EmbeddedResource Include="..\..\assets\icons\graphfrompoints.png" LogicalName="OtterLogic.Icons.graphfrompoints.png" />
     <EmbeddedResource Include="..\..\assets\icons\gridlevelinference.png" LogicalName="OtterLogic.Icons.gridlevelinference.png" />
-    <EmbeddedResource Include="..\..\assets\icons\groupsignature.png" LogicalName="OtterLogic.Icons.groupsignature.png" />
     <EmbeddedResource Include="..\..\assets\icons\hdbscan.png" LogicalName="OtterLogic.Icons.hdbscan.png" />
     <EmbeddedResource Include="..\..\assets\icons\hierarchicalclustering.png" LogicalName="OtterLogic.Icons.hierarchicalclustering.png" />
     <EmbeddedResource Include="..\..\assets\icons\jointsignature.png" LogicalName="OtterLogic.Icons.jointsignature.png" />
     <EmbeddedResource Include="..\..\assets\icons\kmeans.png" LogicalName="OtterLogic.Icons.kmeans.png" />
-    <EmbeddedResource Include="..\..\assets\icons\knnclassifier.png" LogicalName="OtterLogic.Icons.knnclassifier.png" />
-    <EmbeddedResource Include="..\..\assets\icons\knnregressor.png" LogicalName="OtterLogic.Icons.knnregressor.png" />
+    <EmbeddedResource Include="..\..\assets\icons\learner.png" LogicalName="OtterLogic.Icons.learner.png" />
+    <EmbeddedResource Include="..\..\assets\icons\linearmodel.png" LogicalName="OtterLogic.Icons.linearmodel.png" />
     <EmbeddedResource Include="..\..\assets\icons\linkage.png" LogicalName="OtterLogic.Icons.linkage.png" />
-    <EmbeddedResource Include="..\..\assets\icons\logistic.png" LogicalName="OtterLogic.Icons.logistic.png" />
-    <EmbeddedResource Include="..\..\assets\icons\messagepassing.png" LogicalName="OtterLogic.Icons.messagepassing.png" />
-    <EmbeddedResource Include="..\..\assets\icons\multiviewclustering.png" LogicalName="OtterLogic.Icons.multiviewclustering.png" />
-    <EmbeddedResource Include="..\..\assets\icons\neighbourgraph.png" LogicalName="OtterLogic.Icons.neighbourgraph.png" />
-    <EmbeddedResource Include="..\..\assets\icons\neighbourweighting.png" LogicalName="OtterLogic.Icons.neighbourweighting.png" />
+    <EmbeddedResource Include="..\..\assets\icons\nearestneighbours.png" LogicalName="OtterLogic.Icons.nearestneighbours.png" />
+    <EmbeddedResource Include="..\..\assets\icons\neuralnetwork.png" LogicalName="OtterLogic.Icons.neuralnetwork.png" />
+    <EmbeddedResource Include="..\..\assets\icons\ottercluster.png" LogicalName="OtterLogic.Icons.ottercluster.png" />
+    <EmbeddedResource Include="..\..\assets\icons\otterpredict.png" LogicalName="OtterLogic.Icons.otterpredict.png" />
+    <EmbeddedResource Include="..\..\assets\icons\ottertrain.png" LogicalName="OtterLogic.Icons.ottertrain.png" />
     <EmbeddedResource Include="..\..\assets\icons\paneltypology.png" LogicalName="OtterLogic.Icons.paneltypology.png" />
     <EmbeddedResource Include="..\..\assets\icons\potentialflow.png" LogicalName="OtterLogic.Icons.potentialflow.png" />
-    <EmbeddedResource Include="..\..\assets\icons\preparefeatures.png" LogicalName="OtterLogic.Icons.preparefeatures.png" />
-    <EmbeddedResource Include="..\..\assets\icons\principalcomponents.png" LogicalName="OtterLogic.Icons.principalcomponents.png" />
     <EmbeddedResource Include="..\..\assets\icons\readdataset.png" LogicalName="OtterLogic.Icons.readdataset.png" />
-    <EmbeddedResource Include="..\..\assets\icons\refinelabels.png" LogicalName="OtterLogic.Icons.refinelabels.png" />
-    <EmbeddedResource Include="..\..\assets\icons\ridge.png" LogicalName="OtterLogic.Icons.ridge.png" />
     <EmbeddedResource Include="..\..\assets\icons\shapesignature.png" LogicalName="OtterLogic.Icons.shapesignature.png" />
     <EmbeddedResource Include="..\..\assets\icons\shortestpaths.png" LogicalName="OtterLogic.Icons.shortestpaths.png" />
     <EmbeddedResource Include="..\..\assets\icons\sixdofclassifier.png" LogicalName="OtterLogic.Icons.sixdofclassifier.png" />
     <EmbeddedResource Include="..\..\assets\icons\spectralclustering.png" LogicalName="OtterLogic.Icons.spectralclustering.png" />
-    <EmbeddedResource Include="..\..\assets\icons\splitbygroup.png" LogicalName="OtterLogic.Icons.splitbygroup.png" />
     <EmbeddedResource Include="..\..\assets\icons\structuralinsight.png" LogicalName="OtterLogic.Icons.structuralinsight.png" />
     <EmbeddedResource Include="..\..\assets\icons\unplacedpolicy.png" LogicalName="OtterLogic.Icons.unplacedpolicy.png" />
     <EmbeddedResource Include="..\..\assets\icons\visibilitygraph.png" LogicalName="OtterLogic.Icons.visibilitygraph.png" />
     <EmbeddedResource Include="..\..\assets\icons\writedataset.png" LogicalName="OtterLogic.Icons.writedataset.png" />
   </ItemGroup>
+
+  <!-- ONNX Runtime's native onnxruntime.dll lands under runtimes/win-x64/native,
+       where an application's deps.json would find it. A .gha is not an
+       application: Grasshopper loads it into Rhino, whose probing knows nothing
+       of that folder, and the P/Invoke then fails with a DllNotFoundException
+       the first time Predict opens a model. .NET does probe the folder of the
+       managed assembly making the call, so the natives are copied up beside it. -->
+  <Target Name="CopyOnnxRuntimeNatives" AfterTargets="Build">
+    <ItemGroup>
+      <OnnxRuntimeNative Include="$(OutDir)runtimes\win-x64\native\*.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(OnnxRuntimeNative)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+  </Target>
 
 </Project>

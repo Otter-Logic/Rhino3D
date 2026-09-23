@@ -158,19 +158,17 @@ The panels split into two families, and a user only ever needs one of them.
 - **Form Finding** — relaxation and equilibrium. Empty; to be designed.
 - **Fabrication** — unrolling, nesting, toolpaths.
 
-**Named for a technique** — how it is done, one panel per learning paradigm,
-mirroring the repos:
+**Named for a technique** — how it is done:
 
-- **Unsupervised Learning** — every raw unsupervised method: k-means, Gaussian
-  mixture, HDBSCAN, spectral, hierarchical and message-passing clustering, the
-  graph builders they run on, and label refinement.
-- **Supervised Learning** — the raw supervised methods fitted at solve time:
-  nearest-neighbour classification and regression, ridge and logistic regression,
-  and the two Evaluate components that score a prediction from anywhere.
-- **Machine Learning** — the steps every paradigm shares: dataset capture (Write
-  Dataset, Read Dataset, Split By Group), feature preparation (Shape Signature),
-  and inference when it arrives.
-- **Reinforcement Learning** and **Deep Learning** arrive with their paradigm repos.
+- **Machine Learning** — one panel for every paradigm. Three cores take data and
+  a method on a wire: OtterCluster, OtterTrain, OtterPredict. Below them the
+  methods that go on that wire — K-Means, Gaussian Mixture, HDBSCAN, Spectral and
+  Hierarchical Clustering; Boosted Trees, Neural Network, Linear Model, Nearest
+  Neighbours — then the data steps (Write Dataset, Read Dataset, Shape Signature)
+  and the enum dropdowns. A new paradigm adds methods to this panel rather than a
+  panel of its own.
+- **Graphs** — the training-free graph methods: routes, flow, structure,
+  importance.
 
 Add sections there rather than typing category strings into components: the
 Category string is literally what names the tab, so one typo silently creates a
@@ -192,13 +190,15 @@ named for one without ever needing to know what a covariance shape is. Somebody
 driving a method directly, or reproducing what a finished tool did with their own
 choices, goes to the panel named for the technique.
 
-The technique panels were first one **Machine Learning** panel for every
-paradigm. They are now one per paradigm — **Unsupervised Learning** first —
-because that is how an advanced user looks for a raw method, and because a panel
-that mirrors a repo says where each component's algorithm lives. Machine Learning
-is kept for what the paradigms share, the same job its repo does. Inside each
-panel `GH_Exposure` still draws the stages — graphs or features, methods,
-refinement or evaluation, then enum dropdowns — without a subcategory each.
+The technique panel was for a while three — one per learning paradigm,
+mirroring the repos. That mirrored a distinction the person writing the code
+cares about and the person using it does not, and left someone who wanted to
+cluster something choosing between panels before they had chosen a method. It is
+one **Machine Learning** panel again, cut for a layperson: the cores at the top
+answer with nothing but data wired, and every method is a small component that
+outputs only a wire. `GH_Exposure` draws the tiers — cores, cluster methods,
+learners, data, dropdowns — without a subcategory each. The reasoning is in
+[ml-components.md](ml-components.md).
 
 ### Re-cutting the ribbon is free
 

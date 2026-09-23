@@ -35,11 +35,11 @@ branch per connection type and the one-offs as the last group:
 
 Also worth trying:
 
-- **Joint Signature → Prepare Features → Data Map**, coloured by type (Joint Index
-  says which joints are in each type): each type is
-  a point where all its joints sit on top of each other; the one-off sits alone.
-- **Joint Signature → Group Signature** with Feature Names wired, and your own
-  labels, to ask what any set of joints has in common.
+- **Joint Signature → OtterCluster** with Map on, coloured by type (Joint Index
+  says which joints are in each type): each type is a point where all its joints
+  sit on top of each other; the one-off sits alone.
+- The same, with Feature Names wired, and read its **Report**: it says what sets
+  each cluster of joints apart, in the signature's own column names.
 - **Minimum Type Size** at 3 on the frame: the two brace pairs become one-offs
   (8 types, 5 one-offs), and only connections made three times or more remain
   types.

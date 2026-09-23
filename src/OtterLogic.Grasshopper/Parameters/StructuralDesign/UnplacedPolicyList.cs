@@ -8,7 +8,7 @@ namespace OtterLogic.Grasshopper.Parameters.StructuralDesign;
 /// What to do with elements no group would take, as a dropdown for the Unassigned
 /// input of the 6DOF Behaviour Classifier.
 /// <para>
-/// In Structural Design rather than Unsupervised Learning, although the enum lives
+/// In Structural Design rather than Machine Learning, although the enum lives
 /// in Unsupervised: the person wiring the classifier should find everything it
 /// takes in the panel they are already in.
 /// </para>

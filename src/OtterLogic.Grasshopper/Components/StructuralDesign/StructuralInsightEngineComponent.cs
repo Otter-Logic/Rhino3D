@@ -52,7 +52,7 @@ public sealed class StructuralInsightEngineComponent : GH_Component
                + "used. Groups tend to be columns, chords, webs, primary and secondary framing, bracing, shell zones "
                + "and repeated modules — reading which is which is yours, downstream. Hierarchy sorts the groups "
                + "within the levels, the way a member schedule is laid out. Features and Connectivity plug straight "
-               + "into the Unsupervised Learning components to take it further.",
+               + "into OtterCluster and the Graphs components to take it further.",
                Categories.Root, Categories.StructuralDesign)
     {
     }
@@ -151,7 +151,7 @@ public sealed class StructuralInsightEngineComponent : GH_Component
 
         pManager.AddNumberParameter("Features", "F",
             "One branch per element, its raw features in model units, named by Feature Names — ready to wire into "
-            + "Training Inputs of any Unsupervised Learning component. Support Distance is -1 where there is no route.",
+            + "OtterCluster's Data. Support Distance is -1 where there is no route.",
             GH_ParamAccess.tree);
 
         pManager.AddTextParameter("Feature Names", "FN", "What each value of a Features branch is.", GH_ParamAccess.list);

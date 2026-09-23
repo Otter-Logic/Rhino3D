@@ -35,6 +35,14 @@ if ($LASTEXITCODE -ne 0) { throw 'Build failed.' }
 
 Copy-Item (Join-Path $PSScriptRoot 'manifest.yml') $dist -Force
 
+# ONNX Runtime's package drops natives for every platform it knows under
+# runtimes/ - Android, iOS, Linux, macOS, ARM - and yak would ship all of them,
+# which is four times the package for nothing: this is a Windows package, and
+# the win-x64 natives are already copied up beside the .gha by the Grasshopper
+# project (Rhino's probing does not look under runtimes/ anyway).
+$runtimes = Join-Path $dist 'runtimes'
+if (Test-Path $runtimes) { Remove-Item $runtimes -Recurse -Force }
+
 Write-Host 'Packing...' -ForegroundColor Cyan
 Push-Location $dist
 try {
@@ -42,7 +50,13 @@ try {
     # to push is then whichever file sorts newest - a coin toss worth removing.
     Get-ChildItem -Filter '*.yak' | Remove-Item -Force
 
-    & $yak build --platform win --version $version
+    # Yak writes its warnings to stderr, and under 'Stop' Windows PowerShell 5.1
+    # turns a native command's stderr line into a terminating error - the build
+    # then dies on a version-format warning that means nothing. The exit code is
+    # the verdict; the preference is relaxed for this one call.
+    $ErrorActionPreference = 'Continue'
+    & $yak build --platform win --version $version 2>&1 | ForEach-Object { Write-Host $_ }
+    $ErrorActionPreference = 'Stop'
     if ($LASTEXITCODE -ne 0) { throw 'yak build failed.' }
 
     $package = Get-ChildItem -Filter '*.yak' | Select-Object -First 1

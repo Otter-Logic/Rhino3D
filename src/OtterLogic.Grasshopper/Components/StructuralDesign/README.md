@@ -48,9 +48,9 @@ Joint Signature and Connection Typology read joints with the same machinery and
 now live in the Fabrication repo as well as the **Fabrication** panel, because
 connection detailing is the fabricator's question.
 
-Features and Connectivity from the Insight Engine plug straight into the
-Unsupervised Learning components, so a user can take the grouping further with
-their own choices.
+Features from the Insight Engine plug straight into OtterCluster, and Connectivity
+into Graph From Connectivity, so a user can take the grouping further with their
+own choices.
 
 ## What earns a place here
 
@@ -60,9 +60,8 @@ it. Tools that read foundations one way and end plates another were removed for
 exactly that reason: each served one job, where these serve any job a user can
 prepare the data for.
 
-Whatever method a tool here uses lives under **Unsupervised Learning** (or its
-sibling paradigm panels, as they arrive), and a user in this panel should never
-need to go looking for it.
+Whatever method a tool here uses lives under **Machine Learning**, and a user in
+this panel should never need to go looking for it.
 
 Grasshopper only. Wire-data tools with no document-level shape, so nothing here
 gets a Rhino command or a toolbar button.

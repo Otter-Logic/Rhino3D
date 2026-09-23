@@ -21,7 +21,7 @@ name is no help.
 | `Graphs` | the graph contract and the training-free algorithms over it — shortest paths, centrality, cut vertices, flow; references nothing | NuGet package `OtterLogic.Graphs` |
 | `MachineLearning` | the shared ML base, `python/`, `models/` | NuGet package `OtterLogic.MachineLearning` |
 | `Unsupervised` | clustering and model selection, its own `python/` fixtures | NuGet package `OtterLogic.Unsupervised` |
-| `Supervised` | the baselines fitted at solve time — nearest neighbours, ridge, logistic — and the evaluation reports, its own `python/` fixtures | NuGet package `OtterLogic.Supervised` |
+| `Supervised` | the baselines fitted at solve time — nearest neighbours, ridge, logistic — and the evaluation reports, its own `python/` fixtures; no longer referenced by Rhino3D, whose learners run in the Python trainer | NuGet package `OtterLogic.Supervised` |
 | `Reinforcement`, `DeepLearning` | one paradigm each, created when it has a real algorithm | one NuGet package each |
 | `StructuralForm` | domain + its tests | NuGet package `OtterLogic.StructuralForm` |
 | `StructuralDesign` | analysis-result tools + their tests | NuGet package `OtterLogic.StructuralDesign` |

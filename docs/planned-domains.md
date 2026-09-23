@@ -38,14 +38,13 @@ Core keeps only the section vocabulary. Each toolkit still owns its own feature
 extraction, because what a truss considers a feature is not what a nesting
 problem does.
 
-It is a toolkit in its own right too. The raw methods ship in a panel per
-paradigm — the clustering and graph methods under **Unsupervised Learning** today
-— and the shared steps, dataset capture and inference, under **Machine Learning**
-when those exist, each panel ordered by `GH_Exposure` into pipeline stages. The
-design groupings built on those methods are not there: they carry a structural
-opinion, so they ship under **Structural Design** with the other tools named for
-a job. Training stays offline in that repo's `/python` —
-see [machine-learning.md](machine-learning.md).
+It is a toolkit in its own right too. The raw methods ship in one **Machine
+Learning** panel, ordered by `GH_Exposure` into tiers: the cores that take data
+and a method on a wire, the methods that go on that wire, then data capture and
+dropdowns. The design groupings built on those methods are not there: they carry
+a structural opinion, so they ship under **Structural Design** with the other
+tools named for a job. Training stays offline in that repo's `/python`, run by
+OtterTrain as a separate process — see [machine-learning.md](machine-learning.md).
 
 ## Structural Design
 

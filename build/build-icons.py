@@ -258,17 +258,6 @@ def writedataset():
     return i.arrow((1, 12), (8.5, 12), 2, B, 4)
 
 
-def splitbygroup():
-    i = Icon()
-    i.fill(rounded_rect(1.5, 8, 13.5, 16, 1.5), B)
-    i.fill(rounded_rect(17.5, 8, 22.5, 16, 1.5), O)
-    for x in (5, 10):
-        i.dot(x, 12, 1.5, "#FFFFFF")
-    i.dot(20, 12, 1.5, "#FFFFFF")
-    i.stroke([(15.5, 3), (15.5, 21)], 1.5, K, dash=(1.6, 2.6))
-    return i
-
-
 def shapesignature():
     i = Icon()
     i.stroke([(3, 8), (6, 3), (13, 2.5), (20.5, 5), (18, 10), (11, 9), (7, 12.5)], 1.7, K, closed=True)
@@ -277,55 +266,9 @@ def shapesignature():
     return i
 
 
-def preparefeatures():
-    i = Icon()
-    for y, x in ((5.5, 8), (12, 16), (18.5, 11)):
-        i.stroke([(3, y), (21, y)], 1.8, K)
-        i.node(x, y, 2.5, B)
-    return i
-
-
-def principalcomponents():
-    i = Icon()
-    for x, y in ((5, 17), (7.5, 19.5), (8, 14), (11, 16.5), (10, 11), (14, 13), (13.5, 8), (17, 10), (16.5, 5.5), (19.5, 7)):
-        i.dot(x, y, 1.15, G)
-    i.arrow((12, 12), (7.2, 7.2), 1.6, O, 3)
-    i.arrow((4.5, 19.5), (21, 3), 1.9, B, 3.8)
-    return i
-
-
 def _graph(i, nodes, edges, w=1.4, c=K):
     for a, b in edges:
         i.stroke([nodes[a], nodes[b]], w, c)
-    return i
-
-
-def neighbourgraph():
-    nodes = [(4, 6), (12, 4), (20, 8), (7, 17), (16, 19), (12.5, 11.5)]
-    i = _graph(Icon(), nodes, [(0, 1), (1, 5), (0, 5), (5, 2), (5, 3), (5, 4), (3, 4), (2, 4)])
-    for x, y in nodes:
-        i.node(x, y, 2.1, B)
-    return i
-
-
-def gaussianaffinity():
-    i = Icon()
-    a, b, c = (4.5, 18.5), (12, 5), (19.5, 18.5)
-    i.stroke([a, c], 1.0, G, dash=(1.0, 2.2))
-    i.stroke([b, c], 1.8, K)
-    i.stroke([a, b], 3.4, B)
-    for x, y in (a, b, c):
-        i.node(x, y, 2.3, "#FFFFFF")
-    return i
-
-
-def datamap():
-    i = axes(Icon())
-    for x, y in ((8, 8), (11.5, 6.5), (11, 10.5)):
-        i.dot(x, y, 1.7, B)
-    for x, y in ((15, 16), (18.5, 14.5), (18, 18)):
-        i.dot(x, y, 1.7, O)
-    i.dot(13.5, 13, 1.4, G)
     return i
 
 
@@ -538,149 +481,6 @@ def spectralclustering():
     return i
 
 
-def consensusclustering():
-    i = Icon()
-    for (x, y), c in (((12, 8.2), B), ((8.2, 14.8), O), ((15.8, 14.8), N)):
-        i.ring(x, y, 5.6, 1.6, c)
-    return i.dot(12, 12.6, 2.1, K)
-
-
-def multiviewclustering():
-    i = Icon()
-    target = (19, 12)
-    for y in (4.5, 12, 19.5):
-        i.stroke([(7.5, y), target], 1.4, K)
-    i.stroke([(2, 2), (7, 2), (7, 7), (2, 7)], 1.5, B, closed=True)
-    i.ring(4.5, 12, 2.6, 1.5, O)
-    i.stroke([(4.5, 16.8), (7.3, 21.8), (1.7, 21.8)], 1.5, N, closed=True)
-    return i.node(*target, 3.2, B)
-
-
-def messagepassing():
-    i = Icon()
-    centre = (12, 13)
-    outer = [(3.5, 5), (20.5, 5), (12, 22)]
-    for ox, oy in outer:
-        d = math.hypot(centre[0] - ox, centre[1] - oy)
-        ux, uy = (centre[0] - ox) / d, (centre[1] - oy) / d
-        i.arrow((ox, oy), (centre[0] - ux * 4.2, centre[1] - uy * 4.2), 1.5, K, 3)
-    for ox, oy in outer:
-        i.node(ox, oy, 2.0, "#FFFFFF")
-    return i.node(*centre, 3.2, B)
-
-
-def clusterselector():
-    i = axes(Icon())
-    pts = [(6, 17.5), (9.5, 11), (13, 6), (16.5, 10.5), (20, 13)]
-    i.stroke(pts, 1.7, K)
-    for k, (x, y) in enumerate(pts):
-        if k != 2:
-            i.dot(x, y, 1.5, K)
-    return i.node(13, 6, 2.8, B)
-
-
-def refinelabels():
-    i = Icon()
-    for r, y in enumerate((5, 12, 19)):
-        for c, x in enumerate((5, 12, 19)):
-            if (r, c) == (1, 1):
-                i.dot(x, y, 3.4, O).dot(x, y, 2.0, B)
-            else:
-                i.dot(x, y, 2.0, B if (r, c) not in ((2, 2), (1, 2), (2, 1)) else G)
-    return i
-
-
-def groupsignature():
-    i = Icon()
-    for y, x0, x1, c in ((4.5, 12, 21.5, B), (9.5, 4.5, 12, O), (14.5, 12, 17.5, B), (19.5, 8, 12, O)):
-        i.fill([(x0, y - 1.7), (x1, y - 1.7), (x1, y + 1.7), (x0, y + 1.7)], c)
-    return i.stroke([(12, 1.5), (12, 22.5)], 1.6, K)
-
-
-def clusterquality():
-    i = Icon()
-    i.stroke(arc(12, 17, 9.5, 180, 360, 32), 2, K)
-    for a in (180, 225, 270, 315, 360):
-        r = math.radians(a)
-        i.stroke([(12 + 7 * math.cos(r), 17 + 7 * math.sin(r)),
-                  (12 + 8.2 * math.cos(r), 17 + 8.2 * math.sin(r))], 1.3, K)
-    r = math.radians(305)
-    i.stroke([(12, 17), (12 + 6.8 * math.cos(r), 17 + 6.8 * math.sin(r))], 2.2, B)
-    return i.dot(12, 17, 2.2, B)
-
-
-def clusteragreement():
-    i = Icon()
-    r, ax, bx, cy = 6.8, 8.6, 15.4, 12
-    half = math.degrees(math.acos((bx - ax) / 2 / r))
-    lens = arc(ax, cy, r, -half, half, 12) + arc(bx, cy, r, 180 - half, 180 + half, 12)
-    i.fill(lens, B)
-    return i.ring(ax, cy, r, 1.6, K).ring(bx, cy, r, 1.6, K)
-
-
-def _fit(i, pts, line):
-    axes(i)
-    return i.stroke(line, 1.9, B), pts
-
-
-def ridge():
-    i, pts = _fit(Icon(), [(6, 16), (9, 17.5), (11, 12), (14, 13.5), (16.5, 8.5), (19.5, 9)], [(4.5, 17.5), (21, 8)])
-    for x, y in pts:
-        i.dot(x, y, 1.5, K)
-    return i
-
-
-def evaluateregression():
-    line = [(4.5, 19.5), (21, 4)]
-    slope = (line[1][1] - line[0][1]) / (line[1][0] - line[0][0])
-    i, pts = _fit(Icon(), [(7, 12.5), (10, 18.5), (13, 7), (16, 12.5), (19, 3.5)], line)
-    for x, y in pts:
-        i.stroke([(x, y), (x, line[0][1] + slope * (x - line[0][0]))], 1.3, O)
-    for x, y in pts:
-        i.dot(x, y, 1.5, K)
-    return i
-
-
-def evaluateclassification():
-    i = Icon()
-    i.fill([(3, 3), (12, 3), (12, 12), (3, 12)], B).fill([(12, 12), (21, 12), (21, 21), (12, 21)], B)
-    i.fill([(14.5, 5.5), (18.5, 5.5), (18.5, 9.5), (14.5, 9.5)], O)
-    i.stroke([(3, 3), (21, 3), (21, 21), (3, 21)], 1.6, K, closed=True)
-    return i.stroke([(12, 3), (12, 21)], 1.4, K).stroke([(3, 12), (21, 12)], 1.4, K)
-
-
-def logistic():
-    i = Icon()
-    i.stroke([(2, 12), (22, 12)], 1.0, G, dash=(1.2, 2.2))
-    i.stroke([(2 + 20 * k / 40, 19 - 14 / (1 + math.exp(-(k - 20) / 3.2))) for k in range(41)], 2, B)
-    for x in (3.5, 7, 10.5):
-        i.dot(x, 21.5, 1.4, K)
-    for x in (13.5, 17, 20.5):
-        i.dot(x, 2.5, 1.4, O)
-    return i
-
-
-def knnclassifier():
-    i = Icon()
-    i.ring(11.5, 12, 7.6, 1.3, K, dash=(1.4, 2.0))
-    for x, y in ((7.5, 8.5), (15.5, 9)):
-        i.dot(x, y, 1.8, B)
-    i.dot(12.5, 17, 1.8, O)
-    for x, y, c in ((21, 4, O), (21.5, 19.5, O), (2.5, 20.5, B)):
-        i.dot(x, y, 1.5, c)
-    return i.stroke([(9.7, 12), (13.3, 12)], 1.7, K).stroke([(11.5, 10.2), (11.5, 13.8)], 1.7, K)
-
-
-def knnregressor():
-    i = axes(Icon())
-    i.stroke([(12.5, 4), (12.5, 21)], 1.2, K, dash=(1.2, 2.0))
-    for x, y in ((5.5, 17.5), (19.5, 5.5)):
-        i.dot(x, y, 1.4, G)
-    for x, y in ((9, 14), (12, 8.5), (16, 9.5)):
-        i.dot(x, y, 1.6, B)
-    return i.node(12.5, 11.2, 2.3, "#FFFFFF")
-
-
 def covariancetype():
     i = dropdown(Icon())
     return i.stroke(ellipse(8.5, 12, 5, 2.5, -30), 1.6, B, closed=True).dot(8.5, 12, 1.1, B)
@@ -690,16 +490,6 @@ def linkage():
     i = dropdown(Icon())
     i.stroke([(6, 12), (11.5, 12)], 1.5, K)
     return i.dot(5, 12, 2, B).dot(12.5, 12, 2, O)
-
-
-def clusteringmodel():
-    i = dropdown(Icon())
-    return i.dot(5, 13.8, 1.7, B).dot(9, 9.8, 1.7, O).dot(12.5, 14, 1.7, N)
-
-
-def neighbourweighting():
-    i = dropdown(Icon())
-    return i.dot(5.3, 12, 2.6, B).dot(10, 12, 1.7, B).dot(13.4, 12, 1.0, B)
 
 
 def unplacedpolicy():
@@ -811,17 +601,108 @@ def dropanimation():
     return i
 
 
+def _model(i, x0, y0, x1, y1):
+    """A trained model: a chip holding a small network, the same on Train and Predict."""
+    i.stroke(rounded_rect(x0, y0, x1, y1, 1.5), 1.5, K, closed=True)
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    a, b, c = (cx - 3, cy + 2.5), (cx, cy - 2.5), (cx + 3, cy + 2.5)
+    i.stroke([a, b, c], 1.1, K)
+    return i.dot(*a, 1.3, B).dot(*b, 1.3, B).dot(*c, 1.3, B)
+
+
+def ottercluster():
+    """Samples in two colours inside one rounded outline — the otter's back — and
+    one outside it: the unplaced sample the report will name."""
+    i = Icon()
+    i.stroke(rounded_rect(2.5, 4.5, 21.5, 19.5, 6), 1.5, K, closed=True)
+    for x, y in ((6.5, 9), (9.5, 12.5), (6, 14.5)):
+        i.dot(x, y, 1.7, B)
+    for x, y in ((14.5, 8.5), (17.5, 11), (15, 14.5)):
+        i.dot(x, y, 1.7, O)
+    return i.dot(20.5, 21.5, 1.2, G)
+
+
+def otterpredict():
+    i = _model(Icon(), 6.5, 6, 17.5, 18)
+    i.arrow((0.5, 12), (5.5, 12), 1.8, K, 3)
+    return i.arrow((18.5, 12), (23.5, 12), 1.8, O, 3)
+
+
+def ottertrain():
+    i = table(Icon(), 1.5, 11.5)
+    i.arrow((12.5, 12), (15, 12), 1.6, K, 2.6)
+    return _model(i, 15.5, 6, 23, 18)
+
+
+def _tree(i, x, top, bottom, c):
+    """One little decision tree: a root and two leaves."""
+    i.stroke([(x - 3, bottom), (x, top), (x + 3, bottom)], 1.3, K)
+    return i.dot(x, top, 1.4, c).dot(x - 3, bottom, 1.2, c).dot(x + 3, bottom, 1.2, c)
+
+
+def boostedtrees():
+    """Three trees, each a little taller: boosting adds them one after another."""
+    i = Icon()
+    _tree(i, 5, 14, 19.5, G)
+    _tree(i, 12, 10, 17, B)
+    return _tree(i, 19, 5.5, 13.5, B)
+
+
+def neuralnetwork():
+    i = Icon()
+    layers = [[(4, 8), (4, 16)], [(12, 5), (12, 12), (12, 19)], [(20, 8), (20, 16)]]
+    for a, b in zip(layers, layers[1:]):
+        for p in a:
+            for q in b:
+                i.stroke([p, q], 1.0, G)
+    for k, layer in enumerate(layers):
+        for x, y in layer:
+            i.node(x, y, 1.9, B if k == 1 else "#FFFFFF")
+    return i
+
+
+def linearmodel():
+    i = axes(Icon())
+    i.stroke([(4.5, 17.5), (21, 8)], 1.9, B)
+    for x, y in ((6, 16), (9, 17.5), (11, 12), (14, 13.5), (16.5, 8.5), (19.5, 9)):
+        i.dot(x, y, 1.5, K)
+    return i
+
+
+def nearestneighbours():
+    """The sample being answered for, ringed by the few that get a say."""
+    i = Icon()
+    i.ring(11.5, 12, 7.6, 1.3, K, dash=(1.4, 2.0))
+    for x, y in ((7.5, 8.5), (15.5, 9), (12.5, 17)):
+        i.dot(x, y, 1.8, B)
+    for x, y in ((21, 4), (21.5, 19.5), (2.5, 20.5)):
+        i.dot(x, y, 1.5, G)
+    return i.node(11.5, 12, 2.2, O)
+
+
+def clustermethod():
+    """The Method wire: a method's few settings, and the wire they leave on."""
+    i = Icon()
+    i.stroke(rounded_rect(2, 5, 15, 19, 2), 1.5, K, closed=True)
+    i.dot(6, 10, 1.6, B).dot(11, 10, 1.6, O).dot(8.5, 14.5, 1.6, B)
+    return i.arrow((15.5, 12), (23, 12), 1.8, K, 3)
+
+
+def learner():
+    """The Learner wire: the model chip a learner will fill, and the wire out."""
+    i = _model(Icon(), 2, 6, 15, 18)
+    return i.arrow((15.5, 12), (23, 12), 1.8, K, 3)
+
+
 ICONS = {f.__name__: f for f in (
     flattruss, branchpicker,
-    readdataset, writedataset, splitbygroup, shapesignature,
-    preparefeatures, principalcomponents, neighbourgraph, gaussianaffinity, datamap,
+    ottercluster, ottertrain, otterpredict,
+    kmeans, gaussianmixture, hdbscan, spectralclustering, hierarchicalclustering,
+    boostedtrees, neuralnetwork, linearmodel, nearestneighbours,
+    readdataset, writedataset, shapesignature,
+    covariancetype, linkage, clustermethod, learner, unplacedpolicy,
     graph, graphfrompoints, visibilitygraph, graphfromconnectivity, deconstructgraph,
     shortestpaths, astar, breadthfirst, betweenness, cutvertices, connectedpieces, dependencylevels, potentialflow,
-    kmeans, gaussianmixture, hdbscan, hierarchicalclustering, spectralclustering,
-    consensusclustering, multiviewclustering, messagepassing, clusterselector,
-    refinelabels, groupsignature, clusterquality, clusteragreement,
-    ridge, logistic, knnclassifier, knnregressor, evaluateregression, evaluateclassification,
-    covariancetype, linkage, clusteringmodel, neighbourweighting, unplacedpolicy,
     geometryqa, gridlevelinference, sixdofclassifier, structuralinsight,
     paneltypology, connectiontypology, jointsignature,
     erectionsequence, dropanimation,

@@ -25,15 +25,15 @@ public sealed class WriteDatasetComponent : GH_Component
                + "remembers its columns, and refuses rows whose columns differ — which is what stops the "
                + "twentieth model going in with two inputs swapped.\n\n"
                + "Read it back with Read Dataset. To fit a model on the samples in this definition alone, "
-               + "skip the folder and wire them straight into a method in Supervised Learning.",
+               + "skip the folder and wire them straight into OtterTrain.",
                Categories.Root, Categories.MachineLearning)
     {
     }
 
     public override Guid ComponentGuid => new("0ce82461-a4e9-4ce9-a197-1f8777ee81ee");
 
-    // The data tier of the panel: what happens before any feature preparation.
-    public override GH_Exposure Exposure => GH_Exposure.primary;
+    // The data tier, below the cores and the methods they take.
+    public override GH_Exposure Exposure => GH_Exposure.quarternary;
 
     protected override Bitmap? Icon => EmbeddedIcons.Load("writedataset", 24);
 

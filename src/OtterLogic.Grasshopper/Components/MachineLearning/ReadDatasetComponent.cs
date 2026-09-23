@@ -2,6 +2,7 @@ using System.Drawing;
 using Grasshopper;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
+using Grasshopper.Kernel.Types;
 using OtterLogic.MachineLearning.Data;
 
 namespace OtterLogic.Grasshopper.Components.MachineLearning;
@@ -20,14 +21,16 @@ public sealed class ReadDatasetComponent : GH_Component
                + "came from.\n\n"
                + "Read the Report before fitting anything. It says how the classes are balanced — which "
                + "decides what a good score even is — and lists any feature that never changes. Then wire "
-               + "Groups into Split By Group, so that what you test on comes from models the fit never saw.",
+               + "Features, Targets, Groups and Feature Names straight into OtterTrain: with Groups wired, "
+               + "what it scores on comes from models the fit never saw.",
                Categories.Root, Categories.MachineLearning)
     {
     }
 
     public override Guid ComponentGuid => new("6ddec67f-cc1f-4ae9-b92c-9231e7a75424");
 
-    public override GH_Exposure Exposure => GH_Exposure.primary;
+    // The data tier, below the cores and the methods they take.
+    public override GH_Exposure Exposure => GH_Exposure.quarternary;
 
     protected override Bitmap? Icon => EmbeddedIcons.Load("readdataset", 24);
 
@@ -42,13 +45,15 @@ public sealed class ReadDatasetComponent : GH_Component
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
         pManager.AddTextParameter("Feature Names", "FN", "One per feature, in branch order.", GH_ParamAccess.list);
-        pManager.AddNumberParameter("Features", "X", "One branch per sample.", GH_ParamAccess.tree);
+        pManager.AddNumberParameter("Features", "X", "One branch per sample — OtterTrain's Inputs.", GH_ParamAccess.tree);
         pManager.AddTextParameter("Target Names", "TN", "One per target, in branch order.", GH_ParamAccess.list);
-        pManager.AddTextParameter("Targets", "Y",
-            "One branch per sample, holding its answer for each target. List Item on this tree picks "
-            + "one target out as the labels or values a method wants.",
+        pManager.AddGenericParameter("Targets", "Y",
+            "One branch per sample, holding its answer for each target. A number target comes out as "
+            + "numbers and a class target as text — the kinds Write Dataset recorded — so OtterTrain learns "
+            + "the right thing from it. With one target it wires straight into OtterTrain's Target; with "
+            + "several, List Item on this tree picks one out.",
             GH_ParamAccess.tree);
-        pManager.AddTextParameter("Groups", "G", "The model each sample came from.", GH_ParamAccess.list);
+        pManager.AddTextParameter("Groups", "G", "The model each sample came from — OtterTrain's Groups.", GH_ParamAccess.list);
         pManager.AddTextParameter("Ids", "I", "Each sample's identifier, blank if none were written.", GH_ParamAccess.list);
         pManager.AddTextParameter("Classes", "C",
             "One branch per target, holding that target's classes in the order the dataset numbers them. "
@@ -73,10 +78,23 @@ public sealed class ReadDatasetComponent : GH_Component
             for (int t = 0; t < targets.Count; t++)
                 classes.AddRange(targets[t].Classes, new GH_Path(t));
 
+            // Numbers as numbers and classes as text, because OtterTrain reads the
+            // kind of target off the wire: a number target sent as text would train
+            // a classifier with one class per distinct value, and look like it worked.
+            var answers = new GH_Structure<IGH_Goo>();
+            for (int t = 0; t < targets.Count; t++)
+            {
+                bool number = targets[t].Kind == ColumnKind.Number;
+                double[]? values = number ? dataset.NumberTarget(targets[t].Name) : null;
+                string[]? labels = number ? null : dataset.ClassTarget(targets[t].Name);
+                for (int i = 0; i < dataset.RowCount; i++)
+                    answers.Append(number ? new GH_Number(values![i]) : new GH_String(labels![i]), new GH_Path(i));
+            }
+
             da.SetDataList(0, dataset.Schema.Features.Select(c => c.Name));
             da.SetDataTree(1, Trees.FromRows(dataset.Features));
             da.SetDataList(2, targets.Select(c => c.Name));
-            da.SetDataTree(3, Trees.FromRows(dataset.TargetsAsText()));
+            da.SetDataTree(3, answers);
             da.SetDataList(4, dataset.Groups);
             da.SetDataList(5, dataset.Ids);
             da.SetDataTree(6, classes);

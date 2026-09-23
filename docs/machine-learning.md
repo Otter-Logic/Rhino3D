@@ -7,13 +7,13 @@ There are three phases, and only two of them happen in Rhino.
 | Phase | Where | Language | Timescale |
 |---|---|---|---|
 | **1. Generate** | Rhino / Grasshopper | C# | minutes — a parameter sweep |
-| **2. Train** | terminal | Python | seconds to hours, offline |
+| **2. Train** | a separate process, started by OtterTrain or from a terminal | Python | seconds to hours, offline |
 | **3. Infer** | Rhino / Grasshopper | C# via ONNX | sub-millisecond, every slider move |
 
-Phase 2 is a batch job. You run a sweep, leave a training script going, drop the
-resulting `.onnx` into `models/`, and the component picks it up. Turnaround is
-minutes, not milliseconds — and that is fine, because the thing you actually want
-interactive is phase 3.
+Phase 2 is a batch job. You run a sweep, switch OtterTrain's Run on, and the
+trainer runs beside Rhino rather than inside it, writing one `.onnx` for
+OtterPredict to pick up. Turnaround is minutes, not milliseconds — and that is
+fine, because the thing you actually want interactive is phase 3.
 
 You *can* run PyTorch inside Rhino 8's embedded CPython, and it is a reasonable
 way to prototype. It is a bad way to ship: you inherit a heavyweight dependency
@@ -60,8 +60,9 @@ native binaries that genuinely must be copied next to the `.gha`.
 
 The one thing that will bite you: **feature order is baked into the model.** If
 Python trains on `[span, sag, rest_factor]`, C# must feed them in that order.
-Write the column names into a sidecar `.json` next to the `.onnx` and assert on
-them at load time.
+The column names are written *into* the `.onnx`, under one `metadata_props` key,
+and `OnnxModel` asserts on them at load time — inside the file rather than in a
+sidecar, so a model is one file and cannot arrive without its names.
 
 ## sklearn or PyTorch?
 

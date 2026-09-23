@@ -69,8 +69,10 @@ jobs:
           path: Graphs
           token: ${{ secrets.OTTER_CI_TOKEN }}
 
-      # The machine learning stack, bottom up: the shared base, then the
-      # paradigm repos holding the algorithms.
+      # The machine learning stack, bottom up: the shared base, then Unsupervised,
+      # the one paradigm repo Rhino3D references. Supervised is not checked out:
+      # its solve-time methods return as learners inside the Python trainer, so
+      # nothing here references OtterLogic.Supervised any more.
       - uses: actions/checkout@v4
         with:
           repository: Otter-Logic/MachineLearning
@@ -81,12 +83,6 @@ jobs:
         with:
           repository: Otter-Logic/Unsupervised
           path: Unsupervised
-          token: ${{ secrets.OTTER_CI_TOKEN }}
-
-      - uses: actions/checkout@v4
-        with:
-          repository: Otter-Logic/Supervised
-          path: Supervised
           token: ${{ secrets.OTTER_CI_TOKEN }}
 
       # The structural stack sits on the learning stack: the shared engine that

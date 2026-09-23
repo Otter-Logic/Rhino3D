@@ -3,6 +3,20 @@
 Things that sit on the canvas and feed a component, rather than doing work
 themselves.
 
+## Wire parameters
+
+A `GH_Param<T>` over one of the goo types in `Types/`, used for every input and
+output that carries that wire. `Parameters/Graphs/GraphParameter` is the first;
+`Parameters/MachineLearning/ClusterMethodParameter` and `LearnerParameter` are
+the Method and Learner wires the machine learning panel runs on.
+
+The two ML ones are `GH_Exposure.hidden`: a method is always made by a method
+component, so there is nothing to park on the canvas and no "set one" menu to
+offer. A component registers one with `pManager.AddParameter(new
+ClusterMethodParameter(), ...)`, and reads it through `MethodWire`, which is
+where the shared wording lives — the parameter manager is a protected nested type,
+so registering cannot be factored out, only reading can.
+
 ## Enum dropdowns
 
 `EnumValueList<TEnum>` turns any enum into a `GH_ValueList` in dropdown mode: an

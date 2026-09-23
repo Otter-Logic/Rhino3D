@@ -1,7 +1,7 @@
 # Types
 
-`GH_Goo<T>` wrappers for Core objects that need to travel along a wire — a
-truss, a fabrication sheet, a goal.
+`GH_Goo<T>` wrappers for library objects that need to travel along a wire — a
+graph, a clustering method, a learner.
 
 The pattern, when you need it:
 
@@ -26,6 +26,13 @@ nothing of geometry — carrying them is what lets a component answer with a
 polyline instead of a list of indices. It implements `IGH_PreviewData`, so a
 placed graph draws itself in the viewport. Its parameter is
 `Parameters/Graphs/GraphParameter`.
+
+`GH_ClusterMethod` and `GH_Learner` are the two "method on a wire" types the
+Machine Learning panel runs on. Each wraps an immutable record from the library —
+`ClusteringMethod` in Unsupervised, `Learner` in MachineLearning — so `Duplicate`
+shares the value rather than copying it, `ToString` is the record's `Describe()`,
+and two wires carrying the same settings compare equal. Their parameters are
+`Parameters/MachineLearning/ClusterMethodParameter` and `LearnerParameter`.
 
 Rule of thumb: only wrap what a *user* would plug into another component. Plain
 values (numbers, meshes, points) already have Grasshopper types — don't reinvent

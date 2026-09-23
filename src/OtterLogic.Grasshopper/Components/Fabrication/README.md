@@ -23,7 +23,7 @@ reaches for a tool, not by where its code lives.
   joint described by the same row of numbers out. The row does not change when a
   joint is moved, turned, mirrored, or drawn with its lines split differently, so
   joints that are the same connection have the same row wherever they are. Wire it
-  into any Unsupervised Learning method to group joints your own way.
+  into OtterCluster, under Machine Learning, to group joints your own way.
 - **Connection Typology** — the same inputs; the connection types the model repeats,
   an exemplar joint of each to detail, what sets each type apart, and the one-offs.
   A type is whatever the model makes more than once — no catalogue of corners,

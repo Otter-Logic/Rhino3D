@@ -51,8 +51,8 @@ public sealed class ShapeSignatureComponent : GH_Component
                + "at the same number of points, finds the average shape they vary around, and takes the directions "
                + "they actually vary in — which catches a notch, a curve or a raked corner without any of them "
                + "having been anticipated.\n\n"
-               + "Signature is what you wire onward: into any clustering to find the shape families, into Data Map "
-               + "to see them, or into Group Signature to ask what sets one family apart. Two outlines that are the "
+               + "Signature is what you wire onward: into OtterCluster's Data to find the shape families, with its Map "
+               + "on to see them and its Report saying what sets each family apart. Two outlines that are the "
                + "same shape get the same row however they were drawn — from a different corner, the other way "
                + "round, with extra points along an edge.\n\n"
                + "How far apart two rows are is how far apart the two outlines are, averaged point for "
@@ -64,7 +64,8 @@ public sealed class ShapeSignatureComponent : GH_Component
 
     public override Guid ComponentGuid => new("3a5f2d18-7c64-4a1b-9e0d-2b6f8c41d537");
 
-    public override GH_Exposure Exposure => GH_Exposure.secondary;
+    // The data tier: a thing to do before a method, not a method.
+    public override GH_Exposure Exposure => GH_Exposure.quarternary;
 
     protected override Bitmap? Icon => EmbeddedIcons.Load("shapesignature", 24);
 
@@ -134,8 +135,8 @@ public sealed class ShapeSignatureComponent : GH_Component
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
         pManager.AddNumberParameter("Signature", "S",
-            "One branch per outline, holding the numbers that describe it. This is what to wire into a clustering, "
-            + "into Data Map, or into Group Signature.",
+            "One branch per outline, holding the numbers that describe it. This is what to wire into "
+            + "OtterCluster's Data.",
             GH_ParamAccess.tree);
 
         pManager.AddIntegerParameter("Count", "K",

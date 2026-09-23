@@ -28,7 +28,7 @@ public sealed class ConnectionTypologyComponent : GH_Component
                + "is whatever the model repeats, whatever its grid, skew or shape; naming it is yours. One-offs are "
                + "often modelling errors — a column that misses the column above, a beam off its level — and near-"
                + "identical variants within a type are where a detail could be rationalised.\n\n"
-               + "For your own grouping, use Joint Signature with any Unsupervised Learning method.",
+               + "For your own grouping, wire Joint Signature into OtterCluster under Machine Learning.",
                Categories.Root, Categories.Fabrication)
     {
     }

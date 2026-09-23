@@ -45,7 +45,7 @@ public sealed class SixDofBehaviourClassifierComponent : GH_Component
                + "families, overlapping ones, or families with genuine one-offs. Report says which and why, and how "
                + "far the three agreed. Each group's Minimum and Maximum are its envelope in the units that came "
                + "in.\n\n"
-               + "For the raw methods with every setting exposed, see Unsupervised Learning.",
+               + "To drive the clustering yourself, wire the features into OtterCluster under Machine Learning.",
                Categories.Root, Categories.StructuralDesign)
     {
     }

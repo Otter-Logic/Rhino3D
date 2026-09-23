@@ -22,8 +22,8 @@ public sealed class JointSignatureComponent : GH_Component
                + "them, how they spread, which way they lean, and whether it is supported.\n\n"
                + "The row does not change when a joint is moved, turned in plan, mirrored, or drawn with its lines in "
                + "another order or split differently — so joints that are the same connection have the same row "
-               + "wherever they are. Wire Signature into any Unsupervised Learning method as Training Inputs to "
-               + "group joints your own way, or use Connection Typology for the finished grouping.",
+               + "wherever they are. Wire Signature into OtterCluster, under Machine Learning, to group joints your "
+               + "own way, or use Connection Typology for the finished grouping.",
                Categories.Root, Categories.Fabrication)
     {
     }
@@ -45,12 +45,12 @@ public sealed class JointSignatureComponent : GH_Component
         pManager.AddPointParameter("Joints", "J", "Every joint, in the order Signature describes them.", GH_ParamAccess.list);
 
         pManager.AddNumberParameter("Signature", "S",
-            "One branch per joint, one value per feature — the Training Inputs shape every Unsupervised Learning "
-            + "component takes. Scale it with Prepare Features first: its columns are counts, degrees and shares.",
+            "One branch per joint, one value per feature — the shape OtterCluster's Data takes. Leave its "
+            + "Standardise on: these columns are counts, degrees and shares, on different scales.",
             GH_ParamAccess.tree);
 
         pManager.AddTextParameter("Feature Names", "N",
-            "What each Signature column measures — wire into Group Signature's Feature Names.", GH_ParamAccess.list);
+            "What each Signature column measures — wire into OtterCluster's Feature Names.", GH_ParamAccess.list);
 
         pManager.AddIntegerParameter("Joint Lines", "JL",
             "One branch per joint: the line behind each member meeting there. A line passing through appears twice.",

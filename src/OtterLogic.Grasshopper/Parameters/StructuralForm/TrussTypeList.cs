@@ -1,4 +1,5 @@
 using System.Drawing;
+using Grasshopper.Kernel;
 using OtterLogic.StructuralForm;
 
 namespace OtterLogic.Grasshopper.Parameters.StructuralForm;
@@ -20,6 +21,10 @@ public sealed class TrussTypeList : EnumValueList<TrussType>
                Categories.StructuralForm)
     {
     }
+
+    // Below the generators, behind a divider: a dropdown is wired into a
+    // generator's input, so nobody reaches for one first.
+    public override GH_Exposure Exposure => GH_Exposure.secondary;
 
     public override Guid ComponentGuid => new("5e221c57-87cc-4f4c-9313-93ce93fc6710");
 

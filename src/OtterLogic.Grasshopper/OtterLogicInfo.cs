@@ -73,8 +73,6 @@ public static class Categories
     public static readonly string Construction = Ranked(OtterLogic.Core.Sections.Construction);
     public static readonly string Graphs = Ranked(OtterLogic.Core.Sections.Graphs);
     public static readonly string MachineLearning = Ranked(OtterLogic.Core.Sections.MachineLearning);
-    public static readonly string UnsupervisedLearning = Ranked(OtterLogic.Core.Sections.UnsupervisedLearning);
-    public static readonly string SupervisedLearning = Ranked(OtterLogic.Core.Sections.SupervisedLearning);
 
     /// <summary>
     /// The section name behind a run of zero-width spaces long enough to sort it
