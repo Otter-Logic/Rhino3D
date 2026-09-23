@@ -5,6 +5,8 @@ using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
 using OtterLogic.Core;
+using OtterLogic.Grasshopper.Parameters.StructuralForm;
+using OtterLogic.Grasshopper.Types;
 using OtterLogic.StructuralForm;
 using Rhino;
 using Rhino.Geometry;
@@ -29,7 +31,8 @@ public sealed class SurfaceGridComponent : GH_Component
                + "an area. Divisions are measured by length along the edges, and a snap point on "
                + "an edge pulls a grid line through it. A structured grid, not a mesh: rows and "
                + "columns you can predict, for a gridshell, a façade, a tower or a grillage. A "
-               + "trimmed surface is gridded whole, with a warning.",
+               + "trimmed surface is gridded whole, with a warning, unless Clip To Trim leaves out "
+               + "what falls in its openings. The Grid output feeds Space Truss.",
                Categories.Root, Categories.StructuralForm)
     {
     }
@@ -92,6 +95,16 @@ public sealed class SurfaceGridComponent : GH_Component
             "Take the other diagonal in every cell. For a diagrid, this shifts it off the corners.",
             GH_ParamAccess.item, false);
 
+        // Appended rather than placed beside Surface, where it reads best:
+        // Grasshopper restores a saved component's inputs by position, so a
+        // new one anywhere but the end rewires every definition using this.
+        pManager.AddBooleanParameter("Clip To Trim", "Cl",
+            "Clip the grid to a trimmed surface: leave out the nodes that fall in an opening or "
+            + "outside the trimmed edge, the members that ran to them, and any member crossing an "
+            + "opening. Off, the grid covers the whole surface underneath the trim, with a warning. "
+            + "Rows and columns keep their numbering either way.",
+            GH_ParamAccess.item, false);
+
         Named<GridPattern>(pManager[2]);
         Named<SnapStrictness>(pManager[8]);
         Named<DiagonalRule>(pManager[9]);
@@ -121,8 +134,14 @@ public sealed class SurfaceGridComponent : GH_Component
         pManager.AddLineParameter("Edge", "E", "Members along the boundary of the surface.", GH_ParamAccess.list);
         pManager.AddPointParameter("Node", "N",
             "Every node of the grid, one branch per row: item i of branch j is the node at "
-            + "column i, row j. A diagrid stands on every other one.",
+            + "column i, row j. A diagrid stands on every other one. Under Clip To Trim, a node "
+            + "that fell in an opening is left out of its row.",
             GH_ParamAccess.tree);
+
+        pManager.AddParameter(new SurfaceGridParameter(), "Grid", "G",
+            "The grid as one wire — nodes, members and the surface they sit on — for Space Truss "
+            + "to build on.",
+            GH_ParamAccess.item);
     }
 
     protected override void SolveInstance(IGH_DataAccess da)
@@ -136,6 +155,7 @@ public sealed class SurfaceGridComponent : GH_Component
         int strictness = (int)SnapStrictness.Relaxed;
         int diagonals = (int)DiagonalRule.OneWay;
         bool flip = false;
+        bool clip = false;
 
         da.GetData(0, ref surface);
         da.GetDataList(1, edges);
@@ -148,6 +168,7 @@ public sealed class SurfaceGridComponent : GH_Component
         if (!da.GetData(8, ref strictness)) return;
         if (!da.GetData(9, ref diagonals)) return;
         if (!da.GetData(10, ref flip)) return;
+        if (!da.GetData(11, ref clip)) return;
 
         edges.RemoveAll(edge => edge is null);
 
@@ -168,6 +189,7 @@ public sealed class SurfaceGridComponent : GH_Component
             Strictness = (SnapStrictness)strictness,
             Diagonals = (DiagonalRule)diagonals,
             Flip = flip,
+            ClipToTrim = clip,
             Tolerance = RhinoDoc.ActiveDoc?.ModelAbsoluteTolerance ?? 0.01,
         };
 
@@ -189,12 +211,8 @@ public sealed class SurfaceGridComponent : GH_Component
             da.SetDataList(2, grid.Diagonals);
             da.SetDataList(3, grid.Edges);
 
-            var nodes = new DataTree<Point3d>();
-            for (int j = 0; j < grid.Lattice.CountV; j++)
-                for (int i = 0; i < grid.Lattice.CountU; i++)
-                    nodes.Add(grid.Lattice.Node(i, j), new GH_Path(j));
-
-            da.SetDataTree(4, nodes);
+            da.SetDataTree(4, Trees.ByRow(grid.Lattice));
+            da.SetData(5, new GH_SurfaceGrid(grid));
 
             Message = $"{Naming.Humanise(options.Pattern)}\n{grid.PanelsU} by {grid.PanelsV}";
         }

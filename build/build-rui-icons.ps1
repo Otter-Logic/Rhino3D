@@ -30,6 +30,7 @@ $slots = @(
     @{ Name = 'boxtruss'; Guid = 'ca9feb5c-ac6d-4e49-bd2d-6feddef591d8' }
     @{ Name = 'beaminfill'; Guid = '802df9c2-db82-4110-afb2-9feddf691a63' }
     @{ Name = 'surfacegrid'; Guid = '0cc53375-7cc6-4962-b887-962416f8f26c' }
+    @{ Name = 'spacetruss'; Guid = 'f1a75988-e5a2-49cc-82aa-4a5f9a39641a' }
 )
 
 foreach ($slot in $slots) {

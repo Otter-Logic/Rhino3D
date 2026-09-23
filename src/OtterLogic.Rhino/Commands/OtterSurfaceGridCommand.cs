@@ -37,6 +37,7 @@ public sealed class OtterSurfaceGridCommand : Command
     private static double _spacingU;
     private static double _spacingV;
     private static SnapStrictness _strictness = SnapStrictness.Relaxed;
+    private static bool _clip;
 
     private const string EnglishNameText = "OtterSurfaceGrid";
 
@@ -65,7 +66,7 @@ public sealed class OtterSurfaceGridCommand : Command
     protected override Result RunCommand(RhinoDoc doc, RunMode mode)
     {
         // Step 1: what to grid.
-        Result step = SelectInput(doc, out Brep? surface, out Curve[] edges);
+        Result step = SelectInput(doc, EnglishNameText, out Brep? surface, out Curve[] edges);
         if (step != Result.Success) return step;
 
         // Step 2: the pattern.
@@ -92,7 +93,12 @@ public sealed class OtterSurfaceGridCommand : Command
         return PreviewAndCommit(doc, surface, edges, snapPoints);
     }
 
-    private static Result SelectInput(RhinoDoc doc, out Brep? surface, out Curve[] edges)
+    /// <summary>
+    /// One surface, or two to four curves. Shared with OtterSpaceTruss, which
+    /// starts from exactly the same pick and should refuse exactly the same
+    /// mixtures in the same words.
+    /// </summary>
+    internal static Result SelectInput(RhinoDoc doc, string command, out Brep? surface, out Curve[] edges)
     {
         surface = null;
         edges = Array.Empty<Curve>();
@@ -123,7 +129,7 @@ public sealed class OtterSurfaceGridCommand : Command
             return Result.Success;
 
         RhinoApp.WriteLine(
-            $"{EnglishNameText}: pick either one surface, or two to four curves — not "
+            $"{command}: pick either one surface, or two to four curves — not "
             + (breps.Length > 1 ? "several surfaces." : breps.Length == 1 ? "a mixture." : "a single curve."));
 
         return Result.Failure;
@@ -152,6 +158,7 @@ public sealed class OtterSurfaceGridCommand : Command
                         Strictness = _strictness,
                         Diagonals = _diagonals,
                         Flip = _flip,
+                        ClipToTrim = _clip,
                         Tolerance = doc.ModelAbsoluteTolerance,
                     };
 
@@ -186,6 +193,7 @@ public sealed class OtterSurfaceGridCommand : Command
                 int changeDiagonals = getter.AddOption("Diagonals");
                 int changeFlip = getter.AddOption("Flip");
                 int changeStrictness = getter.AddOption("Strictness");
+                int changeClip = getter.AddOption("ClipToTrim", _clip ? "Yes" : "No");
                 getter.AcceptNothing(true);   // Enter accepts
 
                 GetResult result = getter.Get();
@@ -216,6 +224,10 @@ public sealed class OtterSurfaceGridCommand : Command
                 else if (chosen == changeFlip)
                 {
                     _flip = !_flip;
+                }
+                else if (chosen == changeClip)
+                {
+                    _clip = !_clip;
                 }
                 else if (chosen == swap)
                 {

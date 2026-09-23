@@ -214,7 +214,26 @@ just the curves round the outside of an area.
   `V member`, `Diagonal` and `Edge`.
 - Grasshopper: *OtterLogic → Structural Form → Surface Grid*, with *Grid Pattern*
   beside it as a dropdown. U and V members come out as trees with a branch per
-  grid line — a whole beam is a branch — and nodes with a branch per row.
+  grid line — a whole beam is a branch — and nodes with a branch per row. *Clip
+  To Trim* leaves out whatever falls in an opening of a trimmed surface, and
+  the *Grid* output carries the whole grid on one wire for Space Truss.
+
+**Space Truss.** The same surface, or curves, as Surface Grid.
+
+- Rhino: `OtterSpaceTruss` asks what `OtterSurfaceGrid` asks, then a depth and
+  a type: *Offset* for a pyramid on every cell, the usual space frame; *Aligned*
+  for a node under every node and a flat truss along every grid line, with
+  Flat Truss's bracing patterns. The preview lets you change every grid
+  setting as well as the depth, type, web, end posts, and which way and which
+  side the depth goes. `ClipToTrim` leaves the openings of a trimmed surface
+  out. Members land on `OtterSpaceTruss1` under Flat Truss's five layer names,
+  with `Top node` and `Bottom node` beside them.
+- Grasshopper: *OtterLogic → Structural Form → Space Truss*, fed by the *Grid*
+  output of Surface Grid, which is where the pattern, divisions, snap points
+  and *Clip To Trim* are set. Depth, Type, Web, Flip Web, End Posts, Depth
+  Along and Flip Depth are its own. Top and bottom chords come out as trees
+  with a branch per part of the grid — U, V, diagonal, edge — and nodes with a
+  branch per row.
 
 **Beam Infill.** Draw, or open, one floor of a stick model.
 

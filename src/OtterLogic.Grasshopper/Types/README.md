@@ -27,6 +27,13 @@ polyline instead of a list of indices. It implements `IGH_PreviewData`, so a
 placed graph draws itself in the viewport. Its parameter is
 `Parameters/Graphs/GraphParameter`.
 
+`GH_SurfaceGrid` carries a `SurfaceGrid` from Surface Grid to Space Truss: the
+lattice, the members, the surface they sit on and the openings it was clipped
+to, as one wire. It does not draw itself, because the component that made it
+already put every member and node on an output of its own. Its parameter is
+`Parameters/StructuralForm/SurfaceGridParameter`, hidden from the ribbon since a
+grid is only ever made by a component.
+
 `GH_ClusterMethod` and `GH_Learner` are the two "method on a wire" types the
 Machine Learning panel runs on. Each wraps an immutable record from the library —
 `ClusteringMethod` in Unsupervised, `Learner` in MachineLearning — so `Duplicate`

@@ -1,11 +1,34 @@
 using Grasshopper;
 using Grasshopper.Kernel.Data;
+using OtterLogic.StructuralForm;
+using Rhino.Geometry;
 
 namespace OtterLogic.Grasshopper;
 
-/// <summary>Packing helpers shared by the clustering components.</summary>
+/// <summary>Packing helpers shared by the clustering and structural form components.</summary>
 internal static class Trees
 {
+    /// <summary>
+    /// A lattice's nodes with one branch per row, so a node's place in the
+    /// tree is its place in the grid. Positions with no node — a clipped
+    /// grid's openings, the cells of an offset space truss with no pyramid —
+    /// are left out of their row rather than filled with a null.
+    /// </summary>
+    public static DataTree<Point3d> ByRow(Lattice lattice)
+    {
+        var tree = new DataTree<Point3d>();
+
+        for (int j = 0; j < lattice.CountV; j++)
+        {
+            var path = new GH_Path(j);
+            for (int i = 0; i < lattice.CountU; i++)
+                if (lattice.IsPresent(i, j))
+                    tree.Add(lattice.Node(i, j), path);
+        }
+
+        return tree;
+    }
+
     /// <summary>One branch per row of a rectangular array.</summary>
     public static DataTree<double> FromRows(double[,] rows)
     {
