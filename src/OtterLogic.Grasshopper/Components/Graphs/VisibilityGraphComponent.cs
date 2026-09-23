@@ -19,7 +19,7 @@ public sealed class VisibilityGraphComponent : GH_Component
     public VisibilityGraphComponent()
         : base("Visibility Graph", "VisGraph",
                "Join your points and every obstacle corner wherever one can see another in a "
-               + "straight line, each connection weighing its length. Dijkstra Shortest Path over the "
+               + "straight line, each connection weighing its length. OtterPath over the "
                + "result gives the genuinely shortest way round the obstacles — straight where it "
                + "can be, turning only at corners — not the best of whatever a scatter of points "
                + "happened to offer.\n\n"
@@ -36,7 +36,7 @@ public sealed class VisibilityGraphComponent : GH_Component
     public override Guid ComponentGuid => new("950e914b-725a-4003-92de-935743f4fb9d");
 
     // The build tier: making a graph and taking one apart.
-    public override GH_Exposure Exposure => GH_Exposure.primary;
+    public override GH_Exposure Exposure => GH_Exposure.tertiary;
 
     public override IEnumerable<string> Keywords
         => new[] { "obstacles", "avoid", "shortest path", "route", "navigation", "line of sight", "euclidean", "path planning" };

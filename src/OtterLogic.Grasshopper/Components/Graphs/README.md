@@ -5,56 +5,75 @@ passes through here, what has to come first. Nothing is trained and nothing
 clusters. Adaptors only — the algorithms live in the
 [Graphs](https://github.com/Otter-Logic/Graphs) repo, `OtterLogic.Graphs`.
 
+Cut for a layperson on 2026-09-23, the way the Machine Learning panel was: one
+core takes a graph and a method on a wire, and every algorithm is a small
+component that outputs nothing but that wire. See
+[docs/graph-components.md](../../../../docs/graph-components.md) for what was
+decided and why.
+
 | Tier (`GH_Exposure`) | Component | Library call |
 |---|---|---|
-| `primary` — build | **Graph** (the parameter) | `GH_Graph`, in `Types/` |
-| | **Graph From Points** — nearest neighbours, lengths as weights, obstacles left out | `NeighbourGraph.ByDistance` (MachineLearning) with `PlanarObstacles.Blocks` |
-| | **Visibility Graph** — points and obstacle corners, joined where they see each other | `VisibilityGraph.Of` |
+| `primary` — the core | **OtterPath** — Graph, Method, Sources, Targets in; Routes, Curves, Values, Connection Values, Groups, Marked, Report out | `PathRun.Solve` |
+| `secondary` — methods | **Dijkstra** | `DijkstraMethod` over `Dijkstra.From` |
+| | **A\*** — one setting, Estimate Scale | `AStarMethod` over `AStar.Route` |
+| | **Breadth-First** | `BreadthFirstMethod` over `BreadthFirst.From` |
+| | **Potential Flow** — one setting, Injection | `PotentialFlowMethod` over `PotentialFlow.Solve` |
+| | **Betweenness** — one setting, Maximum Sources | `BetweennessMethod` over `Centrality.Betweenness` |
+| | **Connected Pieces** | `ConnectedPiecesMethod` over `WeightedGraph.ConnectedComponents` |
+| | **Cut Vertices** — also bridges | `CutVerticesMethod` over `CutVertices.Of` |
+| | **Dependency Levels** — also strongly connected components | `DependencyLevelsMethod` over `Condensation.Of` |
+| `tertiary` — build | **Graph** (the parameter) | `GH_Graph`, in `Types/` |
+| | **Graph From Lines** — line ends welded into nodes, lengths as weights, in 3D | `LineNetwork.Weld` |
+| | **Graph From Points** — nearest neighbours in 3D, lengths as weights, obstacles and solids left out | `NeighbourGraph.ByDistance` (MachineLearning) with `PlanarObstacles.Blocks` and `SolidObstacles.Blocks` |
+| | **Visibility Graph** — points and obstacle corners, joined where they see each other, in plan | `VisibilityGraph.Of` |
 | | **Graph From Connectivity** | `WeightedGraph.FromEdges` |
 | | **Deconstruct Graph** | `WeightedGraph.Edges` |
-| `secondary` — structure | **Connected Pieces** | `WeightedGraph.ConnectedComponents` |
-| | **Cut Vertices** — also bridges | `CutVertices.Of` |
-| | **Dependency Levels** — also strongly connected components and a topological order | `Condensation.Of` |
-| `tertiary` — routes and flow | **Dijkstra Shortest Path** | `Dijkstra.From` |
-| | **A\* Shortest Path** — same route, far less of the graph searched | `AStar.Route` |
-| | **Breadth-First Search** | `BreadthFirst.From` |
-| | **Potential Flow** | `PotentialFlow.Solve` |
-| `quarternary` — importance | **Betweenness** | `Centrality.Betweenness` |
 
-The next route or flow method — a spanning tree, a maximum flow — goes in
-`tertiary`. Tours and orderings, when they arrive, take `quinary`.
+The Method wire is `GH_GraphMethod` over `OtterLogic.Graphs.Methods.GraphMethod`,
+with `GraphMethodParameter` hidden from the ribbon. The next algorithm — a
+spanning tree, a maximum flow — is one record in Graphs and one component under
+`Methods/`, and OtterPath does not change.
+
+## The zero-knowledge path
+
+Wire a Graph into OtterPath and nothing else, and the Report says what the graph
+is made of. Wire Sources and it is the cheapest route from them to every node.
+Wire one Source and one Target on a graph with positions and it is A*, when the
+weights let it be, and Dijkstra otherwise. `AutoMethod` in Graphs reads the
+question off the query; the component never decides anything.
 
 ## Named so they can be found
 
-A component is named for its algorithm where that is what somebody will type —
-**Dijkstra**, **Breadth-First Search** — and for the question where it is not:
+A method component is named for its algorithm where that is what somebody will
+type — **Dijkstra**, **Breadth-First** — and for the question where it is not:
 nobody searches for "low-link", they search for cut vertices or bridges. Either
 way `Keywords` carries the other name, so "shortest path", "bfs", "tarjan",
 "articulation points", "topological sort" and "scc" all land on the right
-component from the canvas search.
+component from the canvas search, and every one of them lands on OtterPath too.
 
 ## The Graph wire
 
 One wire between components rather than a Connectivity tree, a Weights tree and
 a list of points that all have to be kept in step. It carries a `WeightedGraph`
-and, optionally, where the nodes are. The positions are an adaptor concern and
-live in `PlacedGraph` beside the graph, not in it: Graphs references nothing and
-knows nothing of geometry.
+or a `DirectedGraph` and, optionally, where the nodes are. The positions are an
+adaptor concern and live in `PlacedGraph` beside the graph, not in it: Graphs
+references nothing and knows nothing of geometry. They cross into the library
+once, as plain rows of x, y, z in `PathQuery`, in `GraphWire.ToQuery`.
 
-Positions are what let a result come back as geometry — Dijkstra's **Curves**,
-Cut Vertices' **Bridge Lines**, Deconstruct Graph's **Lines** — and what make
-the wire preview in the viewport.
+Positions are what let a result come back as geometry — OtterPath's **Curves** —
+and what make the wire preview in the viewport. They are also what A* steers by,
+and the choice between three dimensions and plan is made in the library from the
+graph's own weights.
 
-**A connection has one weight, and the component reading it says what it
-means.** Dijkstra reads a cost, so build the graph with lengths. Potential Flow
-reads how readily a connection carries, so build it with one over length. The
-clustering methods read a similarity from 0 to 1. Two readings of one network
-are two graphs; that is cheaper than it sounds and much harder to get wrong than
-one graph with a column per meaning.
+**A connection has one weight, and the method reading it says what it means.**
+Dijkstra reads a cost, so build the graph with lengths. Potential Flow reads how
+readily a connection carries, so build it with one over length. Two readings of
+one network are two graphs.
 
 **Per-connection outputs follow Deconstruct Graph's order** — each connection
-once, lower node first, ascending. Potential Flow's **Flow** lines up with
-Deconstruct Graph's **Lines** item for item.
+once, lower node first, ascending. OtterPath's **Connection Values** lines up with
+Deconstruct Graph's **Lines** item for item, on a directed graph too: a method
+only defined on an undirected one reads its answer back onto each arc.
 
 **Node indices are how nodes are named.** To go from a point to its node, use
 Closest Point against Deconstruct Graph's **Points**.
@@ -62,81 +81,43 @@ Closest Point against Deconstruct Graph's **Points**.
 ## Directed graphs
 
 The wire carries either kind. **Graph From Connectivity** with **Directed** set
-reads each branch one way — branch i lists only where i leads — which is how a
-one-way street, a dependency or a flow with a direction is said; a two-way
-street is then listed from both ends and may cost differently each way. Directed
-weights may be zero or negative. A placed directed graph previews with arrows.
+reads each branch one way, which is how a one-way street, a dependency or a flow
+with a direction is said. Reading an undirected graph as directed loses nothing,
+so **Dijkstra**, **A\*** and **Breadth-First** take either without comment and
+follow arcs tail to head. Reading a directed one as undirected throws direction
+away, so **Connected Pieces**, **Cut Vertices**, **Potential Flow** and
+**Betweenness** do it and say so in a remark. **Dependency Levels** refuses an
+undirected graph: read as arcs each way it is nothing but cycles.
 
-The two conversions are not alike, and the components keep the difference
-visible. Undirected read as directed loses nothing, so **Dijkstra**, **A\*** and
-**Breadth-First Search** take either without comment and follow arcs tail to
-head. Directed read as undirected throws direction away, so **Connected
-Pieces**, **Cut Vertices**, **Potential Flow** and **Betweenness** — all only
-defined on an undirected graph — do it and say so in a remark. **Dependency
-Levels** goes the other way and refuses an undirected graph: read as arcs each
-way it is nothing but cycles, and every connected piece would fold into one
-group at level zero — true, and useless. **Deconstruct Graph** lists a directed
-graph's arcs by tail then head, which is arc-id order in the library.
+## In three dimensions
 
-## A* and what it steers by
+Everything routes in space. **Graph From Lines** welds drawn line ends into nodes
+at the document tolerance and weighs each connection by its curve's length, which
+is the way a duct run, a member layout or a street map is drawn. **Graph From
+Points** measures its lengths in three dimensions and takes two kinds of obstacle:
+closed curves are footprints, read in plan and blocking at every height, and
+**Solids** are meshes and Breps blocking where they are — a closed one has an
+inside, an open one blocks what crosses it. **Visibility Graph** stays in plan,
+because the true shortest path round solids in space turns at edges rather than
+corners and is a different, much harder problem; through a building, scatter
+points and use Graph From Points.
 
-A* needs to know where the target is, so it needs a graph with positions, and it
-is one source to one target. The estimate is straight-line distance times
-**Estimate Scale**, and that is only safe when no connection weighs less than
-scale times its own length. The component checks the weights against the
-positions before it runs: distance in 3D when every connection clears that bar,
-distance in plan when only that does — which is the case for Graph From Points
-and Visibility Graph, whose weights are lengths in plan — and a warning naming
-the scale that would be safe when neither does. **Explored** lists what was
-looked at, in order, which is the quickest way to see what A* is for.
-
-## From a drawing
-
-Two builders take points and, optionally, closed curves as **Obstacles**, and
-hand back a graph already weighted by length and ready for Dijkstra. Both read in
-plan — Z is ignored in the arithmetic and kept for drawing — and both let a route
-touch an outline, so clearance is an Offset Curve before the obstacles go in.
-
-- **Graph From Points** joins each point to its nearest few. A route follows the
-  connections it is given, so this is for routes that *should* follow a grid, a
-  scatter or a set of junctions. Node i is point i even when point i is inside an
-  obstacle; it is left unconnected and listed under **Enclosed**, so indices
-  picked from the user's own list stay good.
-- **Visibility Graph** needs only the places routes start and end. Its routes are
-  the true shortest ways through open space, straight where they can be and
-  turning only at corners. The user's points are numbered first, so a start and
-  an end are nodes 0 and 1.
-
-The curves are flattened and unpacked in `ObstacleData`; what blocks what is
-decided in Graphs on plain arrays.
-
-## Trees still work, at the edges
-
-The learning components speak Connectivity trees, because those line up branch
-for branch with Training Inputs. **Graph From Connectivity** and **Deconstruct
-Graph** are the seam: Proximity 3D's Links, Neighbour Graph's Connectivity and
-Structural Insight Engine's connectivity all go in through one, and anything
-built here goes back out to a clustering through the other.
+The curves and meshes are unpacked in `ObstacleData`; what blocks what is decided
+in Graphs on plain arrays.
 
 ## Why a panel of its own
 
 Shortest Paths, Betweenness and Cut Vertices began under **Unsupervised
 Learning**, because a clustering was the first thing to want them as features.
 That is nowhere anybody else would look: ordering a toolpath, tracing a way out
-of a building or sequencing an erection is not machine learning. The panel
-follows the repo, which moved out from under MachineLearning for the same reason.
-What builds a graph *from samples* — Neighbour Graph, Gaussian Affinity — stays
-there, since measuring how alike two samples are is a learning question.
+of a building or sequencing an erection is not machine learning. What builds a
+graph *from samples* — Neighbour Graph, Gaussian Affinity — stays there, since
+measuring how alike two samples are is a learning question.
 
-No `ComponentGuid` changed in the move or in the rewrite onto the Graph wire.
-Shortest Paths became Dijkstra Shortest Path under the GUID it always had.
-
-## What is not here yet
-
-A way in from *lines*. Nothing turns a drawn network — centrelines, a street
-map — into a graph by welding ends; today that is a topology plug-in or the
-structural tools. The welding exists twice already inside StructuralDesign, so the next copy
-should be the one both of those move onto rather than a third.
+The `ComponentGuid`s of the Graph parameter and the four builders that survived
+the cut are unchanged. The eight raw algorithm components were deleted, not
+hidden, for the reason the machine learning cut gives: nothing has shipped, and
+a hidden component still shows in the double-click search.
 
 Grasshopper only. Wire-data tools with no document-level shape, so nothing here
 gets a Rhino command or a toolbar button.

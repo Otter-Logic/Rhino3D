@@ -167,8 +167,12 @@ The panels split into two families, and a user only ever needs one of them.
   Neighbours — then the data steps (Write Dataset, Read Dataset, Shape Signature)
   and the enum dropdowns. A new paradigm adds methods to this panel rather than a
   panel of its own.
-- **Graphs** — the training-free graph methods: routes, flow, structure,
-  importance.
+- **Graphs** — the training-free graph methods, cut the same way: one core,
+  OtterPath, takes a graph, a method on a wire, and sources and targets; the
+  methods — Dijkstra, A*, Breadth-First, Potential Flow, Betweenness, Connected
+  Pieces, Cut Vertices, Dependency Levels — output only that wire; then the
+  builders, which all work in three dimensions. The reasoning is in
+  [graph-components.md](graph-components.md).
 
 Add sections there rather than typing category strings into components: the
 Category string is literally what names the tab, so one typo silently creates a

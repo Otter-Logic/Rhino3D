@@ -6,17 +6,18 @@ themselves.
 ## Wire parameters
 
 A `GH_Param<T>` over one of the goo types in `Types/`, used for every input and
-output that carries that wire. `Parameters/Graphs/GraphParameter` is the first;
+output that carries that wire. `Parameters/Graphs/GraphParameter` is the first, and
+`Parameters/Graphs/GraphMethodParameter` is the Method wire into OtterPath;
 `Parameters/MachineLearning/ClusterMethodParameter` and `LearnerParameter` are
 the Method and Learner wires the machine learning panel runs on;
 `Parameters/StructuralForm/SurfaceGridParameter` is the Grid wire from Surface
 Grid to Space Truss.
 
-The two ML ones are `GH_Exposure.hidden`: a method is always made by a method
-component, so there is nothing to park on the canvas and no "set one" menu to
-offer. A component registers one with `pManager.AddParameter(new
-ClusterMethodParameter(), ...)`, and reads it through `MethodWire`, which is
-where the shared wording lives — the parameter manager is a protected nested type,
+The three method ones are `GH_Exposure.hidden`: a method is always made by a
+method component, so there is nothing to park on the canvas and no "set one"
+menu to offer. A component registers one with `pManager.AddParameter(new
+ClusterMethodParameter(), ...)`, and reads it through `MethodWire` — or
+`GraphWire` for the graph one — which is where the shared wording lives — the parameter manager is a protected nested type,
 so registering cannot be factored out, only reading can.
 
 ## Enum dropdowns

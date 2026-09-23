@@ -694,6 +694,38 @@ def learner():
     return i.arrow((15.5, 12), (23, 12), 1.8, K, 3)
 
 
+def otterpath():
+    """A route through a few nodes inside one rounded outline — the otter's back —
+    from a source to a target, the way OtterCluster's samples sit in theirs."""
+    i = Icon()
+    i.stroke(rounded_rect(2.5, 4.5, 21.5, 19.5, 6), 1.5, K, closed=True)
+    for x, y in ((8, 8.5), (13, 15.5), (16.5, 8)):
+        i.dot(x, y, 1.1, G)
+    i.stroke([(5.5, 15.5), (9.5, 11.5), (14, 11), (18.5, 8.5)], 2.2, B)
+    i.node(5.5, 15.5, 2.0, B)
+    return i.node(18.5, 8.5, 2.0, O)
+
+
+def graphmethod():
+    """The Method wire of the Graphs panel: a small graph's few settings, and the wire they leave on."""
+    i = Icon()
+    i.stroke(rounded_rect(2, 5, 15, 19, 2), 1.5, K, closed=True)
+    i.stroke([(5.5, 14.5), (8.5, 9), (11.5, 14.5)], 1.4, K)
+    i.dot(5.5, 14.5, 1.5, B).dot(8.5, 9, 1.5, O).dot(11.5, 14.5, 1.5, B)
+    return i.arrow((15.5, 12), (23, 12), 1.8, K, 3)
+
+
+def graphfromlines():
+    """Drawn lines whose ends meet: the lines in grey, the welded nodes in blue."""
+    i = Icon()
+    i.stroke([(3, 19), (9, 8), (16, 14), (21, 4)], 1.6, G)
+    i.stroke([(9, 8), (16, 3)], 1.6, G)
+    i.stroke([(16, 14), (21, 20)], 1.6, G)
+    for x, y in ((3, 19), (9, 8), (16, 14), (21, 4), (16, 3), (21, 20)):
+        i.node(x, y, 1.7, B)
+    return i
+
+
 ICONS = {f.__name__: f for f in (
     flattruss, branchpicker,
     ottercluster, ottertrain, otterpredict,
@@ -701,7 +733,7 @@ ICONS = {f.__name__: f for f in (
     boostedtrees, neuralnetwork, linearmodel, nearestneighbours,
     readdataset, writedataset, shapesignature,
     covariancetype, linkage, clustermethod, learner, unplacedpolicy,
-    graph, graphfrompoints, visibilitygraph, graphfromconnectivity, deconstructgraph,
+    graph, graphfrompoints, graphfromlines, visibilitygraph, otterpath, graphmethod, graphfromconnectivity, deconstructgraph,
     shortestpaths, astar, breadthfirst, betweenness, cutvertices, connectedpieces, dependencylevels, potentialflow,
     geometryqa, gridlevelinference, sixdofclassifier, structuralinsight,
     paneltypology, connectiontypology, jointsignature,

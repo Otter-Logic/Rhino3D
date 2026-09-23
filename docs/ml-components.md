@@ -67,8 +67,9 @@ between tiers:
 | quarternary, data | Write Dataset, Read Dataset, Shape Signature |
 | quinary, dropdowns | Covariance Type, Linkage |
 
-Graphs stays exactly as it was: its components are already named for what a
-person looks up (Dijkstra, A*), and its user is not doing machine learning.
+Graphs was cut the same way the same day — one core, OtterPath, and a method on
+a wire — for the same person; see [graph-components.md](graph-components.md).
+It stays a panel of its own because its user is not doing machine learning.
 
 The panel-per-paradigm split was undone. It mirrored the repos, which is a
 reason that matters to the person writing the code and not to the person using

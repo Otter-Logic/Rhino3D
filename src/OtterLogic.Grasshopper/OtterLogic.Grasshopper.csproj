@@ -228,6 +228,9 @@
     <EmbeddedResource Include="..\..\assets\icons\structuralinsight.png" LogicalName="OtterLogic.Icons.structuralinsight.png" />
     <EmbeddedResource Include="..\..\assets\icons\unplacedpolicy.png" LogicalName="OtterLogic.Icons.unplacedpolicy.png" />
     <EmbeddedResource Include="..\..\assets\icons\visibilitygraph.png" LogicalName="OtterLogic.Icons.visibilitygraph.png" />
+    <EmbeddedResource Include="..\..\assets\icons\otterpath.png" LogicalName="OtterLogic.Icons.otterpath.png" />
+    <EmbeddedResource Include="..\..\assets\icons\graphmethod.png" LogicalName="OtterLogic.Icons.graphmethod.png" />
+    <EmbeddedResource Include="..\..\assets\icons\graphfromlines.png" LogicalName="OtterLogic.Icons.graphfromlines.png" />
     <EmbeddedResource Include="..\..\assets\icons\writedataset.png" LogicalName="OtterLogic.Icons.writedataset.png" />
   </ItemGroup>
 

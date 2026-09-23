@@ -33,7 +33,7 @@ public sealed class DeconstructGraphComponent : GH_Component
     public override Guid ComponentGuid => new("3c0d1720-1368-4b18-b158-d7f7ccf3709f");
 
     // The build tier: making a graph and taking one apart.
-    public override GH_Exposure Exposure => GH_Exposure.primary;
+    public override GH_Exposure Exposure => GH_Exposure.tertiary;
 
     public override IEnumerable<string> Keywords => new[] { "edges", "nodes", "adjacency", "explode" };
 

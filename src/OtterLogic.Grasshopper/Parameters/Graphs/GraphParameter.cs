@@ -27,7 +27,7 @@ public sealed class GraphParameter : GH_Param<GH_Graph>, IGH_PreviewObject
     public override Guid ComponentGuid => new("e4ccd861-a031-4609-aa5e-353ba2eff48a");
 
     // The build tier, beside the components that make and unmake one.
-    public override GH_Exposure Exposure => GH_Exposure.primary;
+    public override GH_Exposure Exposure => GH_Exposure.tertiary;
 
     protected override Bitmap? Icon => EmbeddedIcons.Load("graph", 24);
 

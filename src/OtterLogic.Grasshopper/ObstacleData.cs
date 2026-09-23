@@ -1,15 +1,17 @@
 using OtterLogic.Graphs.Planar;
+using OtterLogic.Graphs.Spatial;
 using Rhino.Geometry;
 
 namespace OtterLogic.Grasshopper;
 
 /// <summary>
-/// Turns the closed curves a user draws as obstacles into the plain coordinate
-/// outlines <see cref="PlanarObstacles"/> reads.
+/// Turns the geometry a user draws as obstacles into the plain coordinate
+/// arrays <see cref="PlanarObstacles"/> and <see cref="SolidObstacles"/> read.
 /// <para>
 /// Unpacking only. Whether a step is blocked is decided in Graphs, on arrays a
 /// test can build with no Rhino running; all this does is flatten curves to
-/// polylines, read them in plan, and say which it had to leave out.
+/// polylines and Breps to meshes, read them into arrays, and say which it had
+/// to leave out.
 /// </para>
 /// </summary>
 internal static class ObstacleData
@@ -20,6 +22,91 @@ internal static class ObstacleData
         + "touch an outline and run along it, so for clearance offset the curves outwards first. "
         + "Curved outlines are flattened to polylines at the document tolerance. Open curves are "
         + "left out, with a warning.";
+
+    /// <summary>The wording for the Solids input, the three-dimensional obstacles.</summary>
+    public const string SolidsDescription =
+        "Optional. Meshes and Breps nothing may pass through, in three dimensions. A closed one is a "
+        + "solid with an inside; an open one — a wall, a slab — blocks exactly what crosses it. A route "
+        + "may run along a face and touch an edge, so for clearance offset or thicken them first. Breps "
+        + "are meshed at the document tolerance. Anything else is left out, with a warning.";
+
+    /// <summary>
+    /// Reads meshes and Breps as triangle arrays. Quads are split along a diagonal;
+    /// a Brep is meshed first, which is the one Rhino call in the chain.
+    /// </summary>
+    /// <param name="geometry">Whatever was wired in; nulls and anything neither a mesh nor a Brep are skipped.</param>
+    /// <param name="tolerance">Document tolerance: how finely a Brep is meshed, and how close counts as touching.</param>
+    /// <param name="skipped">How many items were not a mesh or a Brep, or had no faces.</param>
+    public static SolidObstacles ReadSolids(IEnumerable<GeometryBase?> geometry, double tolerance, out int skipped)
+    {
+        var solids = new List<(double[,] Vertices, int[,] Faces)>();
+        skipped = 0;
+
+        foreach (GeometryBase? item in geometry)
+        {
+            if (item is null)
+                continue;
+
+            var meshes = item switch
+            {
+                Mesh mesh => new[] { mesh },
+                Brep brep => Mesh.CreateFromBrep(brep, MeshingParameters.FastRenderMesh) ?? Array.Empty<Mesh>(),
+                Extrusion extrusion => extrusion.ToBrep() is { } asBrep
+                    ? Mesh.CreateFromBrep(asBrep, MeshingParameters.FastRenderMesh) ?? Array.Empty<Mesh>()
+                    : Array.Empty<Mesh>(),
+                _ => Array.Empty<Mesh>(),
+            };
+
+            var joined = new Mesh();
+            foreach (Mesh mesh in meshes)
+                joined.Append(mesh);
+
+            if (joined.Faces.Count == 0)
+            {
+                skipped++;
+                continue;
+            }
+
+            joined.Faces.ConvertQuadsToTriangles();
+            joined.Compact();
+
+            var vertices = new double[joined.Vertices.Count, 3];
+            for (int v = 0; v < joined.Vertices.Count; v++)
+            {
+                Point3d p = joined.Vertices.Point3dAt(v);
+                vertices[v, 0] = p.X;
+                vertices[v, 1] = p.Y;
+                vertices[v, 2] = p.Z;
+            }
+
+            var faces = new int[joined.Faces.Count, 3];
+            for (int f = 0; f < joined.Faces.Count; f++)
+            {
+                MeshFace face = joined.Faces[f];
+                faces[f, 0] = face.A;
+                faces[f, 1] = face.B;
+                faces[f, 2] = face.C;
+            }
+
+            solids.Add((vertices, faces));
+        }
+
+        return new SolidObstacles(solids, tolerance);
+    }
+
+    /// <summary>n x 3, x, y, z: the points as they are.</summary>
+    public static double[,] InSpace(IReadOnlyList<Point3d> points)
+    {
+        var x = new double[points.Count, 3];
+        for (int i = 0; i < points.Count; i++)
+        {
+            x[i, 0] = points[i].X;
+            x[i, 1] = points[i].Y;
+            x[i, 2] = points[i].Z;
+        }
+
+        return x;
+    }
 
     /// <param name="curves">Whatever was wired in; nulls and open curves are skipped.</param>
     /// <param name="tolerance">Document tolerance: how closely a curve is flattened, and how close counts as touching.</param>

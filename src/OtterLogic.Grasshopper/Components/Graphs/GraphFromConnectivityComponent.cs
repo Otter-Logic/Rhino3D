@@ -35,7 +35,7 @@ public sealed class GraphFromConnectivityComponent : GH_Component
     public override Guid ComponentGuid => new("c0fc274b-e1e8-462d-9bbd-efe0593e8d44");
 
     // The build tier: making a graph and taking one apart.
-    public override GH_Exposure Exposure => GH_Exposure.primary;
+    public override GH_Exposure Exposure => GH_Exposure.tertiary;
 
     public override IEnumerable<string> Keywords => new[] { "network", "adjacency", "topology", "edges", "nodes", "arcs", "directed", "digraph", "one-way" };
 
@@ -74,7 +74,7 @@ public sealed class GraphFromConnectivityComponent : GH_Component
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
         pManager.AddParameter(new GraphParameter(), "Graph", "G",
-            "The graph, for any component in this panel.",
+            "The graph, for OtterPath or Deconstruct Graph.",
             GH_ParamAccess.item);
     }
 

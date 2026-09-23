@@ -34,6 +34,11 @@ already put every member and node on an output of its own. Its parameter is
 `Parameters/StructuralForm/SurfaceGridParameter`, hidden from the ribbon since a
 grid is only ever made by a component.
 
+`GH_GraphMethod` is the Graphs panel's method on a wire: a `GraphMethod` record
+from Graphs — Dijkstra, A*, Potential Flow — on its way from a method component
+to OtterPath. Same rules as the two below; its parameter is
+`Parameters/Graphs/GraphMethodParameter`, hidden from the ribbon.
+
 `GH_ClusterMethod` and `GH_Learner` are the two "method on a wire" types the
 Machine Learning panel runs on. Each wraps an immutable record from the library —
 `ClusteringMethod` in Unsupervised, `Learner` in MachineLearning — so `Duplicate`
