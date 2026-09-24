@@ -1,5 +1,6 @@
 using Grasshopper.Kernel;
 using OtterLogic.Grasshopper.Types;
+using OtterLogic.MachineLearning.Embedding;
 using OtterLogic.MachineLearning.Training;
 using OtterLogic.Unsupervised.Clustering;
 
@@ -26,10 +27,22 @@ internal static class MethodWire
         "This learner with these settings. Wire it into OtterTrain's Learner input; the samples are "
         + "wired there, not here.";
 
+    /// <summary>What every embedding method component says about its one output.</summary>
+    public const string EmbeddingMethodOutput =
+        "This method with these settings. Wire it into OtterEmbed's Method input; the samples or the "
+        + "graph are wired there, not here.";
+
     /// <summary>The method at <paramref name="index"/>, or null when nothing is wired — which is a valid choice, not an error.</summary>
     public static ClusteringMethod? ReadClusterMethod(IGH_DataAccess da, int index)
     {
         GH_ClusterMethod? goo = null;
+        return da.GetData(index, ref goo) ? goo?.Value : null;
+    }
+
+    /// <summary>The embedding method at <paramref name="index"/>, or null when nothing is wired.</summary>
+    public static EmbeddingMethod? ReadEmbeddingMethod(IGH_DataAccess da, int index)
+    {
+        GH_EmbeddingMethod? goo = null;
         return da.GetData(index, ref goo) ? goo?.Value : null;
     }
 

@@ -52,6 +52,15 @@ Features from the Insight Engine plug straight into OtterCluster, and Connectivi
 into Graph From Connectivity, so a user can take the grouping further with their
 own choices.
 
+- **Describe Member** — lines, surfaces and supports in; the engine's reading
+  out as two tables, one row per element and one row per member, with the
+  member, assembly, level, flow and orientation of every element beside them
+  and each member drawn as one curve. `ModelReading.Read` in StructuralEngine,
+  which is exactly what the Insight Engine clusters on, without the clustering.
+  This is the table to train on when the answer wanted is per member — a
+  release, a section group, a role — and the connector from this panel to
+  OtterCluster, OtterEmbed and OtterTrain.
+
 ## What earns a place here
 
 A tool that knows what structural data is — a stick model and its supports, six

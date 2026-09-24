@@ -154,6 +154,14 @@ answer rather than a guess.
 Where the two chords meet at an end, no end post is generated there — it would
 collapse onto the shared point and sit on top of the chords.
 
+**Getting between panels.** Five connectors let any panel feed any other:
+*Describe Geometry* (Dataset) and *Node Features* (Graphs) turn geometry and
+graphs into tables, *Describe Member* (Structural Design) hands over the
+engine's reading as tables, *OtterEmbed* (Machine Learning) lays a table or a
+graph out as points, and *Bake By Group*, *Write Attributes* and *Read
+Attributes* (Document) put labels into the Rhino model and read them back. See
+[docs/connectors.md](docs/connectors.md).
+
 **Layer Picker.** *OtterLogic → Document → Layer Picker*. The other half of the
 bake above: the layer tree of the open model, drawn on the component itself with
 a tick box against every layer and sub-layer. Tick the groups you want and their

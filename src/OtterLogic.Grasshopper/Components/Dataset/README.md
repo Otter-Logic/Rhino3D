@@ -14,6 +14,15 @@ and the dataset folder live in
 | `secondary` — datasets on disk | **Write Dataset** | `SampleTable.FromColumns`, `DatasetFolder.Write` |
 | | **Read Dataset** | `DatasetFolder.Read` |
 | `tertiary` — features from geometry | **Shape Signature** | `ShapeSignature.Fit` |
+| | **Describe Geometry** — any point, curve, surface, Brep, extrusion, SubD or mesh as one row: sizes, length, area, volume, upright, straightness, closed, corners, faces, holes, and position when asked | `GeometryDescription.Describe` (Core) |
+
+**Describe Geometry** is the connector for the mixed bag: whatever a definition
+holds becomes a table OtterCluster, OtterEmbed or OtterTrain can take, with
+`Feature Names` to go with it. The columns are the same for every kind, with
+zero where a measure does not apply, so rows never go ragged; `Kind` says which
+each piece is. Position is off by default because a grouping by kind should not
+be able to tell two identical brackets apart. Shape Signature stays the tool for
+outlines compared shape for shape.
 
 ## Data Table
 

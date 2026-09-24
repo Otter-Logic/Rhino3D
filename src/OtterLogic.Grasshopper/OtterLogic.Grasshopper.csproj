@@ -249,6 +249,18 @@
     <EmbeddedResource Include="..\..\assets\icons\graphfromlines.png" LogicalName="OtterLogic.Icons.graphfromlines.png" />
     <EmbeddedResource Include="..\..\assets\icons\writedataset.png" LogicalName="OtterLogic.Icons.writedataset.png" />
     <EmbeddedResource Include="..\..\assets\icons\datatable.png" LogicalName="OtterLogic.Icons.datatable.png" />
+    <!-- The connectors of 2026-09: geometry, graphs and models into tables, a map out of the ML panel, labels back into the model. -->
+    <EmbeddedResource Include="..\..\assets\icons\describegeometry.png" LogicalName="OtterLogic.Icons.describegeometry.png" />
+    <EmbeddedResource Include="..\..\assets\icons\nodefeatures.png" LogicalName="OtterLogic.Icons.nodefeatures.png" />
+    <EmbeddedResource Include="..\..\assets\icons\describemember.png" LogicalName="OtterLogic.Icons.describemember.png" />
+    <EmbeddedResource Include="..\..\assets\icons\otterembed.png" LogicalName="OtterLogic.Icons.otterembed.png" />
+    <EmbeddedResource Include="..\..\assets\icons\principalcomponents.png" LogicalName="OtterLogic.Icons.principalcomponents.png" />
+    <EmbeddedResource Include="..\..\assets\icons\multidimensionalscaling.png" LogicalName="OtterLogic.Icons.multidimensionalscaling.png" />
+    <EmbeddedResource Include="..\..\assets\icons\spectralembedding.png" LogicalName="OtterLogic.Icons.spectralembedding.png" />
+    <EmbeddedResource Include="..\..\assets\icons\embeddingmethod.png" LogicalName="OtterLogic.Icons.embeddingmethod.png" />
+    <EmbeddedResource Include="..\..\assets\icons\bakebygroup.png" LogicalName="OtterLogic.Icons.bakebygroup.png" />
+    <EmbeddedResource Include="..\..\assets\icons\writeattributes.png" LogicalName="OtterLogic.Icons.writeattributes.png" />
+    <EmbeddedResource Include="..\..\assets\icons\readattributes.png" LogicalName="OtterLogic.Icons.readattributes.png" />
   </ItemGroup>
 
   <!-- ONNX Runtime's native onnxruntime.dll lands under runtimes/win-x64/native,

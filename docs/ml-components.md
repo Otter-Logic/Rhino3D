@@ -61,10 +61,16 @@ between tiers:
 
 | Tier | Components |
 |---|---|
-| primary, the cores | OtterCluster, OtterTrain, OtterPredict |
+| primary, the cores | OtterCluster, OtterTrain, OtterPredict, OtterEmbed |
 | secondary, cluster methods | K-Means, Gaussian Mixture, HDBSCAN, Spectral Clustering, Hierarchical Clustering |
 | tertiary, learners | Boosted Trees, Neural Network, Linear Model, Nearest Neighbours |
+| quarternary, embedding methods | Principal Components, Multidimensional Scaling, Spectral Embedding |
 | quinary, dropdowns | Covariance Type, Linkage |
+
+OtterEmbed and its three methods arrived on 2026-09-24 as one of the five
+connectors (see [connectors.md](connectors.md)): the map that OtterCluster's Map
+toggle draws, on its own, with a method on a wire and a Graph input — so a
+network's nodes can be laid out by what they connect to.
 
 The data tier that sat at `quarternary` — Write Dataset, Read Dataset, Shape
 Signature — became its own **Dataset** panel on 2026-09-24, with a Data Table

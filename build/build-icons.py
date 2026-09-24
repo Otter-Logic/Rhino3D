@@ -731,6 +731,144 @@ def graphfromlines():
     return i
 
 
+
+def _rows(i, x0, x1, ys=(6, 12, 18), c=B):
+    """Three rows of a table: the thing a describer hands on."""
+    for y in ys:
+        i.fill([(x0, y - 1.4), (x1, y - 1.4), (x1, y + 1.4), (x0, y + 1.4)], c)
+    return i
+
+
+def describegeometry():
+    """A curve, an outline and a box on the left; the rows they become on the right."""
+    i = Icon()
+    i.stroke([(2, 6.5), (4.5, 3), (8.5, 5.5)], 1.7, G)
+    i.stroke([(2, 9.5), (8.5, 9.5), (8.5, 14), (2, 14)], 1.4, G, closed=True)
+    i.stroke([(2, 17.5), (7, 17.5), (7, 22), (2, 22)], 1.4, G, closed=True)
+    i.stroke([(2, 17.5), (4, 16), (9, 16), (7, 17.5)], 1.1, G)
+    i.stroke([(9, 16), (9, 20.5), (7, 22)], 1.1, G)
+    i.arrow((10.5, 12), (13.5, 12), 1.5, K, 2.8)
+    return _rows(i, 15.5, 22)
+
+
+def nodefeatures():
+    """A small graph on the left; one row per node on the right."""
+    i = Icon()
+    nodes = [(3.5, 5), (8, 12), (3, 19.5)]
+    _graph(i, nodes, [(0, 1), (1, 2), (0, 2)], 1.4)
+    for x, y in nodes:
+        i.node(x, y, 1.9, B)
+    i.arrow((10.5, 12), (13.5, 12), 1.5, K, 2.8)
+    return _rows(i, 15.5, 22, ys=(5, 12, 19.5))
+
+
+def describemember():
+    """A column and a beam on the left; the rows they become on the right."""
+    i = Icon()
+    i.stroke([(3, 21), (3, 5)], 2.2, K)
+    i.stroke([(3, 5), (10, 5)], 2.2, K)
+    i.stroke([(6.5, 5), (6.5, 12)], 1.4, G)
+    i.node(3, 5, 1.8, B)
+    i.node(3, 21, 1.6, "#FFFFFF")
+    i.arrow((11, 12), (13.5, 12), 1.5, K, 2.8)
+    return _rows(i, 15.5, 22)
+
+
+def otterembed():
+    """Samples laid out along a curve inside one rounded outline — the otter's back."""
+    i = Icon()
+    i.stroke(rounded_rect(1.5, 3.5, 22.5, 20.5, 5), 1.6, K, closed=True)
+    i.stroke([(4.5, 16), (8, 9), (12, 13), (16, 7), (19.5, 10)], 1.0, G, dash=(1.0, 1.6))
+    for x, y in ((4.5, 16), (8, 9), (12, 13), (16, 7), (19.5, 10)):
+        i.node(x, y, 1.9, B)
+    return i
+
+
+def principalcomponents():
+    """A cloud stretched along one direction, with its long and short axes drawn."""
+    i = Icon()
+    for x, y in ((5, 17), (7.5, 14.5), (9, 16), (11, 12), (13, 13.5), (14.5, 9.5), (17, 8), (18.5, 10), (10, 9.5), (16, 12)):
+        i.dot(x, y, 1.4, G)
+    i.arrow((4, 19), (20.5, 5.5), 1.8, B, 3.4)
+    i.arrow((10.5, 10.5), (14, 14.5), 1.6, O, 3.0)
+    return i
+
+
+def multidimensionalscaling():
+    """Points and the distances between them, kept as they were."""
+    i = Icon()
+    pts = [(4.5, 18.5), (9.5, 5.5), (19, 9), (15, 18)]
+    for a in range(len(pts)):
+        for b in range(a + 1, len(pts)):
+            i.stroke([pts[a], pts[b]], 1.0, G, dash=(1.0, 1.6))
+    for x, y in pts:
+        i.node(x, y, 2.1, B)
+    return i
+
+
+def spectralembedding():
+    """Two knots of nodes joined by one connection, laid out apart."""
+    i = Icon()
+    left = [(4, 8), (8, 5), (8.5, 11), (4.5, 13)]
+    right = [(15.5, 13), (19.5, 11), (20, 17), (16, 19.5)]
+    for group in (left, right):
+        for a in range(len(group)):
+            for b in range(a + 1, len(group)):
+                i.stroke([group[a], group[b]], 1.2, K)
+    i.stroke([left[2], right[0]], 1.2, G, dash=(1.0, 1.4))
+    for x, y in left:
+        i.node(x, y, 1.7, B)
+    for x, y in right:
+        i.node(x, y, 1.7, O)
+    return i
+
+
+def embeddingmethod():
+    """The Method wire of OtterEmbed: a little map's settings, and the wire they leave on."""
+    i = Icon()
+    i.stroke(rounded_rect(2, 4, 15, 20, 2), 1.5, K, closed=True)
+    for x, y in ((5.5, 15.5), (8.5, 9), (11.5, 13)):
+        i.node(x, y, 1.6, B)
+    i.stroke([(15, 12), (22, 12)], 2.0, B)
+    return i
+
+
+def _layers(i, x0, x1, colours):
+    """A stack of layer bars, one colour each."""
+    for k, c in enumerate(colours):
+        y = 6 + 5.5 * k
+        i.fill([(x0, y - 1.6), (x1, y - 1.6), (x1, y + 1.6), (x0, y + 1.6)], c)
+    return i
+
+
+def bakebygroup():
+    """Pieces falling onto a stack of coloured layers, one per group."""
+    i = Icon()
+    _layers(i, 9, 22, (B, O, N))
+    i.arrow((4.5, 3.5), (4.5, 19), 1.8, K, 3.4)
+    return i
+
+
+def _tag(i, x0, y0, x1, y1):
+    """A label tag: a rectangle with a notched end and two lines of text."""
+    i.stroke([(x0, y0), (x1 - 3, y0), (x1, (y0 + y1) / 2), (x1 - 3, y1), (x0, y1)], 1.5, K, closed=True)
+    for y in ((y0 + y1) / 2 - 2, (y0 + y1) / 2 + 2):
+        i.stroke([(x0 + 2.5, y), (x1 - 5.5, y)], 1.3, B)
+    return i
+
+
+def writeattributes():
+    """Text going onto a tag."""
+    i = _tag(Icon(), 8, 6, 22.5, 18)
+    return i.arrow((1.5, 12), (6.5, 12), 1.8, K, 3.2)
+
+
+def readattributes():
+    """Text coming off a tag."""
+    i = _tag(Icon(), 1.5, 6, 16, 18)
+    return i.arrow((17.5, 12), (22.5, 12), 1.8, K, 3.2)
+
+
 ICONS = {f.__name__: f for f in (
     flattruss, branchpicker,
     ottercluster, ottertrain, otterpredict,
@@ -743,6 +881,9 @@ ICONS = {f.__name__: f for f in (
     geometryqa, gridlevelinference, sixdofclassifier, structuralinsight,
     paneltypology, connectiontypology, jointsignature,
     erectionsequence, dropanimation,
+    describegeometry, nodefeatures, describemember,
+    otterembed, principalcomponents, multidimensionalscaling, spectralembedding, embeddingmethod,
+    bakebygroup, writeattributes, readattributes,
 )}
 
 

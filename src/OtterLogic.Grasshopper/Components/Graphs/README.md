@@ -28,6 +28,13 @@ decided and why.
 | | **Visibility Graph** — points and obstacle corners, joined where they see each other, in plan | `VisibilityGraph.Of` |
 | | **Graph From Connectivity** | `WeightedGraph.FromEdges` |
 | | **Deconstruct Graph** | `WeightedGraph.Edges` |
+| | **Node Features** — one row per node: connections, strength, triangles, within two steps, betweenness, closeness, stranded, piece size, steps and cost to the nearest source | `NodeFeatures.Of` |
+
+**Node Features** is the connector from this panel to the learning ones.
+OtterPath answers one question at a time; this lays every reading side by side,
+one row per node, so OtterCluster can find what *kinds* of node a network has —
+hubs, bridges, leaves on spurs — and OtterTrain can learn them from a label per
+node. Its `Feature Names` go with the rows.
 
 The Method wire is `GH_GraphMethod` over `OtterLogic.Graphs.Methods.GraphMethod`,
 with `GraphMethodParameter` hidden from the ribbon. The next algorithm — a

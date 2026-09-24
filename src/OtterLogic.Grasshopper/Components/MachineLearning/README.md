@@ -24,7 +24,19 @@ is the [Dataset panel](../Dataset/README.md), one to the left.
 | | **Neural Network** | `new NeuralNetworkLearner` |
 | | **Linear Model** | `new LinearLearner` |
 | | **Nearest Neighbours** | `new NearestNeighboursLearner` |
+| `quarternary` — embedding methods | **Principal Components** | `new PrincipalComponentsMethod` |
+| | **Multidimensional Scaling** | `new MultidimensionalScalingMethod` |
+| | **Spectral Embedding** | `new SpectralEmbeddingMethod` |
 | `quinary` — dropdowns | **Covariance Type**, **Linkage** | `EnumValueList`, in `Parameters/MachineLearning` |
+
+**OtterEmbed** is the fourth core, added 2026-09: samples in — or a Graph, or
+both — and one point per sample out, laid out so that alike sits near alike.
+`EmbedRun.Fit` in MachineLearning standardises, lays out, and relates the axes
+back to the columns. With nothing on Method, Data alone gets Multidimensional
+Scaling and a Graph gets Spectral Embedding, with the reason in Report. The
+embedding methods take the `quarternary` slot the data tier left empty, so no
+surviving component's exposure moved. The Method wire is `GH_EmbeddingMethod`
+over `OtterLogic.MachineLearning.Embedding.EmbeddingMethod`.
 
 ## A method on a wire
 
