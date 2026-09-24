@@ -9,7 +9,7 @@ using Rhino.Geometry;
 // has been caught by before.
 using global::OtterLogic.MachineLearning.Shapes;
 
-namespace OtterLogic.Grasshopper.Components.MachineLearning;
+namespace OtterLogic.Grasshopper.Components.Dataset;
 
 /// <summary>
 /// Outlines in; the same row of numbers describing each of them out, learned from
@@ -58,14 +58,15 @@ public sealed class ShapeSignatureComponent : GH_Component
                + "How far apart two rows are is how far apart the two outlines are, averaged point for "
                + "corresponding point, in model units. So a tolerance on this is a tolerance you can justify: cut a "
                + "clustering of it at 5 and no two members are more than 5 apart.",
-               Categories.Root, Categories.MachineLearning)
+               Categories.Root, Categories.Dataset)
     {
     }
 
     public override Guid ComponentGuid => new("3a5f2d18-7c64-4a1b-9e0d-2b6f8c41d537");
 
-    // The data tier: a thing to do before a method, not a method.
-    public override GH_Exposure Exposure => GH_Exposure.quarternary;
+    // Features from geometry: the last tier of the Dataset panel, a thing to do
+    // before a method rather than a method.
+    public override GH_Exposure Exposure => GH_Exposure.tertiary;
 
     protected override Bitmap? Icon => EmbeddedIcons.Load("shapesignature", 24);
 

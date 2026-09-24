@@ -160,13 +160,18 @@ The panels split into two families, and a user only ever needs one of them.
 
 **Named for a technique** — how it is done:
 
+- **Dataset** — getting data ready before anything learns from it: Data Table
+  (typed, pasted or wired in, edited in a grid), Write Dataset and Read Dataset
+  (a dataset gathered on disk one model at a time), Shape Signature (features
+  from outlines). Split out of Machine Learning in 2026-09 because preparing data
+  is a different job from fitting a model to it. The reasoning is in
+  `src/OtterLogic.Grasshopper/Components/Dataset/README.md`.
 - **Machine Learning** — one panel for every paradigm. Three cores take data and
   a method on a wire: OtterCluster, OtterTrain, OtterPredict. Below them the
   methods that go on that wire — K-Means, Gaussian Mixture, HDBSCAN, Spectral and
   Hierarchical Clustering; Boosted Trees, Neural Network, Linear Model, Nearest
-  Neighbours — then the data steps (Write Dataset, Read Dataset, Shape Signature)
-  and the enum dropdowns. A new paradigm adds methods to this panel rather than a
-  panel of its own.
+  Neighbours — then the enum dropdowns. A new paradigm adds methods to this panel
+  rather than a panel of its own.
 - **Graphs** — the training-free graph methods, cut the same way: one core,
   OtterPath, takes a graph, a method on a wire, and sources and targets; the
   methods — Dijkstra, A*, Breadth-First, Potential Flow, Betweenness, Connected
@@ -201,7 +206,8 @@ cluster something choosing between panels before they had chosen a method. It is
 one **Machine Learning** panel again, cut for a layperson: the cores at the top
 answer with nothing but data wired, and every method is a small component that
 outputs only a wire. `GH_Exposure` draws the tiers — cores, cluster methods,
-learners, data, dropdowns — without a subcategory each. The reasoning is in
+learners, dropdowns — without a subcategory each; the data tier became the
+Dataset panel. The reasoning is in
 [ml-components.md](ml-components.md).
 
 ### Re-cutting the ribbon is free

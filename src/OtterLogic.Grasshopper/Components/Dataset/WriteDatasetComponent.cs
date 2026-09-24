@@ -2,9 +2,9 @@ using System.Drawing;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
-using OtterLogic.MachineLearning.Data;
+using OtterLogic.Dataset.Data;
 
-namespace OtterLogic.Grasshopper.Components.MachineLearning;
+namespace OtterLogic.Grasshopper.Components.Dataset;
 
 /// <summary>
 /// Writes this definition's samples into a dataset folder, as one model among many.
@@ -26,14 +26,14 @@ public sealed class WriteDatasetComponent : GH_Component
                + "twentieth model going in with two inputs swapped.\n\n"
                + "Read it back with Read Dataset. To fit a model on the samples in this definition alone, "
                + "skip the folder and wire them straight into OtterTrain.",
-               Categories.Root, Categories.MachineLearning)
+               Categories.Root, Categories.Dataset)
     {
     }
 
     public override Guid ComponentGuid => new("0ce82461-a4e9-4ce9-a197-1f8777ee81ee");
 
-    // The data tier, below the cores and the methods they take.
-    public override GH_Exposure Exposure => GH_Exposure.quarternary;
+    // The dataset-on-disk tier of the Dataset panel, under the table itself.
+    public override GH_Exposure Exposure => GH_Exposure.secondary;
 
     protected override Bitmap? Icon => EmbeddedIcons.Load("writedataset", 24);
 
@@ -162,7 +162,7 @@ public sealed class WriteDatasetComponent : GH_Component
 
         try
         {
-            var dataset = Dataset.FromColumns(
+            var dataset = SampleTable.FromColumns(
                 featureNames.Select(n => (n ?? string.Empty).Trim()).ToArray(), features,
                 targetNames.Select(n => (n ?? string.Empty).Trim()).ToArray(), targets, isNumber,
                 idColumn, version);

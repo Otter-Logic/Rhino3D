@@ -248,6 +248,11 @@ def branchpicker():
     return i
 
 
+def datatable():
+    i = table(Icon(), 2, 22)
+    return i.fill([(12.6, 12.6), (21.4, 12.6), (21.4, 15.4), (12.6, 15.4)], B)
+
+
 def readdataset():
     i = table(Icon(), 2, 14)
     return i.arrow((15.5, 12), (23, 12), 2, B, 4)
@@ -731,7 +736,7 @@ ICONS = {f.__name__: f for f in (
     ottercluster, ottertrain, otterpredict,
     kmeans, gaussianmixture, hdbscan, spectralclustering, hierarchicalclustering,
     boostedtrees, neuralnetwork, linearmodel, nearestneighbours,
-    readdataset, writedataset, shapesignature,
+    datatable, readdataset, writedataset, shapesignature,
     covariancetype, linkage, clustermethod, learner, unplacedpolicy,
     graph, graphfrompoints, graphfromlines, visibilitygraph, otterpath, graphmethod, graphfromconnectivity, deconstructgraph,
     shortestpaths, astar, breadthfirst, betweenness, cutvertices, connectedpieces, dependencylevels, potentialflow,

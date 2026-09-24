@@ -3,9 +3,9 @@ using Grasshopper;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
-using OtterLogic.MachineLearning.Data;
+using OtterLogic.Dataset.Data;
 
-namespace OtterLogic.Grasshopper.Components.MachineLearning;
+namespace OtterLogic.Grasshopper.Components.Dataset;
 
 /// <summary>
 /// Reads every model in a dataset folder back as one table.
@@ -23,14 +23,14 @@ public sealed class ReadDatasetComponent : GH_Component
                + "decides what a good score even is — and lists any feature that never changes. Then wire "
                + "Features, Targets, Groups and Feature Names straight into OtterTrain: with Groups wired, "
                + "what it scores on comes from models the fit never saw.",
-               Categories.Root, Categories.MachineLearning)
+               Categories.Root, Categories.Dataset)
     {
     }
 
     public override Guid ComponentGuid => new("6ddec67f-cc1f-4ae9-b92c-9231e7a75424");
 
-    // The data tier, below the cores and the methods they take.
-    public override GH_Exposure Exposure => GH_Exposure.quarternary;
+    // The dataset-on-disk tier of the Dataset panel, under the table itself.
+    public override GH_Exposure Exposure => GH_Exposure.secondary;
 
     protected override Bitmap? Icon => EmbeddedIcons.Load("readdataset", 24);
 

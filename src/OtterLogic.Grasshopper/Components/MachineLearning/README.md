@@ -3,15 +3,17 @@
 One panel for all of machine learning, cut for the person who has samples and
 wants an answer rather than for the person who wants to tune an algorithm.
 Adaptors only: the clustering lives in
-[Unsupervised](https://github.com/Otter-Logic/Unsupervised), the dataset, the
-trainer and the learners in
-[MachineLearning](https://github.com/Otter-Logic/MachineLearning), and every
-component here unpacks a tree, makes one call, and packs the answer back.
+[Unsupervised](https://github.com/Otter-Logic/Unsupervised), the trainer and
+the learners in [MachineLearning](https://github.com/Otter-Logic/MachineLearning),
+the dataset contract in [Dataset](https://github.com/Otter-Logic/Dataset), and
+every component here unpacks a tree, makes one call, and packs the answer back.
+Getting the data ready — the table, the folder on disk, features from geometry —
+is the [Dataset panel](../Dataset/README.md), one to the left.
 
 | Tier (`GH_Exposure`) | Component | Library call |
 |---|---|---|
 | `primary` — the cores | **OtterCluster** | `ClusterRun.Fit` |
-| | **OtterTrain** | `Dataset.FromColumns`, `TrainerProcess.StartOnSamples`, `TrainerRuntime.Find` / `InstallAsync` / `InstallFromFile` |
+| | **OtterTrain** | `SampleTable.FromColumns`, `TrainerProcess.StartOnSamples`, `TrainerRuntime.Find` / `InstallAsync` / `InstallFromFile` |
 | | **OtterPredict** | `OnnxModel.Load`, `OnnxModel.Predict` |
 | `secondary` — cluster methods | **K-Means** | `new KMeansMethod` |
 | | **Gaussian Mixture** | `new GaussianMixtureMethod` |
@@ -22,9 +24,6 @@ component here unpacks a tree, makes one call, and packs the answer back.
 | | **Neural Network** | `new NeuralNetworkLearner` |
 | | **Linear Model** | `new LinearLearner` |
 | | **Nearest Neighbours** | `new NearestNeighboursLearner` |
-| `quarternary` — data | **Write Dataset** | `Dataset.FromColumns`, `DatasetFolder.Write` |
-| | **Read Dataset** | `DatasetFolder.Read` |
-| | **Shape Signature** | `ShapeSignature.Fit` |
 | `quinary` — dropdowns | **Covariance Type**, **Linkage** | `EnumValueList`, in `Parameters/MachineLearning` |
 
 ## A method on a wire

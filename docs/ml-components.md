@@ -64,8 +64,15 @@ between tiers:
 | primary, the cores | OtterCluster, OtterTrain, OtterPredict |
 | secondary, cluster methods | K-Means, Gaussian Mixture, HDBSCAN, Spectral Clustering, Hierarchical Clustering |
 | tertiary, learners | Boosted Trees, Neural Network, Linear Model, Nearest Neighbours |
-| quarternary, data | Write Dataset, Read Dataset, Shape Signature |
 | quinary, dropdowns | Covariance Type, Linkage |
+
+The data tier that sat at `quarternary` — Write Dataset, Read Dataset, Shape
+Signature — became its own **Dataset** panel on 2026-09-24, with a Data Table
+component at its head, when the Dataset repo arrived to hold the table and the
+text it is pasted from. Preparing data is a different job from fitting a model
+to it, done by a different person on a different day. The dropdowns keep
+`quinary` so that no `ComponentGuid` or exposure of a surviving component
+moved. See `src/OtterLogic.Grasshopper/Components/Dataset/README.md`.
 
 Graphs was cut the same way the same day — one core, OtterPath, and a method on
 a wire — for the same person; see [graph-components.md](graph-components.md).

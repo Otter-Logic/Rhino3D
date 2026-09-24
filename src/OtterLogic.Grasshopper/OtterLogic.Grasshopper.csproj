@@ -52,6 +52,22 @@
     </Otherwise>
   </Choose>
 
+  <!-- Dataset: the table, the delimited text it is pasted from, and the dataset
+       folder the Write and Read Dataset components talk to. A foundation beside
+       Core and Graphs; MachineLearning sits on it. -->
+  <Choose>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\Dataset\src\OtterLogic.Dataset\OtterLogic.Dataset.csproj')">
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\Dataset\src\OtterLogic.Dataset\OtterLogic.Dataset.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="OtterLogic.Dataset" Version="[$(Version)]" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
   <!-- A sibling checkout of MachineLearning wins; the published package is the
        fallback. It is a layer rather than a domain - it sits above Core and
        below the toolkits, and a toolkit may reference it. -->
@@ -232,6 +248,7 @@
     <EmbeddedResource Include="..\..\assets\icons\graphmethod.png" LogicalName="OtterLogic.Icons.graphmethod.png" />
     <EmbeddedResource Include="..\..\assets\icons\graphfromlines.png" LogicalName="OtterLogic.Icons.graphfromlines.png" />
     <EmbeddedResource Include="..\..\assets\icons\writedataset.png" LogicalName="OtterLogic.Icons.writedataset.png" />
+    <EmbeddedResource Include="..\..\assets\icons\datatable.png" LogicalName="OtterLogic.Icons.datatable.png" />
   </ItemGroup>
 
   <!-- ONNX Runtime's native onnxruntime.dll lands under runtimes/win-x64/native,

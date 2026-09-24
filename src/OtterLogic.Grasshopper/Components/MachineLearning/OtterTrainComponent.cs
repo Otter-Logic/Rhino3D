@@ -5,7 +5,7 @@ using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using OtterLogic.Grasshopper.Parameters.MachineLearning;
-using OtterLogic.MachineLearning.Data;
+using OtterLogic.Dataset.Data;
 using OtterLogic.MachineLearning.Training;
 
 namespace OtterLogic.Grasshopper.Components.MachineLearning;
@@ -14,7 +14,7 @@ namespace OtterLogic.Grasshopper.Components.MachineLearning;
 /// Trains a model on the samples wired in and writes it as one <c>.onnx</c> file.
 /// <para>
 /// Adaptor only. The dataset, the job, the process and the progress protocol
-/// belong to <see cref="Dataset"/> and <see cref="TrainerProcess"/>; the training
+/// belong to <see cref="SampleTable"/> and <see cref="TrainerProcess"/>; the training
 /// itself runs in a separate Python process, so the canvas never waits on it.
 /// What this adds is the edge-driven Run toggle and the polling: a job starts when
 /// Run goes on, is cancelled when it goes off, and never restarts because something
@@ -286,7 +286,7 @@ public sealed class OtterTrainComponent : GH_Component
 
         try
         {
-            var dataset = Dataset.FromColumns(
+            var dataset = SampleTable.FromColumns(
                 featureNames.Select(n => (n ?? string.Empty).Trim()).ToArray(), features,
                 new[] { targetName.Trim() }, targets, new[] { isNumber });
 

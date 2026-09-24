@@ -72,6 +72,7 @@ public static class Categories
     public static readonly string Fabrication = Ranked(OtterLogic.Core.Sections.Fabrication);
     public static readonly string Construction = Ranked(OtterLogic.Core.Sections.Construction);
     public static readonly string Graphs = Ranked(OtterLogic.Core.Sections.Graphs);
+    public static readonly string Dataset = Ranked(OtterLogic.Core.Sections.Dataset);
     public static readonly string MachineLearning = Ranked(OtterLogic.Core.Sections.MachineLearning);
 
     /// <summary>
