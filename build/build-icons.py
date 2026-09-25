@@ -222,6 +222,19 @@ def table(i, x0, x1):
 # The icons
 # --------------------------------------------------------------------------
 
+def gridcolumns():
+    """A grid seen in perspective, in grey, with a column standing up from every
+    crossing. The crossings are the dots: they are what the tool finds."""
+    i = Icon()
+    for y in (15, 21):
+        i.stroke([(2, y), (22, y)], 1.2, G)
+    i.stroke([(6, 21), (10, 15)], 1.2, G).stroke([(14, 21), (18, 15)], 1.2, G)
+    for x, y in ((6, 21), (14, 21), (10, 15), (18, 15)):
+        i.stroke([(x, y), (x, y - 11)], 2.0, B)
+        i.dot(x, y, 1.5, K)
+    return i
+
+
 def flattruss():
     i = Icon()
     i.stroke([(2, 18), (7, 6), (12, 18), (17, 6), (22, 18)], 1.5, K)
@@ -868,7 +881,7 @@ def readattributes():
 
 
 ICONS = {f.__name__: f for f in (
-    flattruss, branchpicker,
+    flattruss, gridcolumns, branchpicker,
     ottercluster, ottertrain, otterpredict,
     kmeans, gaussianmixture, hdbscan, spectralclustering, hierarchicalclustering,
     boostedtrees, randomforest, neuralnetwork, linearmodel,

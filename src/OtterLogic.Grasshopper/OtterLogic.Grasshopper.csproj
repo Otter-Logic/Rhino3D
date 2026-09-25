@@ -217,6 +217,7 @@
     <EmbeddedResource Include="..\..\assets\icons\boxtruss.png" LogicalName="OtterLogic.Icons.boxtruss.png" />
     <EmbeddedResource Include="..\..\assets\icons\surfacegrid.png" LogicalName="OtterLogic.Icons.surfacegrid.png" />
     <EmbeddedResource Include="..\..\assets\icons\spacetruss.png" LogicalName="OtterLogic.Icons.spacetruss.png" />
+    <EmbeddedResource Include="..\..\assets\icons\gridcolumns.png" LogicalName="OtterLogic.Icons.gridcolumns.png" />
     <EmbeddedResource Include="..\..\assets\icons\gridpattern.png" LogicalName="OtterLogic.Icons.gridpattern.png" />
     <EmbeddedResource Include="..\..\assets\icons\TrussType.png" LogicalName="OtterLogic.Icons.trusstype.png" />
     <EmbeddedResource Include="..\..\assets\icons\layerpicker.png" LogicalName="OtterLogic.Icons.layerpicker.png" />

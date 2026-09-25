@@ -31,6 +31,7 @@ $slots = @(
     @{ Name = 'beaminfill'; Guid = '802df9c2-db82-4110-afb2-9feddf691a63' }
     @{ Name = 'surfacegrid'; Guid = '0cc53375-7cc6-4962-b887-962416f8f26c' }
     @{ Name = 'spacetruss'; Guid = 'f1a75988-e5a2-49cc-82aa-4a5f9a39641a' }
+    @{ Name = 'gridcolumns'; Guid = 'b6413f0f-9305-420d-8723-7b7af16850d9' }
 )
 
 foreach ($slot in $slots) {

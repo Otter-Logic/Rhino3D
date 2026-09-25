@@ -256,6 +256,18 @@ just the curves round the outside of an area.
 - Grasshopper: *OtterLogic → Structural Form → Beam Infill*. Members come out as a
   tree with one branch per panel, matching the *Panel* outlines by index.
 
+**Grid Columns.** Draw, or open, a grid — lines, arcs, at any height.
+
+- Rhino: `OtterColumn` — select the gridlines, and it flattens them to Z = 0
+  and marks every crossing before asking anything else, so a missed gridline
+  shows as a missing dot. Give a base height and a top height (three metres
+  by default, in the document's units) and it previews a column at every
+  crossing; `Base` and `Top` in the preview change them. Accept bakes the
+  columns onto `OtterColumn1`. The gridlines you picked are left exactly as
+  they are.
+- Grasshopper: *OtterLogic → Structural Form → Grid Columns*. Columns come out
+  in the same order as the *Crossing* points; *Plan* is the flattened grid.
+
 ## Layout
 
 ```
