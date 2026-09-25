@@ -3,8 +3,9 @@
 One panel for all of machine learning, cut for the person who has samples and
 wants an answer rather than for the person who wants to tune an algorithm.
 Adaptors only: the clustering lives in
-[Unsupervised](https://github.com/Otter-Logic/Unsupervised), the trainer and
-the learners in [MachineLearning](https://github.com/Otter-Logic/MachineLearning),
+[Unsupervised](https://github.com/Otter-Logic/Unsupervised), the learners and the
+training run in [Supervised](https://github.com/Otter-Logic/Supervised), the
+ONNX reader and writer in [MachineLearning](https://github.com/Otter-Logic/MachineLearning),
 the dataset contract in [Dataset](https://github.com/Otter-Logic/Dataset), and
 every component here unpacks a tree, makes one call, and packs the answer back.
 Getting the data ready — the table, the folder on disk, features from geometry —
@@ -13,7 +14,7 @@ is the [Dataset panel](../Dataset/README.md), one to the left.
 | Tier (`GH_Exposure`) | Component | Library call |
 |---|---|---|
 | `primary` — the cores | **OtterCluster** | `ClusterRun.Fit` |
-| | **OtterTrain** | `SampleTable.FromColumns`, `TrainerProcess.StartOnSamples`, `TrainerRuntime.Find` / `InstallAsync` / `InstallFromFile` |
+| | **OtterTrain** | `SampleTable.FromColumns`, `ModelFile.Resolve`, `TrainRun.Fit` on a background task |
 | | **OtterPredict** | `OnnxModel.Load`, `OnnxModel.Predict` |
 | `secondary` — cluster methods | **K-Means** | `new KMeansMethod` |
 | | **Gaussian Mixture** | `new GaussianMixtureMethod` |
@@ -21,9 +22,9 @@ is the [Dataset panel](../Dataset/README.md), one to the left.
 | | **Spectral Clustering** | `new SpectralMethod` |
 | | **Hierarchical Clustering** | `new HierarchicalMethod` |
 | `tertiary` — learners | **Boosted Trees** | `new BoostedTreesLearner` |
+| | **Random Forest** | `new RandomForestLearner` |
 | | **Neural Network** | `new NeuralNetworkLearner` |
 | | **Linear Model** | `new LinearLearner` |
-| | **Nearest Neighbours** | `new NearestNeighboursLearner` |
 | `quarternary` — embedding methods | **Principal Components** | `new PrincipalComponentsMethod` |
 | | **Multidimensional Scaling** | `new MultidimensionalScalingMethod` |
 | | **Spectral Embedding** | `new SpectralEmbeddingMethod` |
@@ -62,8 +63,9 @@ Kangaroo pattern, goals into a solver, and it buys two things:
   anything has been chosen.
 - **Adding an algorithm never changes a core.** A new clustering is one record in
   Unsupervised and one small component under `Methods/`; a new learner is one
-  record in MachineLearning, its Python counterpart, and one component under
-  `Learners/`. OtterCluster and OtterTrain do not know which methods exist.
+  record in Supervised that fits its algorithm and exports itself, and one
+  component under `Learners/`. OtterCluster and OtterTrain do not know which
+  methods exist.
 
 Each method component's description says what the algorithm assumes and which
 other method to reach for when that does not hold, so the choice can be made from
@@ -99,18 +101,14 @@ The rules, in the order a person meets them:
   remark says so at the moment Run goes on, and the Report says so again.
   Requiring groups would have stopped every first-time user at a question they
   could not answer.
-- **One `.onnx` out.** Under the wire, `TrainerProcess.StartOnSamples` writes a
-  temporary dataset folder and runs the same Python trainer a folder would. Run
-  is edge-driven — starts on the rising edge, cancels on the falling one, never
-  restarts because something upstream changed — and the component re-solves every
-  half second to show Status.
-- **The runtime install.** When `TrainerRuntime.Find()` is null, Status says so
-  and points at the right-click menu: *Install training runtime* downloads the
-  release bundle on a background task (`InstallAsync`, progress into Status via
-  scheduled re-solves, cancellable), *Install training runtime from file* takes a
-  zip somebody already has (`InstallFromFile`), and *Where the runtime is looked
-  for* shows `Describe()`. Nothing blocks the UI thread; the finish is marshalled
-  back to it.
+- **One `.onnx` out.** Under the wire, `TrainRun.Fit` runs on a `Task`: hold out,
+  fit, score, write the file, run it back through ONNX Runtime, keep it only if it
+  agrees. Progress lands in a field the solve reads. Run is edge-driven — starts
+  on the rising edge, cancels on the falling one through a `CancellationToken`
+  the learners check between rounds, never restarts because something upstream
+  changed — and the component re-solves every half second to show Status. Nothing
+  blocks the UI thread and nothing needs installing; the Python process and its
+  runtime install menu went on 2026-09-25.
 
 Read Dataset's outputs wire straight in: Features to Inputs, Targets to Target,
 Groups to Groups, Feature Names to Feature Names.
@@ -134,9 +132,10 @@ Gone from the ribbon, kept as library code: the six raw clustering components,
 Cluster Selector, Refine Labels, Message Passing, Consensus and Multi-View
 Clustering, Cluster Agreement, Cluster Quality, Group Signature, Data Map,
 Prepare Features, Principal Components, Neighbour Graph, Gaussian Affinity; the
-four solve-time supervised methods and both Evaluate components (their
-algorithms return as learners in the Python trainer, so "one `.onnx` out" holds
-for every learner, and Rhino3D no longer references OtterLogic.Supervised);
+four solve-time supervised methods and both Evaluate components (ridge and
+logistic return as the Linear Model learner, exported by C#, so "one `.onnx` out"
+holds for every learner; nearest neighbours has no learner); Nearest Neighbours
+as a learner component, on 2026-09-25, when Random Forest joined the tier;
 Split By Group (OtterTrain holds out its own groups); the Clustering Model,
 Model Type and Neighbour Weighting dropdowns.
 

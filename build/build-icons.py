@@ -653,6 +653,15 @@ def boostedtrees():
     return _tree(i, 19, 5.5, 13.5, B)
 
 
+def randomforest():
+    """Many trees the same height, side by side: a forest votes, it does not build."""
+    i = Icon()
+    _tree(i, 4.5, 8, 15, B)
+    _tree(i, 12, 8, 15, B)
+    _tree(i, 19.5, 8, 15, B)
+    return i.stroke([(2, 19.5), (22, 19.5)], 1.3, G)
+
+
 def neuralnetwork():
     i = Icon()
     layers = [[(4, 8), (4, 16)], [(12, 5), (12, 12), (12, 19)], [(20, 8), (20, 16)]]
@@ -873,7 +882,7 @@ ICONS = {f.__name__: f for f in (
     flattruss, branchpicker,
     ottercluster, ottertrain, otterpredict,
     kmeans, gaussianmixture, hdbscan, spectralclustering, hierarchicalclustering,
-    boostedtrees, neuralnetwork, linearmodel, nearestneighbours,
+    boostedtrees, randomforest, neuralnetwork, linearmodel,
     datatable, readdataset, writedataset, shapesignature,
     covariancetype, linkage, clustermethod, learner, unplacedpolicy,
     graph, graphfrompoints, graphfromlines, visibilitygraph, otterpath, graphmethod, graphfromconnectivity, deconstructgraph,

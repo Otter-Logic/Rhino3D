@@ -1,5 +1,5 @@
 using Grasshopper.Kernel.Types;
-using OtterLogic.MachineLearning.Training;
+using OtterLogic.Supervised.Learners;
 
 namespace OtterLogic.Grasshopper.Types;
 
@@ -8,8 +8,8 @@ namespace OtterLogic.Grasshopper.Types;
 /// its way from a learner component to OtterTrain.
 /// <para>
 /// Immutable like <see cref="GH_ClusterMethod"/>'s method, so a duplicate shares
-/// it. What travels is the same record the trainer's <c>job.json</c> is written
-/// from, so the canvas and the Python side cannot disagree about a setting.
+/// it. What travels is the record the Supervised repo fits from, so the canvas and
+/// the trainer cannot disagree about a setting.
 /// </para>
 /// </summary>
 public sealed class GH_Learner : GH_Goo<Learner>

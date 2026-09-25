@@ -1,7 +1,7 @@
 using Grasshopper.Kernel;
 using OtterLogic.Grasshopper.Types;
 using OtterLogic.MachineLearning.Embedding;
-using OtterLogic.MachineLearning.Training;
+using OtterLogic.Supervised.Learners;
 using OtterLogic.Unsupervised.Clustering;
 
 namespace OtterLogic.Grasshopper;

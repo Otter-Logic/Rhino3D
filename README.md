@@ -270,7 +270,7 @@ src/OtterLogic.Clustering/      toolkit, separate repo (Clustering_Tool) — pic
 src/OtterLogic.Rhino/           adaptor: .rhp — commands, conduits, the Eto panel
 src/OtterLogic.Grasshopper/     adaptor: .gha — components, GH_Goo types
 tests/                          per domain (Rhino.Inside boots Rhino for geometry)
-python/                       offline training → .onnx
+python/                       development notes only; training is C#, in Supervised
 models/                       exported .onnx, loaded at runtime
 build/                        yak manifest, pack.ps1, link-dev.ps1
 docs/                         architecture and ML notes

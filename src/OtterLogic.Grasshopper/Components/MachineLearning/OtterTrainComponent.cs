@@ -1,28 +1,28 @@
 using System.Drawing;
 using System.Globalization;
-using System.Windows.Forms;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using OtterLogic.Grasshopper.Parameters.MachineLearning;
 using OtterLogic.Dataset.Data;
-using OtterLogic.MachineLearning.Training;
+using OtterLogic.Supervised.Learners;
+using OtterLogic.Supervised.Training;
 
 namespace OtterLogic.Grasshopper.Components.MachineLearning;
 
 /// <summary>
 /// Trains a model on the samples wired in and writes it as one <c>.onnx</c> file.
 /// <para>
-/// Adaptor only. The dataset, the job, the process and the progress protocol
-/// belong to <see cref="SampleTable"/> and <see cref="TrainerProcess"/>; the training
-/// itself runs in a separate Python process, so the canvas never waits on it.
-/// What this adds is the edge-driven Run toggle and the polling: a job starts when
-/// Run goes on, is cancelled when it goes off, and never restarts because something
-/// upstream changed. While it runs the component re-solves itself every half second
-/// to show Status, which is the Grasshopper way of watching something without
-/// blocking it. The runtime install from the right-click menu runs the same way —
-/// on a background task, reporting through Status — because a download on the UI
-/// thread is a frozen Rhino for as long as it takes.
+/// Adaptor only. The dataset, the holdout, the fit, the score and the file belong
+/// to <see cref="SampleTable"/> and <see cref="TrainRun"/>; the training runs on a
+/// background task, so the canvas never waits on it. What this adds is the
+/// edge-driven Run toggle and the polling: a run starts when Run goes on, is
+/// cancelled when it goes off, and never restarts because something upstream
+/// changed. While it runs the component re-solves itself every half second to
+/// show Status, which is the Grasshopper way of watching something without
+/// blocking it. Until 2026-09-25 the same shape drove a Python process and an
+/// install menu for its runtime; the task replaced both and nothing here needs
+/// installing.
 /// </para>
 /// </summary>
 public sealed class OtterTrainComponent : GH_Component
@@ -34,23 +34,20 @@ public sealed class OtterTrainComponent : GH_Component
     private const int GroupsInput = 4;
     private const int LearnerInput = 5;
     private const int HoldoutInput = 6;
-    private const int ModelInput = 7;
-    private const int RunInput = 8;
+    private const int FolderInput = 7;
+    private const int NameInput = 8;
+    private const int RunInput = 9;
 
     private const int PollMilliseconds = 500;
 
-    private const string NotInstalled =
-        "The training runtime is not installed. Right-click the component to install it.";
-
-    private TrainerProcess? _run;
-    private TrainerProgress? _result;
+    private Task? _run;
+    private CancellationTokenSource? _cancel;
+    private volatile TrainingProgress? _latest;
+    private TrainingProgress? _result;
     private bool _lastRun;
 
     /// <summary>Said on every solve until the next Run, so it outlives the polling re-solves that clear messages.</summary>
     private string? _remark;
-
-    private CancellationTokenSource? _installCancel;
-    private volatile InstallState? _install;
 
     public OtterTrainComponent()
         : base("OtterTrain", "Train",
@@ -63,8 +60,8 @@ public sealed class OtterTrainComponent : GH_Component
                + "text. Wire Groups, the model each sample came from, and whole groups are held back to "
                + "score on; without them rows are held back at random and the score may be optimistic. "
                + "Boosted Trees is fitted unless another learner is wired.\n\n"
-               + "Training runs in a separate process and the canvas stays live; Status says what it is "
-               + "doing. The first time, right-click to install the training runtime.",
+               + "Training runs in the background and the canvas stays live; Status says what it is "
+               + "doing. Nothing needs installing.",
                Categories.Root, Categories.MachineLearning)
     {
     }
@@ -114,7 +111,7 @@ public sealed class OtterTrainComponent : GH_Component
             GH_ParamAccess.list);
 
         pManager.AddParameter(new LearnerParameter(), "Learner", "L",
-            "Wire Boosted Trees, Neural Network, Linear Model or Nearest Neighbours. With nothing wired, "
+            "Wire Boosted Trees, Random Forest, Neural Network or Linear Model. With nothing wired, "
             + "Boosted Trees is fitted — usually the most accurate on a table of a few thousand rows, and "
             + "unbothered by scale or by a useless feature.",
             GH_ParamAccess.item);
@@ -125,10 +122,14 @@ public sealed class OtterTrainComponent : GH_Component
             + "the fit.",
             GH_ParamAccess.item, 0.25);
 
-        pManager.AddTextParameter("Model", "M",
-            "Where to write the model, ending in .onnx. Written beside and renamed over, so OtterPredict "
-            + "never sees half a file.",
+        pManager.AddTextParameter("Folder", "F",
+            "The folder the model is written into. Created if it is not there.",
             GH_ParamAccess.item);
+
+        pManager.AddTextParameter("Name", "N",
+            "What to call the model file; .onnx is added if it is missing. The file is written beside and "
+            + "renamed over, so OtterPredict never sees half a file.",
+            GH_ParamAccess.item, "model");
 
         pManager.AddBooleanParameter("Run", "R",
             "Training starts when this goes on and is cancelled when it goes off. Nothing upstream "
@@ -149,7 +150,7 @@ public sealed class OtterTrainComponent : GH_Component
             + "The same score is written into the model, so OtterPredict shows it too.",
             GH_ParamAccess.list);
 
-        pManager.AddTextParameter("Status", "S", "What the trainer, or the runtime install, is doing now.", GH_ParamAccess.item);
+        pManager.AddTextParameter("Status", "S", "What the training run is doing now.", GH_ParamAccess.item);
     }
 
     protected override void SolveInstance(IGH_DataAccess da)
@@ -161,7 +162,8 @@ public sealed class OtterTrainComponent : GH_Component
         var featureNames = new List<string>();
         var groups = new List<string>();
         double holdout = 0.25;
-        string output = string.Empty;
+        string folder = string.Empty;
+        string name = "model";
         bool run = false;
 
         if (!da.GetData(TargetNameInput, ref targetName)) return;
@@ -169,7 +171,8 @@ public sealed class OtterTrainComponent : GH_Component
         da.GetDataList(GroupsInput, groups);
         Learner? learner = MethodWire.ReadLearner(da, LearnerInput);
         if (!da.GetData(HoldoutInput, ref holdout)) return;
-        if (!da.GetData(ModelInput, ref output)) return;
+        if (!da.GetData(FolderInput, ref folder)) return;
+        if (!da.GetData(NameInput, ref name)) return;
         if (!da.GetData(RunInput, ref run)) return;
 
         bool rising = run && !_lastRun;
@@ -177,44 +180,42 @@ public sealed class OtterTrainComponent : GH_Component
         _lastRun = run;
 
         if (rising)
-            Start(inputs, target, targetName, featureNames, groups, learner ?? new BoostedTreesLearner(), holdout, output);
-        else if (falling && _run is { IsRunning: true })
+            Start(inputs, target, targetName, featureNames, groups, learner ?? new BoostedTreesLearner(), holdout, folder, name);
+        else if (falling && _run is { IsCompleted: false })
             Stop("Cancelled.");
 
         if (_remark is not null)
             AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, _remark);
 
-        InstallState? install = _install;
-        if (install?.Error is not null)
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, install.Error);
-
         if (_run is not null)
         {
-            var progress = _run.Poll();
-            if (!progress.Finished)
+            var progress = _latest;
+            if (!_run.IsCompleted || progress is null || !progress.Finished)
             {
-                Message = progress.Stage ?? "running";
-                da.SetData(2, WithInstall(progress.Message ?? progress.Stage, install));
+                // The task sets its final report before it ends, so a completed
+                // task with an unfinished report is a moment away from one; polling
+                // once more is cheaper than a lock.
+                Message = progress?.Stage ?? "running";
+                da.SetData(2, progress?.Message ?? progress?.Stage ?? "Starting.");
                 OnPingDocument()?.ScheduleSolution(PollMilliseconds, _ => ExpireSolution(false));
                 return;
             }
 
             _result = progress;
-            _run.Dispose();
-            _run = null;
+            Finish();
         }
 
         if (_result is null)
         {
-            Message = install?.Running == true ? "installing" : "idle";
-            da.SetData(2, WithInstall(TrainerRuntime.Find() is null ? NotInstalled : "Switch Run on to train.", install));
+            Message = "idle";
+            da.SetData(2, "Switch Run on to train.");
             return;
         }
 
         if (_result.Error is not null)
         {
             Message = "failed";
-            da.SetData(2, WithInstall("Failed.", install));
+            da.SetData(2, "Failed.");
             AddRuntimeMessage(GH_RuntimeMessageLevel.Error, _result.Error);
             return;
         }
@@ -222,16 +223,12 @@ public sealed class OtterTrainComponent : GH_Component
         Message = "done";
         da.SetData(0, _result.Model);
         da.SetDataList(1, _result.Report ?? Array.Empty<string>());
-        da.SetData(2, WithInstall("Done.", install));
+        da.SetData(2, "Done.");
     }
-
-    /// <summary>Status with the install's latest line after it, while there is one to show.</summary>
-    private static string? WithInstall(string? status, InstallState? install)
-        => install is null || install.Error is not null ? status : $"{status}\n{install.Text}";
 
     private void Start(
         GH_Structure<GH_Number> inputs, GH_Structure<IGH_Goo> target, string targetName,
-        List<string> featureNames, List<string> groups, Learner learner, double holdout, string output)
+        List<string> featureNames, List<string> groups, Learner learner, double holdout, string folder, string name)
     {
         Stop(null);
         _result = null;
@@ -277,23 +274,53 @@ public sealed class OtterTrainComponent : GH_Component
             }
         }
 
-        string? python = TrainerRuntime.Find();
-        if (python is null)
-        {
-            Fail(NotInstalled + " " + TrainerRuntime.Describe());
-            return;
-        }
-
         try
         {
+            // Resolved first: a blank name or a folder that cannot be made is
+            // found now, not after the fit has run for a minute.
+            string output = ModelFile.Resolve(folder, name);
+
             var dataset = SampleTable.FromColumns(
                 featureNames.Select(n => (n ?? string.Empty).Trim()).ToArray(), features,
                 new[] { targetName.Trim() }, targets, new[] { isNumber });
 
-            _run = TrainerProcess.StartOnSamples(dataset, groupOf, learner, holdout, output, python);
+            var options = new TrainRunOptions { HoldoutFraction = holdout };
+            options.Validate();
+            learner.Validate();
+
+            var cancel = new CancellationTokenSource();
+            _cancel = cancel;
+            _latest = TrainingProgress.At("starting", "Starting.");
+
+            // Progress lands straight into the field the solve reads, from
+            // whichever thread reports it. Progress<T> would post through the UI
+            // thread's context instead, and its last report can then arrive after
+            // the task has ended — a race the solve would have to wait out.
+            var progress = new DirectProgress(p => _latest = p);
+
+            _run = Task.Run(() =>
+            {
+                try
+                {
+                    TrainRun.Fit(dataset, groupOf, learner, output, options, progress, cancel.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    _latest = TrainingProgress.Failed("Cancelled.", _latest?.Stage);
+                }
+                catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or InvalidDataException
+                                               or IOException or UnauthorizedAccessException)
+                {
+                    _latest = TrainingProgress.Failed(ex.Message, _latest?.Stage);
+                }
+                finally
+                {
+                    Resolve();
+                }
+            }, cancel.Token);
 
             // Said here rather than left to the Report, because the Report arrives
-            // minutes later and the person is deciding now whether to wire Groups.
+            // later and the person is deciding now whether to wire Groups.
             _remark = groupOf is null
                 ? "No Groups wired, so rows are held back at random to score on. Samples from one model are "
                   + "near-copies of each other, so the score may be optimistic. Wire Groups for an honest one."
@@ -367,101 +394,24 @@ public sealed class OtterTrainComponent : GH_Component
     }
 
     /// <summary>A failure to start, shown the way a failed run is: an Error bubble and a "Failed." Status.</summary>
-    private void Fail(string? message) => _result = new TrainerProgress { Error = message ?? "Failed." };
+    private void Fail(string? message) => _result = TrainingProgress.Failed(message ?? "Failed.");
 
+    /// <summary>Cancels a run in progress and, when a status is given, records it as the outcome.</summary>
     private void Stop(string? status)
     {
         if (_run is null) return;
-        _run.Cancel();
+        _cancel?.Cancel();
         if (status is not null)
-            _result = new TrainerProgress { Error = status };
-        _run.Dispose();
+            _result = TrainingProgress.Failed(status);
+        Finish();
+    }
+
+    /// <summary>Lets go of a run that has ended, or been told to.</summary>
+    private void Finish()
+    {
         _run = null;
-    }
-
-    public override void AppendAdditionalMenuItems(ToolStripDropDown menu)
-    {
-        base.AppendAdditionalMenuItems(menu);
-        Menu_AppendSeparator(menu);
-
-        bool installing = _install?.Running == true;
-        Menu_AppendItem(menu, "Install training runtime…", (_, _) => Install(null), !installing);
-        Menu_AppendItem(menu, "Install training runtime from file…", (_, _) => InstallFromFile(), !installing);
-        if (installing)
-            Menu_AppendItem(menu, "Cancel the install", (_, _) => _installCancel?.Cancel());
-        Menu_AppendItem(menu, "Where the runtime is looked for…", (_, _) => ShowRuntime());
-    }
-
-    /// <summary>Picks a bundle zip and installs it — for a machine that cannot reach GitHub.</summary>
-    private void InstallFromFile()
-    {
-        // global:: because inside Components.MachineLearning a bare Rhino.X would
-        // look for OtterLogic.Rhino first, which is the namespace trap this repo
-        // has been caught by before.
-        var dialog = new global::Rhino.UI.OpenFileDialog
-        {
-            Title = "Training runtime bundle",
-            Filter = "Runtime bundle (*.zip)|*.zip|All files (*.*)|*.*",
-        };
-
-        if (dialog.ShowOpenDialog() && !string.IsNullOrWhiteSpace(dialog.FileName))
-            Install(dialog.FileName);
-    }
-
-    /// <summary>
-    /// Installs the runtime on a background task, reporting through Status.
-    /// <para>
-    /// Never on the UI thread: the download is hundreds of megabytes, and Rhino
-    /// frozen for that long reads as a crash. Progress lands as re-solves, which is
-    /// the only way an output can change, and the finish is marshalled back to the
-    /// UI thread because a document is not to be touched from any other.
-    /// </para>
-    /// </summary>
-    /// <param name="zip">A bundle already on disk, or null to download the release's.</param>
-    private void Install(string? zip)
-    {
-        _installCancel?.Cancel();
-        var cancel = new CancellationTokenSource();
-        _installCancel = cancel;
-
-        var state = new InstallState { Running = true, Text = "Starting the install." };
-        _install = state;
-
-        var progress = new Progress<string>(text =>
-        {
-            state.Text = text;
-            Resolve();
-        });
-
-        Task.Run(async () =>
-        {
-            try
-            {
-                string python = zip is null
-                    ? await TrainerRuntime.InstallAsync(progress, cancel.Token).ConfigureAwait(false)
-                    : TrainerRuntime.InstallFromFile(zip, progress, cancel.Token);
-                state.Text = $"Training runtime installed: '{python}'.";
-            }
-            catch (OperationCanceledException)
-            {
-                state.Text = "The install was cancelled.";
-            }
-            catch (Exception ex) when (ex is InvalidOperationException or HttpRequestException or IOException
-                                           or UnauthorizedAccessException)
-            {
-                state.Error = "The training runtime could not be installed. " + ex.Message;
-            }
-            finally
-            {
-                state.Running = false;
-                if (ReferenceEquals(_installCancel, cancel))
-                    _installCancel = null;
-                cancel.Dispose();
-                Resolve();
-            }
-        });
-
-        Resolve();
+        _cancel?.Dispose();
+        _cancel = null;
     }
 
     /// <summary>Re-solves this component from whichever thread asks, so Status catches up.</summary>
@@ -471,33 +421,17 @@ public sealed class OtterTrainComponent : GH_Component
             OnPingDocument()?.ScheduleSolution(1, _ => ExpireSolution(false))));
     }
 
-    private static void ShowRuntime()
-    {
-        string text = TrainerRuntime.Describe() + "\n\n"
-            + "Install training runtime downloads the current bundle from the MachineLearning release and "
-            + $"unpacks it under '{TrainerRuntime.InstallRoot}'. To train against a checkout instead, set "
-            + $"the environment variable {TrainerRuntime.EnvironmentVariable} to a Python virtual "
-            + "environment with the otterlogic-trainer package installed, then restart Rhino.";
-
-        global::Rhino.UI.Dialogs.ShowMessage(text, "Training runtime");
-    }
-
     public override void RemovedFromDocument(GH_Document document)
     {
         Stop(null);
-        _installCancel?.Cancel();
         base.RemovedFromDocument(document);
     }
 
-    /// <summary>
-    /// What the install has to say, shared between the background task that writes
-    /// it and the solve that reads it. Each field is a reference or a bool, so a
-    /// read sees a whole value; the class itself is swapped in atomically.
-    /// </summary>
-    private sealed class InstallState
+    /// <summary>An <see cref="IProgress{T}"/> that hands each report straight to a delegate on the reporting thread.</summary>
+    private sealed class DirectProgress : IProgress<TrainingProgress>
     {
-        public volatile bool Running;
-        public volatile string Text = string.Empty;
-        public volatile string? Error;
+        private readonly Action<TrainingProgress> _handler;
+        public DirectProgress(Action<TrainingProgress> handler) => _handler = handler;
+        public void Report(TrainingProgress value) => _handler(value);
     }
 }

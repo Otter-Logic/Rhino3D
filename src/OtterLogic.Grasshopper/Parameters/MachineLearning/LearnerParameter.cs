@@ -12,8 +12,8 @@ public sealed class LearnerParameter : GH_Param<GH_Learner>
 {
     public LearnerParameter()
         : base("Learner", "Learner",
-               "A method the trainer can fit, with its settings chosen. Made by Boosted Trees, Neural "
-               + "Network, Linear Model or Nearest Neighbours; read by OtterTrain.",
+               "A method OtterTrain can fit, with its settings chosen. Made by Boosted Trees, Random "
+               + "Forest, Neural Network or Linear Model; read by OtterTrain.",
                Categories.Root, Categories.MachineLearning, GH_ParamAccess.item)
     {
     }

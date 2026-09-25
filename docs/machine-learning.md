@@ -1,114 +1,93 @@
 # Machine learning
 
-## Training is not live, and should not be
+## Two kinds of model
 
-There are three phases, and only two of them happen in Rhino.
+Everything in the ML panel is one of two things, and one question tells them
+apart: *are there numbers that had to be learned from data that is not on the
+wire right now?*
 
-| Phase | Where | Language | Timescale |
-|---|---|---|---|
-| **1. Generate** | Rhino / Grasshopper | C# | minutes — a parameter sweep |
-| **2. Train** | a separate process, started by OtterTrain or from a terminal | Python | seconds to hours, offline |
-| **3. Infer** | Rhino / Grasshopper | C# via ONNX | sub-millisecond, every slider move |
-
-Phase 2 is a batch job. You run a sweep, switch OtterTrain's Run on, and the
-trainer runs beside Rhino rather than inside it, writing one `.onnx` for
-OtterPredict to pick up. Turnaround is minutes, not milliseconds — and that is
-fine, because the thing you actually want interactive is phase 3.
-
-You *can* run PyTorch inside Rhino 8's embedded CPython, and it is a reasonable
-way to prototype. It is a bad way to ship: you inherit a heavyweight dependency
-into the plugin, GPU driver problems become Rhino crashes, and a training loop
-inside `SolveInstance` blocks the UI thread. Keep the boundary at ONNX.
-
-### Not every model has a training phase
-
-The table above describes *learned* models — ones whose behaviour lives in
-weights that had to be found by optimisation. Those must be trained offline and
-shipped as an `.onnx`.
-
-Some models have no weights at all. A Gaussian mixture fitted to the values on a
-Grasshopper wire computes its own parameters from that input, on every solve, and
-there is nothing to ship. Those are written directly in C# and touch neither
-Python nor ONNX at runtime.
-
-One question decides which you are looking at: *are there numbers that had to be
-learned from data the user does not have?* If yes, it crosses the ONNX boundary.
-If no, it is an algorithm, and it belongs in `OtterLogic.MachineLearning` as
-ordinary C#.
-
-## Why ONNX is the seam
-
-An `.onnx` file is a frozen computation graph. Python writes it, C# reads it,
-neither needs to know about the other. Concretely:
-
-- The plugin has no Python dependency. Users install one `.yak`, not a conda env.
-- Switching sklearn → PyTorch changes nothing on the C# side.
-- Inference is a native forward pass — fast enough to sit behind a slider.
-
-The runtime goes in the MachineLearning layer, not Core:
-
-```
-dotnet add src/OtterLogic.MachineLearning package Microsoft.ML.OnnxRuntime
-```
-
-Core stays free of native binaries that way. Because MachineLearning sits above
-Core and below the toolkits, anything wanting inference can still reach it
-without Core carrying a dependency it does not itself use.
-
-Leave `ExcludeAssets="runtime"` **off** that one — unlike RhinoCommon, it has
-native binaries that genuinely must be copied next to the `.gha`.
-
-The one thing that will bite you: **feature order is baked into the model.** If
-Python trains on `[span, sag, rest_factor]`, C# must feed them in that order.
-The column names are written *into* the `.onnx`, under one `metadata_props` key,
-and `OnnxModel` asserts on them at load time — inside the file rather than in a
-sidecar, so a model is one file and cannot arrive without its names.
-
-## sklearn or PyTorch?
-
-They solve different problems. This is not a matter of one being more advanced.
-
-| | scikit-learn | PyTorch |
+| | Fitted at solve time | Trained, then used |
 |---|---|---|
-| Input shape | fixed-length vector of numbers | anything — meshes, graphs, images, sequences |
-| What you get | ready-made algorithms | autodiff and a layer kit; you assemble the model |
-| Training a surrogate on 5k rows | seconds, CPU, no tuning | minutes, and you tune it |
-| Below ~10k tabular rows | usually **beats** a neural net | usually loses |
-| GPU | no | yes |
-| Differentiable end to end | no | **yes** |
-| ONNX export | `skl2onnx` | `torch.onnx.export` |
+| Example | Gaussian mixture, k-means, PCA | a boosted-tree surrogate, a network |
+| Where do the parameters come from? | the data on the wire, on every solve | a training run over a corpus, once |
+| Anything to ship? | **no** | one `.onnx`, carrying its own metadata |
+| Component | OtterCluster, OtterEmbed | OtterTrain writes it; OtterPredict runs it |
+| Crosses the ONNX boundary? | **never** | always |
 
-**Reach for sklearn** when the input is a fixed vector of design parameters and
-the output is a number or a class. "Given span, sag, rest factor and load,
-predict max deflection" is exactly this, and gradient boosting will be both more
-accurate and a hundred times faster to train than a neural net on the amount of
-data a parameter sweep realistically produces. Start here.
+A Gaussian mixture is emphatically the first kind — its means, covariances and
+weights are computed by EM on every solve, and pushing it through ONNX would
+freeze a *fitted* model's predict step, which is not what the tool is for.
 
-**Reach for PyTorch** when one of three things is true:
+## Where training runs
 
-1. **Your input has structure a vector cannot hold.** Predicting per-vertex
-   stress over a mesh of varying topology is a graph problem; sklearn has no way
-   to express it, a GNN does.
-2. **You want to generate, not predict.** A VAE or diffusion model over a latent
-   design space — sample new forms rather than score existing ones.
-3. **You want gradients.** This is the one that matters most for form finding.
-   Because the whole model is differentiable, you can invert it: fix the output
-   you want and backpropagate to find the inputs that produce it. "What rest
-   lengths give me *this* target surface" becomes an optimisation rather than a
-   search. You can go further and write the relaxation solver itself in torch,
-   then differentiate through the simulation with respect to design parameters.
+Inside Rhino, in C#, on a background task. OtterTrain takes samples and a learner
+on a wire and calls `TrainRun.Fit` in the Supervised repo, which holds out whole
+groups, fits, scores, writes the `.onnx`, runs the file back through ONNX Runtime
+and keeps it only if it answers what the fitted model answers. Turnaround is
+seconds to a minute on a table of a few thousand rows; the canvas stays live and
+Status says what is happening. Nothing needs installing beyond the `.yak`.
 
-The honest sequencing for this repo: build surrogates with sklearn first, because
-they are cheap and they will teach you what your data actually looks like. Move
-to torch when you hit a wall that is specifically about structure, generation, or
-gradients — not before.
+The four learners are the tabular case done well:
+
+| Learner | Fits | Reach for it when |
+|---|---|---|
+| Boosted Trees | shallow trees, each correcting the last | first — the default, usually the most accurate on a few thousand rows |
+| Random Forest | deep trees on resamples, averaged | boosting looks too good on the rows it trained on |
+| Neural Network | a small fully-connected network | the relationship is smooth and the rows are many |
+| Linear Model | ridge or logistic regression | to check whether the relationship was a straight line all along |
+
+Until 2026-09-25 training ran in a separate Python process with a runtime the
+plug-in downloaded on first use. It was taken out before it shipped: a bundle
+pins package versions that drift against the reader, a hundred-megabyte download
+meets every firm's proxy, and it was a release pipeline of its own. The decision
+and its reasons are in MachineLearning's `docs/in-process-training.md`.
+
+## Why ONNX is still the seam
+
+An `.onnx` file is a frozen computation graph, and a model is one file whoever
+wrote it. Concretely:
+
+- OtterPredict runs a model from OtterTrain and a model from PyTorch the same
+  way. The Inference tests open both kinds — scikit-learn exports carrying the
+  OtterLogic metadata record, and a network in the shape `torch.onnx.export`
+  writes, carrying none.
+- The C# side writes ONNX itself now, through `OnnxGraph` in MachineLearning's
+  Inference project — a few operators over a hand-written protobuf encoder,
+  because ONNX Runtime does not write models and Google.Protobuf was not worth a
+  dependency. Every export is run back through the runtime before the file is
+  kept.
+- Inference is a native forward pass, fast enough to sit behind a slider.
+
+The runtime lives in the MachineLearning layer, in its own project, because it
+is the one dependency with native binaries. Leave `ExcludeAssets="runtime"`
+**off** it, unlike RhinoCommon: `onnxruntime.dll` genuinely must sit next to the
+`.gha`, and the Grasshopper project copies it up from `runtimes/win-x64/native`.
+
+**Feature order is baked into the model.** The column names, target, classes and
+score are written *into* the `.onnx` under the `metadata_props` key `otterlogic`,
+and OtterPredict asserts on them at load time. No sidecar: a model is one file.
+
+## Deep learning
+
+Deep-learning models are trained where their framework is — PyTorch, on whatever
+machine has the GPU — and arrive as an `.onnx`. OtterPredict runs them. That is
+the whole of the plug-in's deep-learning story, deliberately: training a network
+of any size inside Rhino means a heavyweight dependency in the plug-in, GPU
+driver problems that become Rhino crashes, and a loop that blocks the UI thread.
+Keep the boundary at ONNX.
+
+Reach for a framework rather than OtterTrain when the input has structure a
+vector cannot hold (per-vertex stress over a mesh of varying topology is a graph
+problem), when you want to generate rather than predict, or when you want
+gradients to invert a model — fix the output you want and backpropagate to the
+inputs that produce it. For a fixed vector of design parameters and a number or a
+class out, OtterTrain's boosted trees will be more accurate and a hundred times
+faster to train on the amount of data a parameter sweep realistically produces.
 
 ## Generating datasets
 
-Phase 1 is the part people skip and then regret. A sweep component that writes
-one CSV row per generated design — inputs and measured outputs — is the
-highest-value thing to build once there is something worth sweeping. Put the writer in
-`OtterLogic.MachineLearning` so both front-ends and every toolkit can drive it.
-
-Record more than you think you need. Re-running a 5,000-sample sweep because you
-forgot to log edge length is a slow afternoon.
+Phase one is the part people skip and then regret. A sweep component that writes
+one row per generated design — inputs and measured outputs — through Write
+Dataset is the highest-value thing to build once there is something worth
+sweeping. Record more than you think you need: re-running a 5,000-sample sweep
+because you forgot to log edge length is a slow afternoon.

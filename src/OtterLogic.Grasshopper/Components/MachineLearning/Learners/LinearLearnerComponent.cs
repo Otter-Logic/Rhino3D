@@ -2,7 +2,7 @@ using System.Drawing;
 using Grasshopper.Kernel;
 using OtterLogic.Grasshopper.Parameters.MachineLearning;
 using OtterLogic.Grasshopper.Types;
-using OtterLogic.MachineLearning.Training;
+using OtterLogic.Supervised.Learners;
 
 namespace OtterLogic.Grasshopper.Components.MachineLearning.Learners;
 

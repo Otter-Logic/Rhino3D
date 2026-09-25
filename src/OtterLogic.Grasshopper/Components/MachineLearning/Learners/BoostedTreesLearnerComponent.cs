@@ -2,7 +2,7 @@ using System.Drawing;
 using Grasshopper.Kernel;
 using OtterLogic.Grasshopper.Parameters.MachineLearning;
 using OtterLogic.Grasshopper.Types;
-using OtterLogic.MachineLearning.Training;
+using OtterLogic.Supervised.Learners;
 
 namespace OtterLogic.Grasshopper.Components.MachineLearning.Learners;
 
@@ -22,9 +22,9 @@ public sealed class BoostedTreesLearnerComponent : GH_Component
                + "The default, and what OtterTrain fits with nothing wired. On a table of a few thousand "
                + "rows it is usually the most accurate thing available and fits in seconds; the scale of "
                + "the inputs does not matter to it, and a useless feature does not throw it. Reach for "
-               + "Linear Model to check whether the relationship is really a straight line, Nearest "
-               + "Neighbours when the answer is 'whatever the most similar known samples did', and "
-               + "Neural Network as the comparison.\n\n"
+               + "Linear Model to check whether the relationship is really a straight line, Random "
+               + "Forest when boosting looks too good on the rows it trained on, and Neural Network "
+               + "as the comparison.\n\n"
                + "This component takes no samples: wire its Learner output into OtterTrain.",
                Categories.Root, Categories.MachineLearning)
     {
@@ -47,8 +47,8 @@ public sealed class BoostedTreesLearnerComponent : GH_Component
             GH_ParamAccess.item, Defaults.Trees);
 
         pManager.AddIntegerParameter("Depth", "D",
-            "How deep each tree may grow, or 0 for no limit. A limit makes the fit smoother and less "
-            + "prone to memorising rows.",
+            "How deep each tree may grow. Three by default: boosting corrects a shallow tree many "
+            + "times over, and a deep one fitted to residuals memorises rows.",
             GH_ParamAccess.item, Defaults.Depth);
     }
 

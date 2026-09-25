@@ -36,7 +36,7 @@ they could ignore it.
    Target ─────► │             │     Report           │              │     Feature Names, Report
    [Boosted] ──► │             │                      └──────────────┘
                  └─────────────┘
-   Boosted Trees, Neural Network, Linear Model, Nearest Neighbours ──► one "Learner" wire
+   Boosted Trees, Random Forest, Neural Network, Linear Model ──► one "Learner" wire
 ```
 
 Three core components take data and a method on a wire. A method component
@@ -63,7 +63,7 @@ between tiers:
 |---|---|
 | primary, the cores | OtterCluster, OtterTrain, OtterPredict, OtterEmbed |
 | secondary, cluster methods | K-Means, Gaussian Mixture, HDBSCAN, Spectral Clustering, Hierarchical Clustering |
-| tertiary, learners | Boosted Trees, Neural Network, Linear Model, Nearest Neighbours |
+| tertiary, learners | Boosted Trees, Random Forest, Neural Network, Linear Model |
 | quarternary, embedding methods | Principal Components, Multidimensional Scaling, Spectral Embedding |
 | quinary, dropdowns | Covariance Type, Linkage |
 
@@ -111,10 +111,13 @@ more honest and would have stopped every first-time user at a question they
 could not answer. It always writes one `.onnx`: one runtime requirement, one
 file type, one story.
 
-Under the wire, OtterTrain writes a temporary dataset folder and runs the same
-trainer process a folder would. Write Dataset and Read Dataset stay for the
-person gathering data across months, and Read Dataset's outputs wire straight
-into OtterTrain.
+Under the wire, OtterTrain calls `TrainRun.Fit` in Supervised on a background
+task: hold out, fit, score, write the `.onnx`, run it back through ONNX Runtime
+and keep it only if it agrees. Until 2026-09-25 the same call went to a Python
+process with a downloaded runtime; see MachineLearning's
+`docs/in-process-training.md` for why that went. Write Dataset and Read Dataset
+stay for the person gathering data across months, and Read Dataset's outputs wire
+straight into OtterTrain.
 
 **OtterPredict** is the Predict component renamed. It already had the right
 shape: a file in, answers out, and with nothing but the file wired it says what
@@ -138,10 +141,11 @@ tests still use it):
   Quality, Group Signature, Data Map, Prepare Features, Principal Components,
   Neighbour Graph, Gaussian Affinity.
 - The four solve-time supervised methods (nearest-neighbour classifier and
-  regressor, ridge, logistic) and both Evaluate components. Their algorithms
-  return as learners in the Python trainer, exported through skl2onnx, so the
-  layperson's promise — one `.onnx` out — holds for every learner. The C#
-  versions stay in the Supervised repo, which Rhino3D no longer references.
+  regressor, ridge, logistic) and both Evaluate components. Ridge and logistic
+  return as the Linear Model learner, exported as ONNX by C#, so the layperson's
+  promise — one `.onnx` out — holds for every learner. Nearest neighbours has no
+  learner: exporting it means embedding the training rows in the file, and it is
+  the least useful thing to ship as one. Its C# stays in Supervised for a toolkit.
 - Split By Group: OtterTrain holds out its own groups, and the Evaluate loop
   it served is gone.
 - The Clustering Model, Model Type and Neighbour Weighting dropdowns.
@@ -156,8 +160,9 @@ panels needs them on the ribbon.
 |---|---|
 | Core | `Note` and `NoteLevel`: a sentence with a level, so both front-ends say the same thing and each maps the level onto what it has. |
 | Unsupervised | `ClusteringMethod` and one record per algorithm, `AutoMethod` over the selector, `ClusteringOutcome` as the common result, `ClusterRun` as the one entry point with `ClusterRunOptions` and `ClusterRunResult`. |
-| MachineLearning | `Learner` and four records replacing the `ModelType` enum, `HoldoutBy`, `SampleFolder`, `TrainerProcess.StartOnSamples`, and `TrainerRuntime.InstallAsync` / `InstallFromFile` with a release manifest. The Python trainer gained the four learners, row holdout and `--version`; `build-bundle.ps1` makes the runtime bundle and its manifest. |
-| Rhino3D | Two wire types and their parameters, the three cores, nine method and learner components, the panel cut, icons, and the deletions above. |
+| MachineLearning | The ONNX writer: `OnnxGraph`, `TreeEnsemble`, `OnnxExport` in the Inference project (2026-09-25). Before that, the `Learner` records and a Python trainer's job protocol, both since moved or removed. |
+| Supervised | `Learner` and four records — Boosted Trees, Random Forest, Neural Network, Linear Model — each fitting its C# algorithm and exporting itself; `TrainRun.Fit` as the one entry point; `HoldoutBy`, `TrainingProgress`, `ModelFile`. The algorithms under them: `Trees/` (decision tree, gradient boosting, random forest) and `Neural/` (multilayer perceptron), tested against scikit-learn. |
+| Rhino3D | Two wire types and their parameters, the three cores, nine method and learner components, the panel cut, icons, and the deletions above. On 2026-09-25 OtterTrain lost its runtime install menu, Nearest Neighbours left the learners tier and Random Forest joined it. |
 
 The seam is the one the skill already draws: a method record is a mechanism
 and lives in the paradigm repo; the component only unpacks a tree and packs
@@ -165,12 +170,11 @@ the answer back.
 
 ## Still open
 
-- **The release.** The runtime install reads `trainer-manifest.json` from the
-  latest release of the MachineLearning repo. Until a release carries the
-  bundle `build-bundle.ps1` produces, "Install training runtime" fails with a
-  message saying the manifest could not be read, and a developer points
-  `OTTERLOGIC_TRAINER` at a checkout's virtual environment.
-- **Not yet opened in Grasshopper.** The polling re-solve, the install menu and
-  the wire types are exercised by the build and by reading the code.
-- **GNN.** Waits for the DeepLearning repo to hold a model. The Learner wire
-  pattern means it is an addition, not a redesign.
+- **Not yet opened in Grasshopper.** The polling re-solve and the wire types are
+  exercised by the build and by the Supervised tests, which run the whole train
+  to file and back; the canvas itself has not been driven.
+- **GNN.** A model trained elsewhere already runs in OtterPredict — the Inference
+  tests open a network in the shape PyTorch exports, carrying no OtterLogic
+  metadata. Training one inside OtterTrain is not planned: the in-process cut
+  keeps OtterTrain to what fits in C# in seconds, and a graph model is trained
+  where its framework is and arrives as a file.

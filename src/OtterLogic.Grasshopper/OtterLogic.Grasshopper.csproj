@@ -52,6 +52,25 @@
     </Otherwise>
   </Choose>
 
+  <!-- Supervised: the learners OtterTrain fits - boosted trees, a random forest, a
+       network, a linear model - and the one entry point, TrainRun.Fit, that fits,
+       scores, exports and checks a model. Referenced again since 2026-09-25, when
+       training came back in-process: the Python trainer that had replaced it
+       needed a runtime a user downloaded and a version of every package pinned
+       against drift, and a plug-in that installs from one .yak cannot carry that. -->
+  <Choose>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\Supervised\src\OtterLogic.Supervised\OtterLogic.Supervised.csproj')">
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\Supervised\src\OtterLogic.Supervised\OtterLogic.Supervised.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="OtterLogic.Supervised" Version="[$(Version)]" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
   <!-- Dataset: the table, the delimited text it is pasted from, and the dataset
        folder the Write and Read Dataset components talk to. A foundation beside
        Core and Graphs; MachineLearning sits on it. -->
@@ -229,7 +248,7 @@
     <EmbeddedResource Include="..\..\assets\icons\learner.png" LogicalName="OtterLogic.Icons.learner.png" />
     <EmbeddedResource Include="..\..\assets\icons\linearmodel.png" LogicalName="OtterLogic.Icons.linearmodel.png" />
     <EmbeddedResource Include="..\..\assets\icons\linkage.png" LogicalName="OtterLogic.Icons.linkage.png" />
-    <EmbeddedResource Include="..\..\assets\icons\nearestneighbours.png" LogicalName="OtterLogic.Icons.nearestneighbours.png" />
+    <EmbeddedResource Include="..\..\assets\icons\randomforest.png" LogicalName="OtterLogic.Icons.randomforest.png" />
     <EmbeddedResource Include="..\..\assets\icons\neuralnetwork.png" LogicalName="OtterLogic.Icons.neuralnetwork.png" />
     <EmbeddedResource Include="..\..\assets\icons\ottercluster.png" LogicalName="OtterLogic.Icons.ottercluster.png" />
     <EmbeddedResource Include="..\..\assets\icons\otterpredict.png" LogicalName="OtterLogic.Icons.otterpredict.png" />
