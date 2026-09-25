@@ -683,17 +683,6 @@ def linearmodel():
     return i
 
 
-def nearestneighbours():
-    """The sample being answered for, ringed by the few that get a say."""
-    i = Icon()
-    i.ring(11.5, 12, 7.6, 1.3, K, dash=(1.4, 2.0))
-    for x, y in ((7.5, 8.5), (15.5, 9), (12.5, 17)):
-        i.dot(x, y, 1.8, B)
-    for x, y in ((21, 4), (21.5, 19.5), (2.5, 20.5)):
-        i.dot(x, y, 1.5, G)
-    return i.node(11.5, 12, 2.2, O)
-
-
 def clustermethod():
     """The Method wire: a method's few settings, and the wire they leave on."""
     i = Icon()
