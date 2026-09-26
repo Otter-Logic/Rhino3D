@@ -269,17 +269,32 @@
       <text>
         <locale_1033>OtterLogic</locale_1033>
       </text>
-      <tool_bar_item guid="560c5049-8bd5-450a-a2e3-c7a3b1b72f0e">
+      <!-- In the order a designer reaches for them: the grids, then the columns
+           and beams that stand on them, then the trusses. Grasshopper cuts the
+           Structural Form panel the same way with its exposure tiers. -->
+      <tool_bar_item guid="51763d23-1036-49a4-9525-bcd196e47549">
         <text>
-          <locale_1033>Flat Truss</locale_1033>
+          <locale_1033>Rectangular Grid</locale_1033>
         </text>
-        <left_macro_id>4e53c0fe-9ee5-4a87-ad0c-4e397620ee93</left_macro_id>
+        <left_macro_id>f84858b3-64d6-44a0-a3db-da4f9d7cdfae</left_macro_id>
       </tool_bar_item>
-      <tool_bar_item guid="7e2e4c37-4428-457e-a280-de608574bb28">
+      <tool_bar_item guid="d9ad51db-8433-4bc2-a542-290f575cec01">
         <text>
-          <locale_1033>Box Truss</locale_1033>
+          <locale_1033>Radial Grid</locale_1033>
         </text>
-        <left_macro_id>5fb6ec17-107a-4848-a0e0-c9e47ef78983</left_macro_id>
+        <left_macro_id>b904e14c-df53-49f4-8223-7c7e002cdf02</left_macro_id>
+      </tool_bar_item>
+      <tool_bar_item guid="82db2f92-b3ca-4d47-98ee-57358d540c7c">
+        <text>
+          <locale_1033>Grid Columns</locale_1033>
+        </text>
+        <left_macro_id>fe95f098-e689-427a-9a7f-d4fcc0923a47</left_macro_id>
+      </tool_bar_item>
+      <tool_bar_item guid="72a11c91-cc07-49a7-bf6d-2ab9ceb80cb5">
+        <text>
+          <locale_1033>Grid Beams</locale_1033>
+        </text>
+        <left_macro_id>dd08337e-242a-4074-93ed-8cd25c4d821d</left_macro_id>
       </tool_bar_item>
       <tool_bar_item guid="eb96e8ff-8611-4f00-a37d-859a78537c7a">
         <text>
@@ -293,35 +308,23 @@
         </text>
         <left_macro_id>893a2970-8a8e-49ef-ba57-c5c842aea6ac</left_macro_id>
       </tool_bar_item>
+      <tool_bar_item guid="560c5049-8bd5-450a-a2e3-c7a3b1b72f0e">
+        <text>
+          <locale_1033>Flat Truss</locale_1033>
+        </text>
+        <left_macro_id>4e53c0fe-9ee5-4a87-ad0c-4e397620ee93</left_macro_id>
+      </tool_bar_item>
+      <tool_bar_item guid="7e2e4c37-4428-457e-a280-de608574bb28">
+        <text>
+          <locale_1033>Box Truss</locale_1033>
+        </text>
+        <left_macro_id>5fb6ec17-107a-4848-a0e0-c9e47ef78983</left_macro_id>
+      </tool_bar_item>
       <tool_bar_item guid="3a616618-0cee-4350-a865-3ee1bdd632e6">
         <text>
           <locale_1033>Space Truss</locale_1033>
         </text>
         <left_macro_id>c367c488-3af8-41ee-9d49-b4f007d40abd</left_macro_id>
-      </tool_bar_item>
-      <tool_bar_item guid="82db2f92-b3ca-4d47-98ee-57358d540c7c">
-        <text>
-          <locale_1033>Grid Columns</locale_1033>
-        </text>
-        <left_macro_id>fe95f098-e689-427a-9a7f-d4fcc0923a47</left_macro_id>
-      </tool_bar_item>
-      <tool_bar_item guid="51763d23-1036-49a4-9525-bcd196e47549">
-        <text>
-          <locale_1033>Rectangular Grid</locale_1033>
-        </text>
-        <left_macro_id>f84858b3-64d6-44a0-a3db-da4f9d7cdfae</left_macro_id>
-      </tool_bar_item>
-      <tool_bar_item guid="d9ad51db-8433-4bc2-a542-290f575cec01">
-        <text>
-          <locale_1033>Radial Grid</locale_1033>
-        </text>
-        <left_macro_id>b904e14c-df53-49f4-8223-7c7e002cdf02</left_macro_id>
-      </tool_bar_item>
-      <tool_bar_item guid="72a11c91-cc07-49a7-bf6d-2ab9ceb80cb5">
-        <text>
-          <locale_1033>Grid Beams</locale_1033>
-        </text>
-        <left_macro_id>dd08337e-242a-4074-93ed-8cd25c4d821d</left_macro_id>
       </tool_bar_item>
     </tool_bar>
   </tool_bars>

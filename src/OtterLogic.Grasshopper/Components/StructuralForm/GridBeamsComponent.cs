@@ -32,7 +32,7 @@ public sealed class GridBeamsComponent : GH_Component
     }
 
     public override Guid ComponentGuid => new("87e9f57e-2006-4d69-84b4-a92f0be48b94");
-    public override GH_Exposure Exposure => GH_Exposure.primary;
+    public override GH_Exposure Exposure => GH_Exposure.secondary;
     protected override Bitmap? Icon => EmbeddedIcons.Load("gridbeams", 24);
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)

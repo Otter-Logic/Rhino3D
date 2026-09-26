@@ -19,7 +19,7 @@ public sealed class GridPatternList : EnumValueList<GridPattern>
 
     // Below the generators, behind a divider: a dropdown is wired into a
     // generator's input, so nobody reaches for one first.
-    public override GH_Exposure Exposure => GH_Exposure.secondary;
+    public override GH_Exposure Exposure => GH_Exposure.quarternary;
 
     public override Guid ComponentGuid => new("996a98c2-ef68-45f4-b4b6-bc8e96d5588a");
 

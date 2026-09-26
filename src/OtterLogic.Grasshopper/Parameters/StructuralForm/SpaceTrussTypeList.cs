@@ -20,7 +20,7 @@ public sealed class SpaceTrussTypeList : EnumValueList<SpaceTrussType>
 
     // Below the generators, behind a divider: a dropdown is wired into a
     // generator's input, so nobody reaches for one first.
-    public override GH_Exposure Exposure => GH_Exposure.secondary;
+    public override GH_Exposure Exposure => GH_Exposure.quarternary;
 
     public override Guid ComponentGuid => new("35243f65-72ec-460f-8b41-dee8471e5936");
 

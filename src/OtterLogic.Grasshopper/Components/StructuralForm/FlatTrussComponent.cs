@@ -27,7 +27,7 @@ public sealed class FlatTrussComponent : GH_Component
     }
 
     public override Guid ComponentGuid => new("6a430957-4853-4f58-bd90-71a07fcf248a");
-    public override GH_Exposure Exposure => GH_Exposure.primary;
+    public override GH_Exposure Exposure => GH_Exposure.tertiary;
     protected override Bitmap? Icon => EmbeddedIcons.Load("flattruss", 24);
 
     /// <summary>

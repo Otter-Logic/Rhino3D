@@ -31,7 +31,7 @@ public sealed class BeamInfillComponent : GH_Component
     }
 
     public override Guid ComponentGuid => new("18a11383-1a7f-4d58-ada9-5dba32309973");
-    public override GH_Exposure Exposure => GH_Exposure.primary;
+    public override GH_Exposure Exposure => GH_Exposure.secondary;
     protected override Bitmap? Icon => EmbeddedIcons.Load("beaminfill", 24);
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)

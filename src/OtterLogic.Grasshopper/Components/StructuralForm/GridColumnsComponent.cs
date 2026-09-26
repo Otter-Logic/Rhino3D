@@ -29,7 +29,7 @@ public sealed class GridColumnsComponent : GH_Component
     }
 
     public override Guid ComponentGuid => new("275d627e-5b42-441d-a31c-068294070b5b");
-    public override GH_Exposure Exposure => GH_Exposure.primary;
+    public override GH_Exposure Exposure => GH_Exposure.secondary;
     protected override Bitmap? Icon => EmbeddedIcons.Load("gridcolumns", 24);
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)

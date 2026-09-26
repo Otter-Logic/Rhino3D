@@ -33,7 +33,7 @@ public sealed class BoxTrussComponent : GH_Component
     }
 
     public override Guid ComponentGuid => new("51e90ece-6cc8-4a43-9597-4c4e9c37690d");
-    public override GH_Exposure Exposure => GH_Exposure.primary;
+    public override GH_Exposure Exposure => GH_Exposure.tertiary;
     protected override Bitmap? Icon => EmbeddedIcons.Load("boxtruss", 24);
 
     /// <summary>

@@ -38,7 +38,7 @@ public sealed class SurfaceGridComponent : GH_Component
     }
 
     public override Guid ComponentGuid => new("7cd47fde-55aa-4216-a75c-aab81a3de841");
-    public override GH_Exposure Exposure => GH_Exposure.primary;
+    public override GH_Exposure Exposure => GH_Exposure.tertiary;
     protected override Bitmap? Icon => EmbeddedIcons.Load("surfacegrid", 24);
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)

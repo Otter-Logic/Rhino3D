@@ -36,7 +36,7 @@ public sealed class SpaceTrussComponent : GH_Component
     }
 
     public override Guid ComponentGuid => new("466fddee-11e0-4a3d-a430-85824b4a1299");
-    public override GH_Exposure Exposure => GH_Exposure.primary;
+    public override GH_Exposure Exposure => GH_Exposure.tertiary;
     protected override Bitmap? Icon => EmbeddedIcons.Load("spacetruss", 24);
 
     /// <summary>

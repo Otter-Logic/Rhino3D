@@ -22,14 +22,15 @@ public sealed class GridLevelInferenceComponent : GH_Component
                "Read the levels and structural grid a model's lines imply, for a model that arrived without "
                + "them — an IFC import, a consultant's line model, an old drawing.\n\n"
                + "Nothing is assumed: not a floor height, a bay size, a grid direction or a tolerance for "
-               + "\"on the grid\". Levels are the heights element ends gather at; grid directions are the "
-               + "directions level lines gather in; gridlines are the positions where columns stand and "
-               + "primary framing runs. Each is found from the gaps in the model's own values. Only the "
+               + "\"on the grid\". Levels are the heights the columns' tops and feet gather at — a flat "
+               + "purlin on a pitched roof lies at a height of its own, and is not a storey; grid directions "
+               + "are the directions level lines gather in; gridlines are the positions where columns stand "
+               + "and primary framing runs. Each is found from the gaps in the model's own values. Only the "
                + "names are conventions: gridlines numbered one way and lettered the other (no I or O), "
                + "levels Level 00 upward.\n\n"
-               + "Issues lists the elements that belong to a level or gridline but are not quite on it — "
-               + "the column a few millimetres out, the beam modelled high — measured against how "
-               + "tightly the rest of that level or gridline holds, not against a fixed number.",
+               + "Issues lists the columns that belong to a level or gridline but are not quite on it — "
+               + "the column a few millimetres out — measured against how tightly the rest of that level "
+               + "or gridline holds, not against a fixed number.",
                Categories.Root, Categories.StructuralDesign)
     {
     }
@@ -65,7 +66,7 @@ public sealed class GridLevelInferenceComponent : GH_Component
     {
         pManager.AddPlaneParameter("Level Planes", "LP", "One plane per level, lowest first.", GH_ParamAccess.list);
         pManager.AddTextParameter("Level Names", "LN", "Level 00, Level 01, ... matching Level Planes.", GH_ParamAccess.list);
-        pManager.AddNumberParameter("Elevations", "Z", "The height of each level: the median of the element ends on it.",
+        pManager.AddNumberParameter("Elevations", "Z", "The height of each level: the median of the column ends on it.",
             GH_ParamAccess.list);
 
         pManager.AddLineParameter("Gridlines", "G",
@@ -81,12 +82,12 @@ public sealed class GridLevelInferenceComponent : GH_Component
             "Per line: a column's grid position, such as B/3, or empty for anything that is not a column on the grid.",
             GH_ParamAccess.list);
         pManager.AddTextParameter("Level Label", "LL",
-            "Per line: the level it sits on, or the levels it spans for a column or brace, such as Level 00–Level 02.",
+            "Per line: the level it sits on, or the levels it spans for a column or brace, such as Level 00–Level 02. "
+            + "Empty for a line on no level — a purlin partway up a roof.",
             GH_ParamAccess.list);
 
         pManager.AddTextParameter("Issues", "I",
-            "Elements that belong to a level or gridline but are not quite on it, furthest off first — and columns "
-            + "on no gridline.",
+            "Columns not quite on their level or gridline, furthest off first — and columns on no gridline.",
             GH_ParamAccess.list);
         pManager.AddIntegerParameter("Issue Lines", "IL", "The line index behind each issue, matching Issues.",
             GH_ParamAccess.list);
