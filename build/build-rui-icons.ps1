@@ -32,6 +32,9 @@ $slots = @(
     @{ Name = 'surfacegrid'; Guid = '0cc53375-7cc6-4962-b887-962416f8f26c' }
     @{ Name = 'spacetruss'; Guid = 'f1a75988-e5a2-49cc-82aa-4a5f9a39641a' }
     @{ Name = 'gridcolumns'; Guid = 'b6413f0f-9305-420d-8723-7b7af16850d9' }
+    @{ Name = 'rectangulargrid'; Guid = 'b1e4ff19-a180-4854-8032-db4ca1703ef7' }
+    @{ Name = 'radialgrid'; Guid = 'd72bcfe7-ab57-46ec-9939-cf38ddc72446' }
+    @{ Name = 'gridbeams'; Guid = 'b1b2ab78-edeb-455e-896f-5fb13b88d67d' }
 )
 
 foreach ($slot in $slots) {

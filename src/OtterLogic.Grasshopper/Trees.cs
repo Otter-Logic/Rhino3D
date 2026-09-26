@@ -29,6 +29,26 @@ internal static class Trees
         return tree;
     }
 
+    /// <summary>
+    /// One branch per row of a list of rows, for results that come out of the
+    /// domain already grouped: a grid's nodes per gridline, a radial grid's
+    /// per ray. Rows may differ in length; the branch is whatever the row is.
+    /// </summary>
+    public static DataTree<T> FromRows<T>(IEnumerable<IReadOnlyList<T>> rows)
+    {
+        var tree = new DataTree<T>();
+        int i = 0;
+
+        foreach (IReadOnlyList<T> row in rows)
+        {
+            var path = new GH_Path(i++);
+            foreach (T item in row)
+                tree.Add(item, path);
+        }
+
+        return tree;
+    }
+
     /// <summary>One branch per row of a rectangular array.</summary>
     public static DataTree<double> FromRows(double[,] rows)
     {

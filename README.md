@@ -217,9 +217,12 @@ just the curves round the outside of an area.
 - Rhino: `OtterSurfaceGrid` — pick one surface, *or* two to four curves; choose
   quad, triangulated or diagrid; give divisions each way; optionally pick points
   on the edges to run grid lines through. The preview then lets you change the
-  pattern, the divisions or spacing either way, swap the U and V counts, pick the
-  diagonal rule and flip it. Members land on `OtterSurfaceGrid1` under `U member`,
-  `V member`, `Diagonal` and `Edge`.
+  pattern, the divisions or spacing (each asks U then V), and swap the U and V
+  counts; the diagonal rule appears only under a triangulated grid, the flip
+  only under a triangulated grid or a diagrid, the snap strictness only when
+  you picked snap points, and `ClipToTrim` only on a trimmed surface. Members
+  land on `OtterSurfaceGrid1` under `U member`, `V member`, `Diagonal` and
+  `Edge`.
 - Grasshopper: *OtterLogic → Structural Form → Surface Grid*, with *Grid Pattern*
   beside it as a dropdown. U and V members come out as trees with a branch per
   grid line — a whole beam is a branch — and nodes with a branch per row. *Clip
@@ -229,19 +232,20 @@ just the curves round the outside of an area.
 **Space Truss.** The same surface, or curves, as Surface Grid.
 
 - Rhino: `OtterSpaceTruss` asks what `OtterSurfaceGrid` asks, then a depth and
-  a type: *Offset* for a pyramid on every cell, the usual space frame; *Aligned*
-  for a node under every node and a flat truss along every grid line, with
-  Flat Truss's bracing patterns. The preview lets you change every grid
-  setting as well as the depth, type, web, end posts, and which way and which
-  side the depth goes. `ClipToTrim` leaves the openings of a trimmed surface
-  out. Members land on `OtterSpaceTruss1` under Flat Truss's five layer names,
-  with `Top node` and `Bottom node` beside them.
+  a type: *Pyramid* for a pyramid on every cell, the usual space frame, or one
+  of Flat Truss's patterns, *Warren*, *Pratt*, *Howe* and the rest, for a node
+  under every node and a flat truss of that pattern along every grid line. That
+  is the whole of what a truss adds to a grid, apart from `FlipDepth` for the
+  other side of the surface. The preview offers those three and the grid's own
+  settings, the latter only where they apply. Members land on
+  `OtterSpaceTruss1` under Flat Truss's five layer names, with `Top node` and
+  `Bottom node` beside them.
 - Grasshopper: *OtterLogic → Structural Form → Space Truss*, fed by the *Grid*
   output of Surface Grid, which is where the pattern, divisions, snap points
-  and *Clip To Trim* are set. Depth, Type, Web, Flip Web, End Posts, Depth
-  Along and Flip Depth are its own. Top and bottom chords come out as trees
-  with a branch per part of the grid — U, V, diagonal, edge — and nodes with a
-  branch per row.
+  and *Clip To Trim* are set. Depth, Type and Flip Depth are its own, with
+  *Space Truss Type* beside it as a dropdown. Top and bottom chords come out
+  as trees with a branch per part of the grid — U, V, diagonal, edge — and
+  nodes with a branch per row.
 
 **Beam Infill.** Draw, or open, one floor of a stick model.
 
@@ -267,6 +271,51 @@ just the curves round the outside of an area.
   they are.
 - Grasshopper: *OtterLogic → Structural Form → Grid Columns*. Columns come out
   in the same order as the *Crossing* points; *Plan* is the flattened grid.
+
+**Grid Beams.** The columns, and the gridlines they stand on.
+
+- Rhino: `OtterBeam` — select the columns, then the gridlines, then type the
+  level as a height or choose `Surface` to pick a roof or a ramp for the
+  beams to follow. It previews a beam along every gridline between each pair
+  of neighbouring columns on it, with the flattened grid faint underneath so a
+  missing beam can be traced to a column that is not on its line; `Level`,
+  `Surface` and `Reach` in the preview change them, and typing a level puts a
+  picked surface aside. Accept bakes the beams and nodes onto `OtterBeam1`.
+  The columns and gridlines you picked are left exactly as they are.
+- Grasshopper: *OtterLogic → Structural Form → Grid Beams*. Beams come out as
+  a tree with a branch per gridline; *Node* is where they meet columns and
+  *Plan* the flattened grid. Leave *Surface* empty for a level.
+
+**Rectangular Grid.** Nothing to draw first: this is where a model starts.
+
+- Rhino: `OtterGrid` — pick an origin, or press Enter for the construction
+  plane's, then type the X spacings and the Y spacings as `6000` or
+  `3x6000, 8000` (six and eight metres by default, in the document's units).
+  The grid is previewed in the active construction plane, X gridlines in blue
+  and Y in green so bays typed the wrong way round show; `XSpacings`,
+  `YSpacings`, `Overhang`, `Angle` and `Origin` in the preview change them.
+  Accept bakes onto `OtterGrid1` under `X gridline`, `Y gridline` and `Node`.
+- Grasshopper: *OtterLogic → Structural Form → Rectangular Grid*. Spacings are
+  number lists; nodes come out as a tree with a branch per X gridline, so
+  branch *i* item *j* is the crossing of X gridline *i* and Y gridline *j*.
+
+**Radial Grid.** The same, about a centre or round the hole in the middle of
+a stadium.
+
+- Rhino: `OtterRadialGrid` — pick a centre, type the ring spacings outward,
+  then the hole as two half-axes: `Inner U` along the construction plane's X
+  and `Inner V` along its Y. Both 0 runs the rays to the centre, equal is a
+  round hole, different is an oval one with every ring an oval. Then the
+  sweep in degrees (360 for the whole way round, 90 for a quarter) and how
+  many bays to cut it into. The preview lets you change `Rings`, `Sweep`,
+  `Bays`, `InnerU`, `InnerV`, `StartAngle`, `Overhang` and `Centre`. Accept
+  bakes onto the next `OtterGrid` layer, numbered on from any rectangular
+  grid, under `Ray`, `Ring` and `Node`.
+- Grasshopper: *OtterLogic → Structural Form → Radial Grid*. Rays are lines,
+  rings are arcs and circles round a round hole or ovals round an oval one,
+  and nodes come out as a tree with a branch per ray; when the rays meet at
+  the centre, item 0 of every branch is the centre, so item *k + 1* is always
+  ring *k*.
 
 ## Layout
 

@@ -17,7 +17,8 @@ namespace OtterLogic.Rhino.Commands;
 /// The Rhino counterpart to the Surface Grid Grasshopper component. Identical
 /// engine — <see cref="SurfaceGridGenerator"/> — presented as a walkthrough:
 /// pick what to grid, say how finely, then adjust against a live preview before
-/// anything is added to the document.
+/// anything is added to the document. The settings and their prompts are
+/// <see cref="GridSettings"/>, shared with OtterSpaceTruss.
 /// </para>
 /// <para>
 /// One pick decides between the two ways in. A surface is gridded as it is;
@@ -29,15 +30,7 @@ namespace OtterLogic.Rhino.Commands;
 public sealed class OtterSurfaceGridCommand : Command
 {
     // Remembered between runs within a session, as Rhino commands normally do.
-    private static GridPattern _pattern = GridPattern.Quad;
-    private static DiagonalRule _diagonals = DiagonalRule.OneWay;
-    private static bool _flip;
-    private static int _divisionsU = 6;
-    private static int _divisionsV = 6;
-    private static double _spacingU;
-    private static double _spacingV;
-    private static SnapStrictness _strictness = SnapStrictness.Relaxed;
-    private static bool _clip;
+    private static readonly GridSettings _grid = new();
 
     private const string EnglishNameText = "OtterSurfaceGrid";
 
@@ -69,22 +62,9 @@ public sealed class OtterSurfaceGridCommand : Command
         Result step = SelectInput(doc, EnglishNameText, out Brep? surface, out Curve[] edges);
         if (step != Result.Success) return step;
 
-        // Step 2: the pattern.
-        step = Pick.Enum("Grid pattern", ref _pattern);
+        // Steps 2 and 3: the pattern, and how finely each way.
+        step = _grid.AskUpFront();
         if (step != Result.Success) return step;
-
-        // Step 3: how finely, each way. Which way is U is not worth asking
-        // about in advance — it shows in the preview, and the two numbers are
-        // one option away from being swapped.
-        int divisionsU = _divisionsU;
-        step = RhinoGet.GetInteger("Divisions in U (0 to go by spacing, or by the edges)", true, ref divisionsU, 0, 10000);
-        if (step != Result.Success) return step;
-        _divisionsU = divisionsU;
-
-        int divisionsV = _divisionsV;
-        step = RhinoGet.GetInteger("Divisions in V (0 to go by spacing, or by the edges)", true, ref divisionsV, 0, 10000);
-        if (step != Result.Success) return step;
-        _divisionsV = divisionsV;
 
         // Step 4: points to run grid lines through.
         step = Pick.SnapPoints(out Point3d[] snapPoints);
@@ -147,20 +127,7 @@ public sealed class OtterSurfaceGridCommand : Command
 
                 try
                 {
-                    var options = new SurfaceGridOptions
-                    {
-                        Pattern = _pattern,
-                        DivisionsU = _divisionsU,
-                        DivisionsV = _divisionsV,
-                        SpacingU = _spacingU,
-                        SpacingV = _spacingV,
-                        SnapPoints = snapPoints,
-                        Strictness = _strictness,
-                        Diagonals = _diagonals,
-                        Flip = _flip,
-                        ClipToTrim = _clip,
-                        Tolerance = doc.ModelAbsoluteTolerance,
-                    };
+                    SurfaceGridOptions options = _grid.ToOptions(snapPoints, doc.ModelAbsoluteTolerance);
 
                     grid = surface is not null
                         ? SurfaceGridGenerator.Generate(surface, options)
@@ -180,20 +147,11 @@ public sealed class OtterSurfaceGridCommand : Command
 
                 using var getter = new GetOption();
                 getter.SetCommandPrompt(
-                    $"{Naming.Humanise(_pattern)}, {grid.PanelsU} by {grid.PanelsV}, "
+                    $"{Naming.Humanise(_grid.Pattern)}, {grid.PanelsU} by {grid.PanelsV}, "
                     + $"{grid.Members.Count} members — accept?");
 
                 int accept = getter.AddOption("Accept");
-                int changePattern = getter.AddOption("Pattern");
-                int changeU = getter.AddOption("DivisionsU");
-                int changeV = getter.AddOption("DivisionsV");
-                int swap = getter.AddOption("SwapUV");
-                int changeSpacingU = getter.AddOption("SpacingU");
-                int changeSpacingV = getter.AddOption("SpacingV");
-                int changeDiagonals = getter.AddOption("Diagonals");
-                int changeFlip = getter.AddOption("Flip");
-                int changeStrictness = getter.AddOption("Strictness");
-                int changeClip = getter.AddOption("ClipToTrim", _clip ? "Yes" : "No");
+                _grid.Offer(getter, snapPoints.Length > 0, grid.IsTrimmed);
                 getter.AcceptNothing(true);   // Enter accepts
 
                 GetResult result = getter.Get();
@@ -209,49 +167,7 @@ public sealed class OtterSurfaceGridCommand : Command
                 if (chosen == accept)
                     return Commit(doc, grid);
 
-                if (chosen == changePattern)
-                {
-                    Pick.Enum("Grid pattern", ref _pattern);
-                }
-                else if (chosen == changeDiagonals)
-                {
-                    Pick.Enum("Diagonals of a triangulated grid", ref _diagonals);
-                }
-                else if (chosen == changeStrictness)
-                {
-                    Pick.Enum("Snap strictness", ref _strictness);
-                }
-                else if (chosen == changeFlip)
-                {
-                    _flip = !_flip;
-                }
-                else if (chosen == changeClip)
-                {
-                    _clip = !_clip;
-                }
-                else if (chosen == swap)
-                {
-                    // The numbers change places; the surface's directions are
-                    // its own and stay where they are.
-                    (_divisionsU, _divisionsV) = (_divisionsV, _divisionsU);
-                    (_spacingU, _spacingV) = (_spacingV, _spacingU);
-                }
-                else if (chosen == changeU)
-                {
-                    AskDivisions("Divisions in U", ref _divisionsU);
-                }
-                else if (chosen == changeV)
-                {
-                    AskDivisions("Divisions in V", ref _divisionsV);
-                }
-                else if (chosen == changeSpacingU)
-                {
-                    AskSpacing("Panel spacing in U", ref _spacingU, ref _divisionsU);
-                }
-                else if (chosen == changeSpacingV)
-                {
-                    AskSpacing("Panel spacing in V", ref _spacingV, ref _divisionsV);
-                }
+                _grid.Handle(chosen);
             }
         }
         finally
@@ -259,25 +175,6 @@ public sealed class OtterSurfaceGridCommand : Command
             conduit.Enabled = false;
             doc.Views.Redraw();
         }
-    }
-
-    private static void AskDivisions(string prompt, ref int divisions)
-    {
-        int value = divisions;
-        if (RhinoGet.GetInteger(prompt, true, ref value, 0, 10000) == Result.Success)
-            divisions = value;
-    }
-
-    private static void AskSpacing(string prompt, ref double spacing, ref int divisions)
-    {
-        double value = spacing;
-        if (RhinoGet.GetNumber(prompt, true, ref value, 0.0, 1e9) != Result.Success) return;
-
-        spacing = value;
-
-        // Divisions override spacing, so somebody who has just typed a spacing
-        // would otherwise see nothing change.
-        if (spacing > 0.0) divisions = 0;
     }
 
     private static void ShowPreview(WireframePreviewConduit conduit, SurfaceGrid grid)
@@ -343,7 +240,7 @@ public sealed class OtterSurfaceGridCommand : Command
         doc.Views.Redraw();
 
         RhinoApp.WriteLine(
-            $"{EnglishNameText}: added a {grid.PanelsU} by {grid.PanelsV} {Naming.Humanise(_pattern).ToLowerInvariant()} "
+            $"{EnglishNameText}: added a {grid.PanelsU} by {grid.PanelsV} {Naming.Humanise(_grid.Pattern).ToLowerInvariant()} "
             + $"grid to {name} — {members} members and {nodes.Count} nodes, split by section. "
             + "What you picked was left as it is.");
 

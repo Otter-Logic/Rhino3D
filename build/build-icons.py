@@ -235,6 +235,69 @@ def gridcolumns():
     return i
 
 
+def gridbeams():
+    """Grid Columns' grid and columns, faint, with the beams between the column
+    heads drawn heavy: pieces of gridline between columns, and nothing past
+    the last one."""
+    i = Icon()
+    for y in (15, 21):
+        i.stroke([(2, y), (22, y)], 1.0, G)
+    i.stroke([(6, 21), (10, 15)], 1.0, G).stroke([(14, 21), (18, 15)], 1.0, G)
+    heads = ((6, 13), (14, 13), (10, 7), (18, 7))
+    for (x, y) in heads:
+        i.stroke([(x, y + 8), (x, y)], 1.2, G)
+    i.stroke([(6, 13), (14, 13)], 2.2, B).stroke([(10, 7), (18, 7)], 2.2, B)
+    i.stroke([(6, 13), (10, 7)], 2.2, B).stroke([(14, 13), (18, 7)], 2.2, B)
+    for (x, y) in heads:
+        i.dot(x, y, 1.5, K)
+    return i
+
+
+def rectangulargrid():
+    """Gridlines both ways at unequal bays, running on past the outer ones, with
+    a node at every crossing. The unequal bays are the point: Rhino's own array
+    cannot make them, and a square grid would read as the CPlane grid."""
+    i = Icon()
+    xs = (5, 11, 19)     # a 6 then an 8
+    ys = (5, 12, 17)     # a 7 then a 5
+    for x in xs:
+        i.stroke([(x, 2), (x, 21)], 1.2, G)
+    for y in ys:
+        i.stroke([(2, y), (22, y)], 1.2, G)
+    for x in xs:
+        for y in ys:
+            i.dot(x, y, 1.5, B)
+    return i
+
+
+def radialgrid():
+    """A quarter of a radial grid from a centre at the bottom left: rays past
+    two rings, a node at every crossing. A quarter rather than a circle because
+    stopping short of the circle is what Rhino's polar array cannot do."""
+    i = Icon()
+    cx, cy = 4, 20
+    for r in (8, 15):
+        i.stroke(arc(cx, cy, r, -90, 0), 1.2, G)
+    for a in (-90, -60, -30, 0):
+        c, s = math.cos(math.radians(a)), math.sin(math.radians(a))
+        i.stroke([(cx, cy), (cx + 18 * c, cy + 18 * s)], 1.2, G)
+        for r in (8, 15):
+            i.dot(cx + r * c, cy + r * s, 1.5, B)
+    i.dot(cx, cy, 1.5, K)
+    return i
+
+
+def spacetrusstype():
+    """The dropdown frame with a pyramid in it: what runs between the layers of
+    a space truss, which is what the list chooses."""
+    i = dropdown(Icon())
+    i.stroke([(4, 15.5), (14, 15.5)], 1.5, K)
+    i.stroke([(4, 15.5), (9, 8.5), (14, 15.5)], 1.5, K)
+    i.stroke([(9, 8.5), (9, 15.5)], 1.2, K)
+    i.dot(9, 8.5, 1.6, B)
+    return i
+
+
 def flattruss():
     i = Icon()
     i.stroke([(2, 18), (7, 6), (12, 18), (17, 6), (22, 18)], 1.5, K)
@@ -881,7 +944,7 @@ def readattributes():
 
 
 ICONS = {f.__name__: f for f in (
-    flattruss, gridcolumns, branchpicker,
+    flattruss, gridcolumns, gridbeams, rectangulargrid, radialgrid, spacetrusstype, branchpicker,
     ottercluster, ottertrain, otterpredict,
     kmeans, gaussianmixture, hdbscan, spectralclustering, hierarchicalclustering,
     boostedtrees, randomforest, neuralnetwork, linearmodel,

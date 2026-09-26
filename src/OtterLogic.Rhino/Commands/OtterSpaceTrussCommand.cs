@@ -21,31 +21,18 @@ namespace OtterLogic.Rhino.Commands;
 /// </para>
 /// <para>
 /// Grasshopper takes the grid on a wire from Surface Grid; a command has no
-/// wire, so this one asks Surface Grid's questions itself and then its own.
-/// The two commands pick their input the same way and remember their own
-/// settings separately, since a grid drawn to look at and a grid drawn to
-/// truss are seldom the same grid.
+/// wire, so this one asks Surface Grid's questions itself, through the same
+/// <see cref="GridSettings"/>, and then its own three: depth, type, side. The
+/// two commands remember their settings separately, since a grid drawn to
+/// look at and a grid drawn to truss are seldom the same grid.
 /// </para>
 /// </summary>
 public sealed class OtterSpaceTrussCommand : Command
 {
     // Remembered between runs within a session, as Rhino commands normally do.
-    private static GridPattern _pattern = GridPattern.Quad;
-    private static DiagonalRule _diagonals = DiagonalRule.OneWay;
-    private static bool _flip;
-    private static int _divisionsU = 6;
-    private static int _divisionsV = 6;
-    private static double _spacingU;
-    private static double _spacingV;
-    private static SnapStrictness _strictness = SnapStrictness.Relaxed;
-    private static bool _clip;
-
+    private static readonly GridSettings _grid = new();
     private static double _depth;
-    private static SpaceTrussType _type = SpaceTrussType.Offset;
-    private static TrussType _web = TrussType.Warren;
-    private static bool _flipWeb;
-    private static bool _endPosts = true;
-    private static DepthDirection _depthAlong = DepthDirection.SurfaceNormal;
+    private static SpaceTrussType _type = SpaceTrussType.Pyramid;
     private static bool _flipDepth;
 
     private const string EnglishNameText = "OtterSpaceTruss";
@@ -85,21 +72,9 @@ public sealed class OtterSpaceTrussCommand : Command
         Result step = OtterSurfaceGridCommand.SelectInput(doc, EnglishNameText, out Brep? surface, out Curve[] edges);
         if (step != Result.Success) return step;
 
-        // Step 2: the top layer's pattern.
-        step = Pick.Enum("Grid pattern", ref _pattern);
+        // Steps 2 and 3: the top layer's pattern, and how finely each way.
+        step = _grid.AskUpFront();
         if (step != Result.Success) return step;
-
-        // Step 3: how finely, each way. Which way is U shows in the preview,
-        // and the two numbers are one option away from being swapped.
-        int divisionsU = _divisionsU;
-        step = RhinoGet.GetInteger("Divisions in U (0 to go by spacing, or by the edges)", true, ref divisionsU, 0, 10000);
-        if (step != Result.Success) return step;
-        _divisionsU = divisionsU;
-
-        int divisionsV = _divisionsV;
-        step = RhinoGet.GetInteger("Divisions in V (0 to go by spacing, or by the edges)", true, ref divisionsV, 0, 10000);
-        if (step != Result.Success) return step;
-        _divisionsV = divisionsV;
 
         // Step 4: points to run grid lines through.
         step = Pick.SnapPoints(out Point3d[] snapPoints);
@@ -113,7 +88,8 @@ public sealed class OtterSpaceTrussCommand : Command
         if (step != Result.Success) return step;
         _depth = depth;
 
-        // Step 6: how the layers sit. Everything else is detail for the preview.
+        // Step 6: what runs between the layers. Which side is left to the
+        // preview, where the wrong side is obvious and one option away.
         step = Pick.Enum("Space truss type", ref _type);
         if (step != Result.Success) return step;
 
@@ -133,20 +109,7 @@ public sealed class OtterSpaceTrussCommand : Command
 
                 try
                 {
-                    var gridOptions = new SurfaceGridOptions
-                    {
-                        Pattern = _pattern,
-                        DivisionsU = _divisionsU,
-                        DivisionsV = _divisionsV,
-                        SpacingU = _spacingU,
-                        SpacingV = _spacingV,
-                        SnapPoints = snapPoints,
-                        Strictness = _strictness,
-                        Diagonals = _diagonals,
-                        Flip = _flip,
-                        ClipToTrim = _clip,
-                        Tolerance = doc.ModelAbsoluteTolerance,
-                    };
+                    SurfaceGridOptions gridOptions = _grid.ToOptions(snapPoints, doc.ModelAbsoluteTolerance);
 
                     grid = surface is not null
                         ? SurfaceGridGenerator.Generate(surface, gridOptions)
@@ -156,10 +119,6 @@ public sealed class OtterSpaceTrussCommand : Command
                     {
                         Depth = _depth,
                         Type = _type,
-                        Web = _web,
-                        FlipWeb = _flipWeb,
-                        GenerateEndPosts = _endPosts,
-                        DepthAlong = _depthAlong,
                         FlipDepth = _flipDepth,
                     });
                 }
@@ -182,24 +141,13 @@ public sealed class OtterSpaceTrussCommand : Command
                     $"{Naming.Humanise(_type)} space truss, {grid.PanelsU} by {grid.PanelsV}, "
                     + $"{truss.Members.Count} members — accept?");
 
+                // The truss's own three first, then the grid's, only where
+                // they apply.
                 int accept = getter.AddOption("Accept");
-                int changeDepth = getter.AddOption("Depth");
-                int changeType = getter.AddOption("Type");
-                int changeWeb = getter.AddOption("Web");
-                int changeFlipWeb = getter.AddOption("FlipWeb", _flipWeb ? "Yes" : "No");
-                int changeEnds = getter.AddOption("EndPosts", _endPosts ? "Yes" : "No");
-                int changeDepthAlong = getter.AddOption("DepthAlong");
+                int changeDepth = getter.AddOption("Depth", _depth.ToString("0.###"));
+                int changeType = getter.AddOption("Type", _type.ToString());
                 int changeFlipDepth = getter.AddOption("FlipDepth", _flipDepth ? "Yes" : "No");
-                int changePattern = getter.AddOption("Pattern");
-                int changeU = getter.AddOption("DivisionsU");
-                int changeV = getter.AddOption("DivisionsV");
-                int swap = getter.AddOption("SwapUV");
-                int changeSpacingU = getter.AddOption("SpacingU");
-                int changeSpacingV = getter.AddOption("SpacingV");
-                int changeDiagonals = getter.AddOption("Diagonals");
-                int changeFlip = getter.AddOption("Flip", _flip ? "Yes" : "No");
-                int changeStrictness = getter.AddOption("Strictness");
-                int changeClip = getter.AddOption("ClipToTrim", _clip ? "Yes" : "No");
+                _grid.Offer(getter, snapPoints.Length > 0, grid.IsTrimmed);
                 getter.AcceptNothing(true);   // Enter accepts
 
                 GetResult result = getter.Get();
@@ -225,66 +173,13 @@ public sealed class OtterSpaceTrussCommand : Command
                 {
                     Pick.Enum("Space truss type", ref _type);
                 }
-                else if (chosen == changeWeb)
-                {
-                    Pick.Enum("Web pattern of an aligned truss", ref _web);
-                }
-                else if (chosen == changeFlipWeb)
-                {
-                    _flipWeb = !_flipWeb;
-                }
-                else if (chosen == changeEnds)
-                {
-                    _endPosts = !_endPosts;
-                }
-                else if (chosen == changeDepthAlong)
-                {
-                    Pick.Enum("Measure the depth along", ref _depthAlong);
-                }
                 else if (chosen == changeFlipDepth)
                 {
                     _flipDepth = !_flipDepth;
                 }
-                else if (chosen == changePattern)
+                else
                 {
-                    Pick.Enum("Grid pattern", ref _pattern);
-                }
-                else if (chosen == changeDiagonals)
-                {
-                    Pick.Enum("Diagonals of a triangulated grid", ref _diagonals);
-                }
-                else if (chosen == changeStrictness)
-                {
-                    Pick.Enum("Snap strictness", ref _strictness);
-                }
-                else if (chosen == changeFlip)
-                {
-                    _flip = !_flip;
-                }
-                else if (chosen == changeClip)
-                {
-                    _clip = !_clip;
-                }
-                else if (chosen == swap)
-                {
-                    (_divisionsU, _divisionsV) = (_divisionsV, _divisionsU);
-                    (_spacingU, _spacingV) = (_spacingV, _spacingU);
-                }
-                else if (chosen == changeU)
-                {
-                    AskDivisions("Divisions in U", ref _divisionsU);
-                }
-                else if (chosen == changeV)
-                {
-                    AskDivisions("Divisions in V", ref _divisionsV);
-                }
-                else if (chosen == changeSpacingU)
-                {
-                    AskSpacing("Panel spacing in U", ref _spacingU, ref _divisionsU);
-                }
-                else if (chosen == changeSpacingV)
-                {
-                    AskSpacing("Panel spacing in V", ref _spacingV, ref _divisionsV);
+                    _grid.Handle(chosen);
                 }
             }
         }
@@ -293,25 +188,6 @@ public sealed class OtterSpaceTrussCommand : Command
             conduit.Enabled = false;
             doc.Views.Redraw();
         }
-    }
-
-    private static void AskDivisions(string prompt, ref int divisions)
-    {
-        int value = divisions;
-        if (RhinoGet.GetInteger(prompt, true, ref value, 0, 10000) == Result.Success)
-            divisions = value;
-    }
-
-    private static void AskSpacing(string prompt, ref double spacing, ref int divisions)
-    {
-        double value = spacing;
-        if (RhinoGet.GetNumber(prompt, true, ref value, 0.0, 1e9) != Result.Success) return;
-
-        spacing = value;
-
-        // Divisions override spacing, so somebody who has just typed a spacing
-        // would otherwise see nothing change.
-        if (spacing > 0.0) divisions = 0;
     }
 
     private static void ShowPreview(WireframePreviewConduit conduit, SpaceTruss truss)

@@ -1,5 +1,6 @@
 using System.Drawing;
 using OtterLogic.Core;
+using OtterLogic.StructuralForm;
 using Rhino;
 using Rhino.Commands;
 using Rhino.DocObjects;
@@ -118,6 +119,71 @@ internal static class Pick
             .ToArray();
 
         return Result.Success;
+    }
+}
+
+/// <summary>
+/// Typed answers, shared by the commands that start from numbers rather than
+/// from geometry in the document.
+/// <para>
+/// Lifted out when the second grid command needed the same two questions as
+/// the first. The spacing prompt in particular re-asks on a typo instead of
+/// failing the command, and that is the kind of thing that gets fixed in one
+/// copy and not the other.
+/// </para>
+/// </summary>
+internal static class Ask
+{
+    /// <summary>
+    /// A point, with Enter taking <paramref name="fallback"/>. For an origin
+    /// or a centre, where the construction plane's origin is a fine answer and
+    /// making the user click it would be a click for nothing.
+    /// </summary>
+    internal static Result Point(string prompt, Point3d fallback, out Point3d point)
+    {
+        point = fallback;
+
+        using var getter = new GetPoint();
+        getter.SetCommandPrompt($"{prompt}, or press Enter for the construction plane origin");
+        getter.AcceptNothing(true);
+
+        GetResult result = getter.Get();
+
+        if (result == GetResult.Nothing)
+            return Result.Success;
+
+        if (result != GetResult.Point)
+            return getter.CommandResult();
+
+        point = getter.Point();
+        return Result.Success;
+    }
+
+    /// <summary>
+    /// A run of bay spacings typed as text, in the notation
+    /// <see cref="Spacings"/> reads: <c>6000</c> or <c>3x6000, 8000</c>. The
+    /// remembered value is the default, shown in the collapsed form it was
+    /// typed in; a string that does not parse is explained and asked again
+    /// rather than ending the command, because a typo in a list is the
+    /// commonest mistake here and Esc is still one key away.
+    /// </summary>
+    internal static Result Bays(string prompt, ref IReadOnlyList<double> value)
+    {
+        while (true)
+        {
+            string text = Spacings.Describe(value);
+
+            Result step = RhinoGet.GetString($"{prompt} (6000, or 3x6000, 8000)", true, ref text);
+            if (step != Result.Success) return step;
+
+            if (Spacings.TryParse(text, out IReadOnlyList<double> parsed, out string? error))
+            {
+                value = parsed;
+                return Result.Success;
+            }
+
+            RhinoApp.WriteLine(error);
+        }
     }
 }
 
