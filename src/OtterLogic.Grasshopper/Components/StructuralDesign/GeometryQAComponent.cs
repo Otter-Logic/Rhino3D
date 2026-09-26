@@ -17,6 +17,11 @@ namespace OtterLogic.Grasshopper.Components.StructuralDesign;
 /// here curves become end points, surfaces become boundary corners, and each issue
 /// is handed back with the geometry it involves.
 /// </para>
+/// <para>
+/// Counts, Elements and Element Issue Count came off on 2026-09-26: a count is the
+/// length of a Findings branch, the elements are what Geometry holds, and the
+/// per-element count is whether Element Issues is empty.
+/// </para>
 /// </summary>
 public sealed class GeometryQAComponent : GH_Component
 {
@@ -49,6 +54,7 @@ public sealed class GeometryQAComponent : GH_Component
 
     public override Guid ComponentGuid => new("2c07ce03-c715-4473-900f-a1c63aa001c9");
 
+    // The first step, beside the engine: geometry in, what is wrong with it out.
     public override GH_Exposure Exposure => GH_Exposure.primary;
 
     protected override Bitmap? Icon => EmbeddedIcons.Load("geometryqa", 24);
@@ -80,27 +86,20 @@ public sealed class GeometryQAComponent : GH_Component
 
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
-        pManager.AddTextParameter("Summary", "S",
-            "The whole check in words: every issue type found, most serious first, with each finding. Read it in a panel.",
+        pManager.AddTextParameter("Report", "Rp",
+            "The whole check in words: every issue type found, most serious first, how many of each, and each "
+            + "finding. Read it in a panel.",
             GH_ParamAccess.item);
 
         pManager.AddTextParameter("Issue Types", "T",
-            "Every type of issue found, most serious first. Item k here is branch {k} of every tree output — wire a "
-            + "slider into the Path of a Tree Branch on Geometry to step through the types, or Explode Tree to give "
-            + "each type its own preview colour.",
+            "Every type of issue found, most serious first. Item k here is branch {k} of Geometry, Locations and "
+            + "Findings — wire a slider into the Path of a Tree Branch on Geometry to step through the types, or "
+            + "Explode Tree to give each type its own preview colour.",
             GH_ParamAccess.list);
-
-        pManager.AddIntegerParameter("Counts", "N",
-            "How many findings of each issue type, matching Issue Types.", GH_ParamAccess.list);
 
         pManager.AddGeometryParameter("Geometry", "G",
             "One branch per issue type: every line and surface face involved, each once. Wire into a Custom Preview "
             + "to see all the elements with that problem at once.",
-            GH_ParamAccess.tree);
-
-        pManager.AddIntegerParameter("Elements", "E",
-            "One branch per issue type: the indices of the elements involved, matching Geometry — lines first, "
-            + "then surface faces.",
             GH_ParamAccess.tree);
 
         pManager.AddPointParameter("Locations", "L",
@@ -111,11 +110,8 @@ public sealed class GeometryQAComponent : GH_Component
 
         pManager.AddTextParameter("Element Issues", "EI",
             "Per element, in the order the elements came in — lines first, then surface faces: which types of issue "
-            + "it has, such as \"near miss; off level\". Empty for an element with none.",
+            + "it has, such as \"near miss; off level\". Empty for a clean element — colour the model by it.",
             GH_ParamAccess.list);
-
-        pManager.AddIntegerParameter("Element Issue Count", "EC",
-            "Per element, how many findings involve it. Zero is clean — colour the model by it.", GH_ParamAccess.list);
     }
 
     protected override void SolveInstance(IGH_DataAccess da)
@@ -173,20 +169,19 @@ public sealed class GeometryQAComponent : GH_Component
         if (blocking > 0)
             AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
                 $"{blocking} issue(s) likely to stop an analysis — separate parts, near misses, ends with no node, "
-                + "missing supports. See Summary.");
+                + "missing supports. See Report.");
         else if (result.Issues.Count > 0)
             AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
-                $"{result.Issues.Count} issue(s) worth a look, none likely to stop an analysis. See Summary.");
+                $"{result.Issues.Count} issue(s) worth a look, none likely to stop an analysis. See Report.");
 
         foreach (string note in result.Notes)
             AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, note);
 
         // One branch per issue type, the same branch number in every tree, so item k of
-        // Issue Types, Counts and branch {k} of Geometry, Elements, Locations and
-        // Findings all describe the same type.
+        // Issue Types and branch {k} of Geometry, Locations and Findings all describe
+        // the same type.
         var groups = result.Groups();
         var geometry = new DataTree<GeometryBase>();
-        var elements = new DataTree<int>();
         var locations = new DataTree<Point3d>();
         var findings = new DataTree<string>();
 
@@ -194,10 +189,7 @@ public sealed class GeometryQAComponent : GH_Component
         {
             var path = new GH_Path(k);
             foreach (int e in groups[k].Elements)
-            {
-                elements.Add(e, path);
                 geometry.Add(e < result.LineCount ? curves[e] : faces[e - result.LineCount], path);
-            }
 
             foreach (var issue in groups[k].Issues)
             {
@@ -206,20 +198,16 @@ public sealed class GeometryQAComponent : GH_Component
             }
 
             // A kind whose findings involve no element — a support at no node — still
-            // gets its branches, so branch k stays type k.
+            // gets its branch, so branch k stays type k.
             geometry.EnsurePath(path);
-            elements.EnsurePath(path);
         }
 
         da.SetData(0, result.Summary());
         da.SetDataList(1, groups.Select(g => g.Name));
-        da.SetDataList(2, groups.Select(g => g.Count));
-        da.SetDataTree(3, geometry);
-        da.SetDataTree(4, elements);
-        da.SetDataTree(5, locations);
-        da.SetDataTree(6, findings);
-        da.SetDataList(7, result.IssueLabels());
-        da.SetDataList(8, result.IssuesPerElement());
+        da.SetDataTree(2, geometry);
+        da.SetDataTree(3, locations);
+        da.SetDataTree(4, findings);
+        da.SetDataList(5, result.IssueLabels());
 
         Message = result.Issues.Count == 0 ? "clean" : $"{result.Issues.Count} issues\n{groups.Count} type(s)";
     }

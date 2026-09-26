@@ -4,7 +4,6 @@ using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
-using Rhino.Geometry;
 using OtterLogic.StructuralDesign;
 using OtterLogic.Unsupervised.Clustering;
 
@@ -17,6 +16,11 @@ namespace OtterLogic.Grasshopper.Components.StructuralDesign;
 /// Adapter only. The grouping is <see cref="SixDofBehaviourClassifier.Classify(IReadOnlyList{double}, IReadOnlyList{double}, IReadOnlyList{double}, IReadOnlyList{double}, IReadOnlyList{double}, IReadOnlyList{double}, SixDofClassificationOptions?)"/>;
 /// here the lists are unpacked and the answer packed back, with any geometry
 /// wired alongside carried through the same grouping.
+/// </para>
+/// <para>
+/// Indices, Centres, Projection and the Model text came off on 2026-09-26. Indices
+/// is Group inverted, and the other three are how the answer was reached rather
+/// than the answer; Report still carries all of them.
 /// </para>
 /// </summary>
 public sealed class SixDofBehaviourClassifierComponent : GH_Component
@@ -52,7 +56,8 @@ public sealed class SixDofBehaviourClassifierComponent : GH_Component
 
     public override Guid ComponentGuid => new("8e2f4a61-c3d7-4b95-a0e8-5f1b7d29c64e");
 
-    public override GH_Exposure Exposure => GH_Exposure.primary;
+    // The third step, and the only tool in the panel that needs analysis results.
+    public override GH_Exposure Exposure => GH_Exposure.tertiary;
 
     protected override Bitmap? Icon => EmbeddedIcons.Load("sixdofclassifier", 24);
 
@@ -106,26 +111,19 @@ public sealed class SixDofBehaviourClassifierComponent : GH_Component
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
         pManager.AddIntegerParameter("Group", "G",
-            "The group of each element, in the order they came in; -1 for an element left unassigned.",
+            "The group of each element, in the order they came in; -1 for an element left unassigned. Groups are "
+            + "numbered largest first, and groups made for unassigned elements follow the rest.",
             GH_ParamAccess.list);
 
-        pManager.AddIntegerParameter("Indices", "I",
-            "One branch per group, largest first, holding the index of each element in it. Groups made for "
-            + "unassigned elements follow the rest.",
-            GH_ParamAccess.tree);
-
         pManager.AddGenericParameter("Grouped Geometry", "GG",
-            "The Geometry input sorted like Indices. Empty when nothing was wired there.",
+            "The Geometry input sorted into the groups, one branch per group, numbered like Group. Empty when "
+            + "nothing was wired there.",
             GH_ParamAccess.tree);
 
         pManager.AddNumberParameter("Confidence", "C",
             "How firmly each element belongs to its group, in the chosen model's own terms; zero for an element "
             + "the model left unassigned.",
             GH_ParamAccess.list);
-
-        pManager.AddNumberParameter("Centres", "Ce",
-            "One branch per group: the mean of each of the six values across its elements, Fx to Mz.",
-            GH_ParamAccess.tree);
 
         pManager.AddNumberParameter("Minimum", "Min",
             "One branch per group: the smallest of each of the six values across its elements, Fx to Mz.",
@@ -136,16 +134,9 @@ public sealed class SixDofBehaviourClassifierComponent : GH_Component
             + "Minimum, the envelope the group would be designed or checked for.",
             GH_ParamAccess.tree);
 
-        pManager.AddPointParameter("Projection", "P",
-            "Every element as a point in the three directions the six values vary along most — colour them by "
-            + "Group to see the families.",
-            GH_ParamAccess.list);
-
-        pManager.AddTextParameter("Model", "Mo", "Which model was used.", GH_ParamAccess.item);
-
-        pManager.AddTextParameter("Report", "!",
-            "What was chosen and why, how all three models scored, and each group's range. Wire it to a panel to "
-            + "check the grouping rather than take it on trust.",
+        pManager.AddTextParameter("Report", "Rp",
+            "Which model was chosen and why, how all three scored, and each group's centre and range. Wire it to a "
+            + "panel to check the grouping rather than take it on trust.",
             GH_ParamAccess.item);
     }
 
@@ -225,24 +216,14 @@ public sealed class SixDofBehaviourClassifierComponent : GH_Component
             for (int g = 0; g < members.Length; g++)
                 grouped.AddRange(members[g].Select(i => geometry[i]), new GH_Path(g));
 
-        var projection = result.Projection;
-        var points = Enumerable.Range(0, projection.GetLength(0)).Select(i => new Point3d(
-            projection[i, 0],
-            projection.GetLength(1) > 1 ? projection[i, 1] : 0.0,
-            projection.GetLength(1) > 2 ? projection[i, 2] : 0.0));
-
         Remarks(result);
 
         da.SetDataList(0, result.Labels);
-        da.SetDataTree(1, Trees.FromBuckets(members));
-        da.SetDataTree(2, grouped);
-        da.SetDataList(3, result.Confidence);
-        da.SetDataTree(4, Trees.FromRows(result.Centres));
-        da.SetDataTree(5, Trees.FromRows(result.Minimum));
-        da.SetDataTree(6, Trees.FromRows(result.Maximum));
-        da.SetDataList(7, points);
-        da.SetData(8, ClusterSelection.Name(result.Chosen));
-        da.SetData(9, result.Report());
+        da.SetDataTree(1, grouped);
+        da.SetDataList(2, result.Confidence);
+        da.SetDataTree(3, Trees.FromRows(result.Minimum));
+        da.SetDataTree(4, Trees.FromRows(result.Maximum));
+        da.SetData(5, result.Report());
 
         Message = $"{result.Groups} groups\n{ClusterSelection.Name(result.Chosen)}";
     }

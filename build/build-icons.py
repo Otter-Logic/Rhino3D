@@ -621,6 +621,16 @@ def structuralinsight():
     return i.stroke([(10.2, 8.8), (13.8, 8.8)], 1.3, B)
 
 
+def insightsettings():
+    """The Settings wire of the Structural Design panel: three sliders in a box, and the wire they leave on."""
+    i = Icon()
+    i.stroke(rounded_rect(2, 5, 15, 19, 2), 1.5, K, closed=True)
+    for y, x in ((8.5, 6), (12, 10.5), (15.5, 8)):
+        i.stroke([(4.5, y), (12.5, y)], 1.1, G)
+        i.dot(x, y, 1.5, B)
+    return i.arrow((15.5, 12), (23, 12), 1.8, K, 3)
+
+
 def paneltypology():
     i = Icon()
     kinds = ((B, O, B), (O, B, B))
@@ -952,7 +962,7 @@ ICONS = {f.__name__: f for f in (
     covariancetype, linkage, clustermethod, learner, unplacedpolicy,
     graph, graphfrompoints, graphfromlines, visibilitygraph, otterpath, graphmethod, graphfromconnectivity, deconstructgraph,
     shortestpaths, astar, breadthfirst, betweenness, cutvertices, connectedpieces, dependencylevels, potentialflow,
-    geometryqa, gridlevelinference, sixdofclassifier, structuralinsight,
+    geometryqa, gridlevelinference, sixdofclassifier, structuralinsight, insightsettings,
     paneltypology, connectiontypology, jointsignature,
     erectionsequence, dropanimation,
     describegeometry, nodefeatures, describemember,

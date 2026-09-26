@@ -46,6 +46,13 @@ shares the value rather than copying it, `ToString` is the record's `Describe()`
 and two wires carrying the same settings compare equal. Their parameters are
 `Parameters/MachineLearning/ClusterMethodParameter` and `LearnerParameter`.
 
+`GH_InsightSettings` is the Structural Design panel's settings on a wire: a
+`StructuralInsightOptions` record from StructuralDesign, made by Insight Settings
+and read by the Structural Insight Engine, which overrides Tolerance and Groups
+from its own inputs. Same rules as the method wires; its parameter is
+`Parameters/StructuralDesign/InsightSettingsParameter`, hidden from the ribbon.
+The reasoning is in `docs/structural-design-components.md`.
+
 Rule of thumb: only wrap what a *user* would plug into another component. Plain
 values (numbers, meshes, points) already have Grasshopper types — don't reinvent
 them.

@@ -48,7 +48,8 @@ public sealed class DescribeMemberComponent : GH_Component
 
     public override Guid ComponentGuid => new("b82184d3-14b2-452c-85e9-eccb1c73ac8f");
 
-    public override GH_Exposure Exposure => GH_Exposure.primary;
+    // The second step: the detail behind the engine's answer, for whoever wants the tables.
+    public override GH_Exposure Exposure => GH_Exposure.secondary;
 
     public override IEnumerable<string> Keywords => new[] { "member", "features", "table", "level", "assembly", "load path", "flow" };
 
@@ -104,12 +105,9 @@ public sealed class DescribeMemberComponent : GH_Component
         pManager.AddTextParameter("Member Feature Names", "MN", "What each value of a Member Features branch is.", GH_ParamAccess.list);
 
         pManager.AddIntegerParameter("Member", "M",
-            "Per element, the member it is a piece of. Members are numbered by their lowest element.",
+            "Per element, the member it is a piece of. Members are numbered by their lowest element, and the "
+            + "number is the branch of Member Features and the item of Member Curves.",
             GH_ParamAccess.list);
-
-        pManager.AddIntegerParameter("Members", "Ms",
-            "One branch per member, holding its elements' indices in order along it.",
-            GH_ParamAccess.tree);
 
         pManager.AddCurveParameter("Member Curves", "MC",
             "One curve per member: the polyline through its joints in order — a whole chord in one piece, "
@@ -197,12 +195,9 @@ public sealed class DescribeMemberComponent : GH_Component
         foreach (string note in reading.Notes)
             AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, note);
 
-        var members = new DataTree<int>();
         var memberCurves = new List<Curve>(reading.MemberCount);
         for (int m = 0; m < reading.MemberCount; m++)
         {
-            members.AddRange(reading.Members.Elements[m], new GH_Path(m));
-
             var run = reading.Members.Run[m];
             var points = run.Select(j => new Point3d(reading.Structure.Joints[j].X, reading.Structure.Joints[j].Y, reading.Structure.Joints[j].Z)).ToList();
             if (reading.Members.Closed[m] && points.Count > 1)
@@ -226,13 +221,12 @@ public sealed class DescribeMemberComponent : GH_Component
         da.SetDataTree(2, Trees.FromRows(reading.MemberFeatures()));
         da.SetDataList(3, ModelReading.MemberFeatureNames);
         da.SetDataList(4, reading.Members.Of);
-        da.SetDataTree(5, members);
-        da.SetDataList(6, memberCurves);
-        da.SetDataList(7, reading.Assembly());
-        da.SetDataList(8, reading.Level());
-        da.SetDataList(9, reading.Paths.ElementFlow);
-        da.SetDataList(10, reading.Orientation.Select(o => Naming.Humanise(o)));
-        da.SetDataList(11, report);
+        da.SetDataList(5, memberCurves);
+        da.SetDataList(6, reading.Assembly());
+        da.SetDataList(7, reading.Level());
+        da.SetDataList(8, reading.Paths.ElementFlow);
+        da.SetDataList(9, reading.Orientation.Select(o => Naming.Humanise(o)));
+        da.SetDataList(10, report);
 
         Message = reading.Paths.Traced
             ? $"{reading.MemberCount} members\n{reading.Paths.Levels + 1} levels"

@@ -266,6 +266,7 @@
     <EmbeddedResource Include="..\..\assets\icons\sixdofclassifier.png" LogicalName="OtterLogic.Icons.sixdofclassifier.png" />
     <EmbeddedResource Include="..\..\assets\icons\spectralclustering.png" LogicalName="OtterLogic.Icons.spectralclustering.png" />
     <EmbeddedResource Include="..\..\assets\icons\structuralinsight.png" LogicalName="OtterLogic.Icons.structuralinsight.png" />
+    <EmbeddedResource Include="..\..\assets\icons\insightsettings.png" LogicalName="OtterLogic.Icons.insightsettings.png" />
     <EmbeddedResource Include="..\..\assets\icons\unplacedpolicy.png" LogicalName="OtterLogic.Icons.unplacedpolicy.png" />
     <EmbeddedResource Include="..\..\assets\icons\visibilitygraph.png" LogicalName="OtterLogic.Icons.visibilitygraph.png" />
     <EmbeddedResource Include="..\..\assets\icons\otterpath.png" LogicalName="OtterLogic.Icons.otterpath.png" />

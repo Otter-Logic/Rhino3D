@@ -26,8 +26,9 @@ public sealed class UnplacedPolicyList : EnumValueList<UnplacedPolicy>
     {
     }
 
-    // Below the tools in the panel: it is wired into one, so nobody goes looking for it first.
-    public override GH_Exposure Exposure => GH_Exposure.secondary;
+    // Below every tool, in the dropdown tier: it is wired into the 6DOF Behaviour
+    // Classifier, so nobody goes looking for it first.
+    public override GH_Exposure Exposure => GH_Exposure.quarternary;
 
     public override Guid ComponentGuid => new("3b8d5e0f-6a2c-4f71-9d3e-b5c8a1e47f26");
 

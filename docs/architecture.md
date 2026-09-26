@@ -152,9 +152,13 @@ The panels split into two families, and a user only ever needs one of them.
 
 - **Document** — reading layers and objects out of the Rhino document.
 - **Structural Form** — trusses, frames, discrete structural layouts.
-- **Structural Design** — tools that act on analysis results rather than
-  producing geometry. Foundation and Beam End Plate Design Grouping today;
-  deflection surrogates and section sizers as they arrive.
+- **Structural Design** — reading a structural model, before and after
+  analysis. Cut by step since 2026-09-26: `primary` geometry in, answers out
+  (Structural Insight Engine, Geometry QA); `secondary` more detail or control
+  (Describe Member, Grid and Level Inference, Insight Settings); `tertiary`
+  the one tool that needs forces (6DOF Behaviour Classifier); `quarternary`
+  the dropdowns. The reasoning is in
+  [structural-design-components.md](structural-design-components.md).
 - **Form Finding** — relaxation and equilibrium. Empty; to be designed.
 - **Fabrication** — unrolling, nesting, toolpaths.
 
