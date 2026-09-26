@@ -433,7 +433,7 @@ internal sealed class DataTableEditor : Dialog<bool>
             DataCell = new TextBoxCell
             {
                 TextAlignment = TextAlignment.Right,
-                Binding = Binding.Delegate<Row, string>(r => (r.Index + 1).ToString()),
+                Binding = Binding.Delegate<Row, string>(r => r.Index.ToString()),
             },
         });
 
@@ -761,7 +761,7 @@ internal sealed class DataTableEditor : Dialog<bool>
 
         var dialog = new Dialog<bool>
         {
-            Title = columns.Length > 1 ? $"Columns {primary + 1} and {columns.Length - 1} more" : $"Column {primary + 1}",
+            Title = columns.Length > 1 ? $"Columns {primary} and {columns.Length - 1} more" : $"Column {primary}",
             Padding = new Padding(12),
             DefaultButton = ok,
             AbortButton = cancel,
